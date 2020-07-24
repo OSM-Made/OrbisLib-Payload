@@ -1,10 +1,9 @@
-#include <stdint.h>
-#include <stdarg.h>
-
-#include "../include/FreeBSD.h"
+#include "Main.hpp"
+#include "Util/Resolver/Resolver.hpp"
 
 extern "C" void _main(void) 
 {
-	net_disable_copy_checks();
-	printf("Hello from kernel ELF CPP!\n");
+	Install_Patches();
+	
+	//printf("Hello from C++ Kernel land!!\n");
 }
