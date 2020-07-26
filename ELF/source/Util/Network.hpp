@@ -137,21 +137,20 @@ enum {
 	SCE_NET_SOCKET_ABORT_FLAG_SND_PRESERVATION	= 0x00000002
 };
 
+#define IP(a, b, c, d) (((a) << 0) + ((b) << 8) + ((c) << 16) + ((d) << 24))
+
 extern int net_errno;
 
-void net_disable_copy_checks();
-void net_enable_copy_checks();
-int net_socket(int domain, int type, int protocol);
-int net_connect(int sockfd, struct sockaddr *addr, int addrlen);
-int net_bind(int sockfd, struct sockaddr *addr, int addrlen);
-int net_listen(int sockfd, int backlog);
-int net_accept(int sockfd, struct sockaddr *addr, int *addrlen);
-int net_recv(int fd, void *buf, uint64_t len);
-int net_send(int fd, const void *buf, uint64_t len);
-int net_setsockopt(int s, int level, int optname, const void *optval, uint32_t optlen);
-int net_close(int fd);
+int sys_socket(int domain, int type, int protocol);
+int sys_connect(int sockfd, struct sockaddr *addr, int addrlen);
+int sys_bind(int sockfd, struct sockaddr *addr, int addrlen);
+int sys_listen(int sockfd, int backlog);
+int sys_accept(int sockfd, struct sockaddr *addr, int *addrlen);
+int sys_read(int fd, void *buf, uint64_t len);
+int sys_write(int fd, const void *buf, uint64_t len);
+int sys_setsockopt(int s, int level, int optname, const void *optval, uint32_t optlen);
+int sys_close(int fd);
 int sys_netabort(int fd, int flags) ;
-//int (*net_getsockname)(int sockfd, struct sockaddr *addr, unsigned int *addrlen);
 
 int Send(int Socket, const char* Data, int Length);
 int Receive(int Socket, char* Data, int Size);

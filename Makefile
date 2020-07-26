@@ -1,6 +1,8 @@
 all:	
-	+$(MAKE) -C FTP clean
-	+$(MAKE) -C FTP
+	clear
+	
+	#+$(MAKE) -C FTP clean
+	#+$(MAKE) -C FTP
 	+$(MAKE) -C ELF clean
 	+$(MAKE) -C ELF
 	+$(MAKE) -C Payload clean

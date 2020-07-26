@@ -1,9 +1,13 @@
 #include "Main.hpp"
-#include "Util/Resolver/Resolver.hpp"
 
-extern "C" void _main(void) 
+OrbisLib* kproc = NULL;
+
+extern "C" void _main(uint64_t* p)
 {
 	Install_Patches();
-	
-	//printf("Hello from C++ Kernel land!!\n");
+	ResolveFunctions();
+
+	Log("Hello from Kernel Land!!!");
+
+	kproc = new OrbisLib();
 }

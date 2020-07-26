@@ -62,7 +62,7 @@ int install_orbis(struct thread *td, struct payloadArgs *args) {
 
 
 
-	//TODO: make more modular and move to kernel elf to make patches
+	//TODO: make more modular
 	//================================================================================================================================
 	uint64_t CR0 = __readcr0();
 	__writecr0(CR0 & ~CR0_WP);
@@ -106,12 +106,11 @@ int install_orbis(struct thread *td, struct payloadArgs *args) {
 	//================================================================================================================================
 
 
-
-
 	return install_payload(td, kernbase, args->payload, args->psize);
 }
 
 int _main(void) { //TODO: Make modular for porting to multiple software versions
+
 	syscall(11, install_orbis, OrbisLibElf, OrbisLibElfSize);
 
 	resolveImports();

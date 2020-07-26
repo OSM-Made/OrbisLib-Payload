@@ -4,3 +4,4 @@
 #define SOFTWARE_VERSION_505
 //#define SOFTWARE_VERSION_672
 
+//#define DEBUG
