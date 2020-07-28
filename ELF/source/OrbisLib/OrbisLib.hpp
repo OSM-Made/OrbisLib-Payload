@@ -1,10 +1,13 @@
 #pragma once
 
+#include "OrbisProc.hpp"
+
 class OrbisLib
 {
 private:
     bool IsRunning = false;
     proc* kOrbisProc = 0;
+    OrbisProc* orbisProc;
     int HostIPAddr;
 
     struct ClientThreadArgs
@@ -30,6 +33,11 @@ private:
     struct API_Packet_s
     {
         API_COMMANDS cmd;
+        char ProcName[0x20];
+        union 
+        {
+            
+        };
         
     };
 
@@ -39,5 +47,4 @@ private:
 public:
     OrbisLib();
     ~OrbisLib();
-
 };

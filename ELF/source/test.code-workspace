@@ -6,7 +6,12 @@
 	],
 	"settings": {
 		"files.associations": {
-			"thread": "cpp"
+			"thread": "cpp",
+			"map": "cpp",
+			"typeinfo": "cpp",
+			"system_error": "cpp",
+			"xlocale": "cpp",
+			"xiosbase": "cpp"
 		}
 	}
 }

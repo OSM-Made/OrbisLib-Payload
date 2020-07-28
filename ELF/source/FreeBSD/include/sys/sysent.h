@@ -42,7 +42,7 @@ struct ksiginfo;
 typedef	int	sy_call_t(struct thread *, void *);
 
 /* Used by the machine dependent syscall() code. */
-typedef	void (*systrace_probe_func_t)(u_int32_t, int, struct sysent *, void *,
+typedef	void (*systrace_probe_func_t)(u_int32_t, int, struct sysent *, void *, 
     int);
 
 /*
@@ -108,10 +108,6 @@ struct sysentvec {
 	int		sv_pagesize;	/* pagesize */
 	vm_offset_t	sv_minuser;	/* VM_MIN_ADDRESS */
 	vm_offset_t	sv_maxuser;	/* VM_MAXUSER_ADDRESS */
-#if MIRA_PLATFORM < MIRA_PLATFORM_ORBIS_BSD_355
-	vm_offset_t	sv_usrstack;	/* USRSTACK */
-	vm_offset_t	sv_psstrings;	/* PS_STRINGS */
-#endif
 	int		sv_stackprot;	/* vm protection for stack */
 	register_t	*(*sv_copyout_strings)(struct image_params *);
 	void		(*sv_setregs)(struct thread *, struct image_params *,

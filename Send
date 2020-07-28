@@ -1,0 +1,1 @@
+nc -w 3 192.168.1.142 9020 < "/mnt/a/Console Modding/PS4 Modding/Projects/2020/Test/OrbisLib.bin"

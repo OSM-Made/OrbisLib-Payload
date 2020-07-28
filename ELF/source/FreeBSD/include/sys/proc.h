@@ -566,27 +566,18 @@ struct proc {
 
 	
 	char		*p_patchpath;	/* patch file path */
-	int		p_unk338;
+	int			p_unk338;
 	void		*p_dynlib;      /* Sony Dynlib info */
 
-	// extra stuff
-	#if MIRA_PLATFORM >= MIRA_PLATFORM_ORBIS_BSD_650
-	char            unk348[0x104];
-	#elif MIRA_PLATFORM >= MIRA_PLATFORM_ORBIS_BSD_600
-	char            unk348[0x100];
-	#elif MIRA_PLATFORM >= MIRA_PLATFORM_ORBIS_BSD_550
-	char            unk348[0x104];
-	#elif MIRA_PLATFORM >= MIRA_PLATFORM_ORBIS_BSD_500
-	char            unk348[0x0FC];
-	#elif MIRA_PLATFORM >= MIRA_PLATFORM_ORBIS_BSD_455
-	char            unk348[0x0F4];
-	#elif MIRA_PLATFORM >= MIRA_PLATFORM_ORBIS_BSD_400
-	char            unk348[0x0A0];
-	#elif MIRA_PLATFORM >= MIRA_PLATFORM_ORBIS_BSD_355
-	char            unk348[0x090];
+	#ifdef SOFTWARE_VERSION_505
+	char	unk348[0x48];
+	char 	titleId[0xA]; //0x390
+	char 	unk39A[0xAA];
+	#endif
+	#ifdef SOFTWARE_VERSION_672
+	char	unk348[0x104];
 	#endif
 	
-
 /* The following fields are all copied upon creation in fork. */
 #define	p_startcopy	p_endzero
 	u_int		p_magic;	/* (b) Magic number. */
@@ -634,15 +625,9 @@ struct proc {
 	uint64_t	p_prev_runtime;	/* (c) Resource usage accounting. */
 	struct racct	*p_racct;	/* (b) Resource accounting. */
 
-	
-	#if MIRA_PLATFORM >= MIRA_PLATFORM_ORBIS_BSD_500
-	char            unkA08[0xB0];
-	#elif MIRA_PLATFORM >= MIRA_PLATFORM_ORBIS_BSD_355
-	char            unkA08[0xA8];
-	#else
-	char            unkA08[0x98];
+	#ifdef SOFTWARE_VERSION_505 || SOFTWARE_VERSION_672
+		char		unkA08[0xB0];
 	#endif
-	
 };
 
 #define	p_session	p_pgrp->pg_session

@@ -11,5 +11,5 @@ enum LogType_e
 };
 
 void LogInternal(enum LogType_e LogType, const char* FunctionName, int32_t LineNumber, const char* fmt, ...);
-#define LogDebug(LogType, fmt, ...) LogInternal(LogType, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
+#define DebugLog(LogType, fmt, ...) LogInternal(LogType, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
 #define Log(fmt, ...) LogInternal(LOGTYPE_NONE, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)

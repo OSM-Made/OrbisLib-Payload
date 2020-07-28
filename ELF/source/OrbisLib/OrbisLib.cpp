@@ -1,12 +1,14 @@
 #include "../main.hpp"
+#include "OrbisProc.hpp"
 #include "OrbisLib.hpp"
 
 void OrbisLib::OrbisLibClientThread(void* arg)
 {
-    LogDebug(LOGTYPE_INFO, "Hello from Client Thread :)");
+    DebugLog(LOGTYPE_INFO, "Hello from Client Thread :)");
 
     ClientThreadArgs* clientThreadArgs = (ClientThreadArgs*)arg;
     OrbisLib* orbisLib = clientThreadArgs->orbisLib;
+    OrbisProc* orbisProc = orbisLib->orbisProc;
     int Socket = clientThreadArgs->Socket;
 
     API_Packet_s* Packet = (API_Packet_s*)_malloc(sizeof(API_Packet_s));
@@ -14,13 +16,28 @@ void OrbisLib::OrbisLibClientThread(void* arg)
 
     if (Receive(Socket, (char*)Packet, sizeof(API_Packet_s)))
 	{
-        LogDebug(LOGTYPE_INFO, "API Recieved Command %d", Packet->cmd);
-        
+        DebugLog(LOGTYPE_INFO, "API Recieved Command %d", Packet->cmd);
+
         switch(Packet->cmd)
         {
         default:
-            
+            DebugLog(LOGTYPE_WARN, "Command %d is not Implemented!!", Packet->cmd);
             break;
+
+
+        case API_PROC_GET_LIST:
+            orbisProc->Proc_GetList(Socket);
+            break;
+
+        case API_PROC_ATTACH:
+            orbisProc->Proc_Attach(Socket, Packet->ProcName);
+            break;
+
+        case API_PROC_DETACH:
+            orbisProc->Proc_Detach(Socket);
+            break;
+
+
         }
     }
 
@@ -33,7 +50,7 @@ void OrbisLib::OrbisLibProcThread(void *arg)
 {
     OrbisLib* orbisLib = (OrbisLib*)arg;
 
-    LogDebug(LOGTYPE_INFO, "Hello from kproc :)");
+    DebugLog(LOGTYPE_INFO, "Hello from kproc :)");
 
     //TODO: Start watcher thread to manage proc changes and handle intercepts
     //      Possibly maybe change this to call backs if we can and maybe hook the trap function
@@ -55,7 +72,7 @@ void OrbisLib::OrbisLibProcThread(void *arg)
     sys_bind(ServerSocket, (struct sockaddr *)&servaddr, sizeof(servaddr));
 	sys_listen(ServerSocket, 100);
 
-    LogDebug(LOGTYPE_INFO, "API Start listening on port 6900...");
+    DebugLog(LOGTYPE_INFO, "API Start listening on port 6900...");
 
     while(orbisLib->IsRunning)
     {
@@ -68,7 +85,7 @@ void OrbisLib::OrbisLibProcThread(void *arg)
 
         if (ClientSocket != -1) 
 		{
-			LogDebug(LOGTYPE_INFO, "New Host Connection (%i.%i.%i.%i)", clientaddr.sin_addr.s_addr & 0xFF, (clientaddr.sin_addr.s_addr >> 8) & 0xFF, (clientaddr.sin_addr.s_addr >> 16) & 0xFF, (clientaddr.sin_addr.s_addr >> 24) & 0xFF);
+			DebugLog(LOGTYPE_INFO, "New Host Connection (%i.%i.%i.%i)", clientaddr.sin_addr.s_addr & 0xFF, (clientaddr.sin_addr.s_addr >> 8) & 0xFF, (clientaddr.sin_addr.s_addr >> 16) & 0xFF, (clientaddr.sin_addr.s_addr >> 24) & 0xFF);
 
 			int optval = 1;
 			sys_setsockopt(ClientSocket, SOL_SOCKET, SO_NOSIGPIPE, (void *)&optval, sizeof(int));
@@ -82,23 +99,46 @@ void OrbisLib::OrbisLibProcThread(void *arg)
     }
 
     //kthread_exit();
-    LogDebug(LOGTYPE_NONE, "kproc Exiting!!!");
+    DebugLog(LOGTYPE_NONE, "kproc Exiting!!!");
 	sys_close(ServerSocket);
     kproc_exit(0);
 }
 
 OrbisLib::OrbisLib()
 {
-    LogDebug(LOGTYPE_INFO, "OrbisLib Initialization!!");
+    DebugLog(LOGTYPE_INFO, "Initialization!!");
 
+    //Safety bool to make sure the threads shut down gracefully when needed.
     IsRunning = true;
 
+    //Create OrbisProc class and make sure it has allocated - helper class for API commands for proc's.
+    orbisProc = new OrbisProc();
+    if(orbisProc == NULL)
+    {
+        DebugLog(LOGTYPE_ERR, "Failed to allocate orbisProc class!!");
+        IsRunning = false;
+        return;
+    }
+
+    //Create Proc used to run the API and debugging.
     kproc_create(OrbisLibProcThread, this, &kOrbisProc, 0, 0, "OrbisLib.elf");
+
+    //Make sure the proc was made.
+    if(!kOrbisProc)
+    {
+        DebugLog(LOGTYPE_ERR, "Failed to create OrbisProc!!");
+        IsRunning = false;
+        return;
+    }
+
+    //Set our proc titleID doesnt really do anything is just cool :)
+    strcpy(kOrbisProc->titleId, "OSML10000");
 }
 
 OrbisLib::~OrbisLib()
 {
-    LogDebug(LOGTYPE_INFO, "OrbisLib Destruction!!");
+    DebugLog(LOGTYPE_INFO, "Destruction!!");
     
+    //Signal threads to shutdown.
     IsRunning = false;
 }
