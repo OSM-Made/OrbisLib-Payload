@@ -31,6 +31,9 @@ $(ODIR)/%.o: $(SDIR)/Util/Resolver/%.cpp
 $(ODIR)/%.o: $(SDIR)/OrbisLib/%.cpp
 	$(CC) -c -o $@ $< $(CFLAGS)
 
+$(ODIR)/%.o: $(SDIR)/%.s
+	$(AS) -c -o $@ $< $(SFLAGS)
+
 $(ODIR):
 	@mkdir $@
 

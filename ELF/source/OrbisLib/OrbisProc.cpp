@@ -63,6 +63,7 @@ void OrbisProc::Proc_Attach(int Socket, char* ProcName)
         //TODO: Implement
 
         //clear shell code from last process.
+        //TODO: Implement
 
         //Detach from last process.
         err = kptrace(td, PT_DETACH, CurrentProcessID, (void*)SIGCONT, 0);
@@ -100,7 +101,7 @@ void OrbisProc::Proc_Attach(int Socket, char* ProcName)
 
 void OrbisProc::Proc_Detach(int Socket)
 {
-
+    
 }
 
 void OrbisProc::Proc_Read(int Socket, uint64_t Address, size_t len)
