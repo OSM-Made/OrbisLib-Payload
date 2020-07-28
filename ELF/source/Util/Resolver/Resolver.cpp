@@ -26,7 +26,7 @@ int (*kproc_exit)(int code);
 //kproc_suspend
 //kproc_suspend_check
 int (*kproc_kthread_add)(void (*func)(void *), void *arg, struct proc **procptr, struct thread **tdptr, int flags, int pages, char * procname, const char *fmt, ...);
-
+void (*pause)(const char *wmesg, int timo);
 int (*kthread_add)(void (*func)(void *), void *arg, struct proc *procp, struct thread **newtdpp, int flags, int pages, const char *fmt, ...);
 void (*kthread_exit)(void);
 //void (*kthread_suspend)(thread *td, int timo);
@@ -83,7 +83,7 @@ void ResolveFunctions()
     //kproc_suspend
     //kproc_suspend_check
     kproc_kthread_add = (int(*)(void (*func)(void *), void *arg, struct proc **procptr, struct thread **tdptr, int flags, int pages, char * procname, const char *fmt, ...))resolve(addr_kproc_kthread_add);
-
+    pause = (void(*)(const char *wmesg, int timo))resolve(addr_pause);
     kthread_add = (int(*)(void (*func)(void *), void *arg, struct proc *procp, struct thread **newtdpp, int flags, int pages, const char *fmt, ...))resolve(addr_kthread_add);
     kthread_exit = (void(*)(void))resolve(addr_kthread_exit);
     //kthread_suspend

@@ -40,7 +40,7 @@ extern int (*kproc_exit)(int code);
 //extern kproc_suspend
 //extern kproc_suspend_check
 extern int (*kproc_kthread_add)(void (*func)(void *), void *arg, proc **procptr, thread **tdptr, int flags, int pages, char * procname, const char *fmt, ...);
-
+extern void (*pause)(const char *wmesg, int timo);
 extern int (*kthread_add)(void (*func)(void *), void *arg, proc *procp, thread **newtdpp, int flags, int pages, const char *fmt, ...);
 extern void (*kthread_exit)(void);
 //extern void (*kthread_suspend)(thread *td, int timo);

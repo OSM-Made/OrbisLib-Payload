@@ -43,7 +43,7 @@
 #define addr_kproc_suspend                      0x138110
 #define addr_kproc_suspend_check                0x138240
 #define addr_kproc_kthread_add				    0x138B70
-
+#define addr_pause                              0x3FB920
 #define addr_kthread_add						0x138360
 #define addr_kthread_exit						0x138640
 #define addr_kthread_suspend					0x0

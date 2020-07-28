@@ -10,6 +10,7 @@ void OrbisLib::OrbisLibClientThread(void* arg)
     OrbisLib* orbisLib = clientThreadArgs->orbisLib;
     OrbisProc* orbisProc = orbisLib->orbisProc;
     int Socket = clientThreadArgs->Socket;
+    int Status = 0;
 
     API_Packet_s* Packet = (API_Packet_s*)_malloc(sizeof(API_Packet_s));
 	memset(Packet, 0, sizeof(API_Packet_s));
@@ -24,6 +25,10 @@ void OrbisLib::OrbisLibClientThread(void* arg)
             DebugLog(LOGTYPE_WARN, "Command %d is not Implemented!!", Packet->cmd);
             break;
 
+        case API_TEST_COMMS:
+            Status = 1;
+            Send(Socket, (char*)&Status, sizeof(int));
+            break;
 
         case API_PROC_GET_LIST:
             orbisProc->Proc_GetList(Socket);
