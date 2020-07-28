@@ -24,6 +24,7 @@ private:
         API_PROC_GET_LIST,
         API_PROC_ATTACH,
         API_PROC_DETACH,
+        API_PROC_GET_CURRENT,
         API_PROC_READ,
         API_PROC_WRITE,
         
@@ -36,6 +37,11 @@ private:
         char ProcName[0x20];
         union 
         {
+            struct
+            {
+               uint64_t Address;
+               size_t len;
+            }PROC_RW;
             
         };
         

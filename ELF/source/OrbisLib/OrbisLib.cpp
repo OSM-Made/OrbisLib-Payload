@@ -42,7 +42,17 @@ void OrbisLib::OrbisLibClientThread(void* arg)
             orbisProc->Proc_Detach(Socket);
             break;
 
+        case API_PROC_GET_CURRENT:
+            orbisProc->Proc_GetCurrent(Socket);
+            break;
 
+        case API_PROC_READ:
+            orbisProc->Proc_Read(Socket, Packet->PROC_RW.Address, Packet->PROC_RW.len);
+            break;
+
+        case API_PROC_WRITE:
+            orbisProc->Proc_Write(Socket, Packet->PROC_RW.Address, Packet->PROC_RW.len);
+            break;
         }
     }
 

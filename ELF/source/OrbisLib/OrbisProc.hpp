@@ -3,7 +3,7 @@
 class OrbisProc
 {
 private:
-    char CurrentProc[0x20] = { };
+    char CurrentProcName[0x20] = { };
     bool CurrentlyAttached = false;
     int CurrentProcessID = -1;
 
@@ -15,6 +15,13 @@ private:
         char TitleID[10]; //0x28
     };
 
+    struct RESP_CurrentProc
+    {
+        unsigned int ProcessID; //0x00
+        char ProcName[32]; //0x04
+        char TitleID[10]; //0x24
+    };
+
 public:
     OrbisProc();
     ~OrbisProc();
@@ -22,6 +29,7 @@ public:
     void Proc_GetList(int Socket);
     void Proc_Attach(int Socket, char* ProcName);
     void Proc_Detach(int Socket);
+    void Proc_GetCurrent(int Socket);
     void Proc_Read(int Socket, uint64_t Address, size_t len);
     void Proc_Write(int Socket, uint64_t Address, size_t len);
     

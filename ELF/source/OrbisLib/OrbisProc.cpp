@@ -86,7 +86,7 @@ void OrbisProc::Proc_Attach(int Socket, char* ProcName)
 
         //Reset Data Values
         CurrentProcessID = -1;
-        memset(&CurrentProc[0], 0, sizeof(CurrentProc));
+        memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
         CurrentlyAttached = false;
     }
 
@@ -120,7 +120,7 @@ void OrbisProc::Proc_Attach(int Socket, char* ProcName)
     //Set Current proc attached to.
     CurrentlyAttached = true;
     CurrentProcessID = proc->p_pid;
-    strcpy(CurrentProc, ProcName);
+    strcpy(CurrentProcName, ProcName);
 
     //Notify all current Host instances we have attached to a new proc
     //TODO: Implement... 
@@ -145,7 +145,7 @@ void OrbisProc::Proc_Detach(int Socket)
         return;
     }
 
-    strcpy(ProcName, CurrentProc);
+    strcpy(ProcName, CurrentProcName);
     proc = proc_find_by_name(ProcName);
     if(!proc)
     {
@@ -153,7 +153,7 @@ void OrbisProc::Proc_Detach(int Socket)
 
         //Reset Data Values
         CurrentProcessID = -1;
-        memset(&CurrentProc[0], 0, sizeof(CurrentProc));
+        memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
         CurrentlyAttached = false;
 
         SendStatus(Socket, false);
@@ -179,7 +179,7 @@ void OrbisProc::Proc_Detach(int Socket)
 
      //Reset Data Values
     CurrentProcessID = -1;
-    memset(&CurrentProc[0], 0, sizeof(CurrentProc));
+    memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
     CurrentlyAttached = false;
 
     DebugLog(LOGTYPE_INFO, "Detached from process \"%s\".", ProcName);
@@ -187,9 +187,49 @@ void OrbisProc::Proc_Detach(int Socket)
     SendStatus(Socket, true);
 }
 
+void OrbisProc::Proc_GetCurrent(int Socket)
+{
+    RESP_CurrentProc CurrentProc;
+    proc* proc = proc_find_by_name(CurrentProcName);
+    thread* td = curthread();
+    int err = 0;
+
+    if(!CurrentlyAttached)
+    {
+        DebugLog(LOGTYPE_INFO, "Not currently attached to any process.");
+
+        SendStatus(Socket, false);
+        return;
+    }
+
+    if(!proc)
+    {
+        DebugLog(LOGTYPE_ERR, "Could not find Proc \"%s\".", CurrentProcName);
+
+        //Reset Data Values
+        CurrentProcessID = -1;
+        memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
+        CurrentlyAttached = false;
+
+        SendStatus(Socket, false);
+        return;
+    }
+
+    //Populate the response packet.
+    CurrentProc.ProcessID = CurrentProcessID;
+    strcpy(CurrentProc.ProcName, CurrentProcName);
+    strcpy(CurrentProc.TitleID, proc->titleId);
+
+    //Signal we are attached and we have the data.
+    SendStatus(Socket, true);
+
+    //Send the response Packet
+    Send(Socket, (char*)&CurrentProc, sizeof(RESP_CurrentProc));
+}
+
 void OrbisProc::Proc_Read(int Socket, uint64_t Address, size_t len)
 {
-
+    
 }
 
 void OrbisProc::Proc_Write(int Socket, uint64_t Address, size_t len)
