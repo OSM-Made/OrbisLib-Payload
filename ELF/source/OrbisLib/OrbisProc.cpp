@@ -61,7 +61,7 @@ void OrbisProc::Proc_Attach(int Socket, char* ProcName)
     {
         DebugLog(LOGTYPE_INFO, "Already attached to process %s.", ProcName);
 
-        SendStatus(Socket, false);
+        SendStatus(Socket, true);
         return;
     }
 
@@ -194,6 +194,7 @@ void OrbisProc::Proc_GetCurrent(int Socket)
     thread* td = curthread();
     int err = 0;
 
+    //Make sure were are attached to a process.
     if(!CurrentlyAttached)
     {
         DebugLog(LOGTYPE_INFO, "Not currently attached to any process.");
@@ -202,6 +203,7 @@ void OrbisProc::Proc_GetCurrent(int Socket)
         return;
     }
 
+    //Make sure the process were attached to still exists.
     if(!proc)
     {
         DebugLog(LOGTYPE_ERR, "Could not find Proc \"%s\".", CurrentProcName);
@@ -229,11 +231,137 @@ void OrbisProc::Proc_GetCurrent(int Socket)
 
 void OrbisProc::Proc_Read(int Socket, uint64_t Address, size_t len)
 {
+    proc* proc = proc_find_by_name(CurrentProcName);
+    thread* td = curthread();
+    int err = 0;
+    char* Buffer = 0;
     
+    //Make sure were are attached to a process.
+    if(!CurrentlyAttached)
+    {
+        DebugLog(LOGTYPE_INFO, "Not currently attached to any process.");
+
+        SendStatus(Socket, false);
+        return;
+    }
+    
+    //Make sure the process were attached to still exists.
+    if(!proc)
+    {
+        DebugLog(LOGTYPE_ERR, "Could not find Proc \"%s\".", CurrentProcName);
+
+        //Reset Data Values
+        CurrentProcessID = -1;
+        memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
+        CurrentlyAttached = false;
+
+        SendStatus(Socket, false);
+        return;
+    }
+
+    //Allocate space on the heap to send our read data to the host machine.
+    Buffer = (char*)_malloc(len);
+    if(!Buffer)
+    {
+        DebugLog(LOGTYPE_ERR, "malloc failed to allocate %d bytes.\n", len);
+
+        SendStatus(Socket, false);
+        return;
+    }
+
+    memset(Buffer, 0, len);
+
+    size_t n = 0;
+    err = proc_rw_mem(proc, (void*)Address, len, Buffer, &n, 0);
+    if(err)
+    {
+        DebugLog(LOGTYPE_ERR, "proc_rw_mem couldnt read memory at Address(0x%llX) Size(%d) Error:%d n:%d.\n", Address, len, err, n);
+
+        SendStatus(Socket, false);
+
+        _free(Buffer);
+        return;
+    }
+    
+    //Send a Success Response.
+    SendStatus(Socket, true);
+    
+    //Send Data Read.
+    Send(Socket, Buffer, len);
+    
+    //Clean up.
+    _free(Buffer);
 }
 
 void OrbisProc::Proc_Write(int Socket, uint64_t Address, size_t len)
 {
+    proc* proc = proc_find_by_name(CurrentProcName);
+    thread* td = curthread();
+    int err = 0;
+    char* Buffer = 0;
+    
+    //Make sure were are attached to a process.
+    if(!CurrentlyAttached)
+    {
+        DebugLog(LOGTYPE_INFO, "Not currently attached to any process.");
 
+        SendStatus(Socket, false);
+        return;
+    }
+    
+    //Make sure the process were attached to still exists.
+    if(!proc)
+    {
+        DebugLog(LOGTYPE_ERR, "Could not find Proc \"%s\".", CurrentProcName);
+
+        //Reset Data Values
+        CurrentProcessID = -1;
+        memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
+        CurrentlyAttached = false;
+
+        SendStatus(Socket, false);
+        return;
+    }
+
+    //Allocate heap space to temporarily sore our data to be written.
+    Buffer = (char*)_malloc(len);
+    if(!Buffer)
+    {
+        DebugLog(LOGTYPE_ERR, "malloc failed to allocate %d bytes.\n", len);
+
+        SendStatus(Socket, false);
+        return;
+    }
+
+    memset(Buffer, 0, len);
+
+    //Send were ready to recive data.
+    SendStatus(Socket, true);
+
+    if(!Receive(Socket, Buffer, len))
+    {
+        DebugLog(LOGTYPE_ERR, "Receive failed to retrieve the memory to write.\n");
+
+        SendStatus(Socket, false);
+    }
+    
+    //Call proc_rw_mem with the write param as 1 to write our data.
+    size_t n = 0;
+    err = proc_rw_mem(proc, (void*)Address, len, Buffer, &n, 1);
+    if(err)
+    {
+        DebugLog(LOGTYPE_ERR, "proc_read_mem couldnt write memory at Address(0x%llX) Size(%d) Error:%d n:%d.\n", Address, len, err, n);
+
+        SendStatus(Socket, false);
+
+        _free(Buffer);
+        return;
+    }
+
+    //Send Successfully written data.
+    SendStatus(Socket, true);
+
+    //Clean up.
+    _free(Buffer);
 }
   

@@ -20,7 +20,8 @@ private:
     {
         NULL_PACKET = 0,
         API_TEST_COMMS,
-
+        
+        /* Proc functions */
         API_PROC_GET_LIST,
         API_PROC_ATTACH,
         API_PROC_DETACH,
@@ -28,7 +29,9 @@ private:
         API_PROC_READ,
         API_PROC_WRITE,
         
-
+        /* Remote Library functions */
+        API_PROC_LOAD_SPRX,
+        API_PROC_UNLOAD_SPRX,
     };
 
     struct API_Packet_s

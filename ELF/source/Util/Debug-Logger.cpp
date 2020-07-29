@@ -2,6 +2,7 @@
 #include "Debug-Logger.hpp"
 
 //[Type][Function:Line] %s
+//TODO: Refactor to use buffer to write to socket on another thread
 
 int DebugMode = 0;
 uint32_t DebugIP = 0;

@@ -30,6 +30,8 @@ void OrbisLib::OrbisLibClientThread(void* arg)
             Send(Socket, (char*)&Status, sizeof(int));
             break;
 
+        /* Proc functions */
+
         case API_PROC_GET_LIST:
             orbisProc->Proc_GetList(Socket);
             break;
@@ -52,6 +54,15 @@ void OrbisLib::OrbisLibClientThread(void* arg)
 
         case API_PROC_WRITE:
             orbisProc->Proc_Write(Socket, Packet->PROC_RW.Address, Packet->PROC_RW.len);
+            break;
+
+        /* Remote Library functions */
+        case API_PROC_LOAD_SPRX:
+            
+            break;
+
+        case API_PROC_UNLOAD_SPRX:
+
             break;
         }
     }
