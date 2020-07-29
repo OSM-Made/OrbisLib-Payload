@@ -4,6 +4,7 @@ DEFAULT REL
 magic: db 'SHEL'
 entry: dq shellcode
 
+thr_initial: dq 0
 ShellCodeComplete: db 0
 CommandIndex: db 0
 ShouldExit: db 0
@@ -16,27 +17,29 @@ flags: dd 0
 pOpt: dd 0
 pRes: dd 0
 ModuleHandle: dq 0
-asceKernelLoadStartModule: dq 0
 
 ;sceKernelStopUnloadModule Variables
 args: dq 0
 argp: dq 0
 handle: dd 0
-Result: dd 0
-asceKernelStopUnloadModule: dq 0
+Result: dq 0
+
 
 ;Addresses
-pThread: dq 0
 libkernel: dq 0
 str_libkernel: db 'libkernel.sprx', 0
 str_libkernelweb: db 'libkernel_web.sprx', 0
 str_libkernelsys: db 'libkernel_sys.sprx', 0
 sceKernelUsleep: dq 0
 str_sceKernelSleep: db 'sceKernelUsleep', 0
+asceKernelLoadStartModule: dq 0
+str_sceKernelLoadStartModule: db 'sceKernelLoadStartModule', 0
+asceKernelStopUnloadModule: dq 0
+str_sceKernelStopUnloadModule: db 'sceKernelStopUnloadModule', 0
 
 shellcode:
-	; load pthread data into fs
-	mov rdi, qword [pThread]
+	; load thr_initial into fs
+	mov rdi, qword [thr_initial]
 	mov rsi, qword [rdi]
 	mov rdi, qword [rsi + 0x1E0]
 	call amd64_set_fsbase
@@ -71,10 +74,23 @@ resolve:
 	mov rdi, qword [libkernel]
 	call sys_dynlib_dlsym
 
+	; resolve sceKernelLoadStartModule
+	lea rdx, [asceKernelLoadStartModule]
+	lea rsi, [str_sceKernelLoadStartModule]
+	mov rdi, qword [libkernel]
+	call sys_dynlib_dlsym
+
+	; resolve sceKernelStopUnloadModule
+	lea rdx, [asceKernelStopUnloadModule]
+	lea rsi, [str_sceKernelStopUnloadModule]
+	mov rdi, qword [libkernel]
+	call sys_dynlib_dlsym
+
 LoopStart:
 	cmp byte[ShouldExit], 1
 	je LoopExit
-
+	
+FirstCall:
 	cmp byte[CommandIndex], 1
 	jne SecondCall
 

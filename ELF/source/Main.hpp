@@ -5,10 +5,12 @@
 
 #include "Util/Types.hpp"
 #include "Util/Settings.hpp"
+#include "Util/Utilites.hpp"
 #include "Util/Heap.hpp"
 #include "Util/Kernel.hpp"
 #include "Util/Resolver/Resolver.hpp"
 #include "Util/Resolver/Patches.hpp"
+#include "Util/Proc.hpp"
 #include "Util/Network.hpp"
 #include "Util/Debug-Logger.hpp"
 #include "OrbisLib/OrbisLib.hpp"

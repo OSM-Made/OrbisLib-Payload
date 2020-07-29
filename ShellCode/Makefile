@@ -1,5 +1,5 @@
-ShellCode = ShellCode.bin
-ShellCodes = ShellCode.s
+ShellCode = OrbisProcHelper.bin
+ShellCodes = OrbisProcHelper.s
 
 all: clean $(ShellCode)
 

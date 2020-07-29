@@ -50,6 +50,7 @@ extern void (*kthread_set_affinity)(const char *tdname, uint64_t prio, uint64_t 
 /* Proc */
 extern int (*proc_kill)(proc *p, char* why);
 extern int (*proc_rwmem)(proc *p, uio *uio);
+extern int (*create_thread)(thread * td, uint64_t ctx, void* start_func, void *arg, char *stack_base, size_t stack_size, char *tls_base, long * child_tid, long * parent_tid, uint64_t flags, uint64_t rtp);
 
 /* ptrace */
 extern int (*kptrace)(thread * td, int req, int pid, void * addr, int data);

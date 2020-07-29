@@ -56,9 +56,14 @@ void OrbisLib::OrbisLibClientThread(void* arg)
             orbisProc->Proc_Write(Socket, Packet->PROC_RW.Address, Packet->PROC_RW.len);
             break;
 
+        case API_PROC_KILL:
+            orbisProc->Proc_Kill(Socket);
+            break;
+
+
         /* Remote Library functions */
         case API_PROC_LOAD_SPRX:
-            
+
             break;
 
         case API_PROC_UNLOAD_SPRX:

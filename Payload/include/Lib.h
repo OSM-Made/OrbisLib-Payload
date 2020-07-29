@@ -72,13 +72,5 @@ int sys_dynlib_dlsym(int loadedModuleID, const char *name, void *destination);
 int sys_dynlib_load_prx(const char *name, int *idDestination);
 void resolveImports();
 
-extern int(*sceNetSocket)(const char *, int, int, int);
-extern int(*sceNetSocketClose)(int);
-extern int(*sceNetConnect)(int, struct sockaddr *, int);
-extern int(*sceNetSend)(int, const void *, size_t, int);
-
 extern int(*sceKernelLoadStartModule)(const char *name, size_t argc, const void *argv, unsigned int flags, int pOpt, int pRes);
-
 extern int(*sceSysUtilSendSystemNotificationWithText)(int messageType, const char* message);
-
-void printf(const char *fmt, ...);

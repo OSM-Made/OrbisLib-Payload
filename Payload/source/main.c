@@ -114,8 +114,7 @@ int _main(void) { //TODO: Make modular for porting to multiple software versions
 	syscall(11, install_orbis, OrbisLibElf, OrbisLibElfSize);
 
 	resolveImports();
-
-	//printf("OrbisLib Loaded!\nMade by OSM\n");
+	
 	sceSysUtilSendSystemNotificationWithText(222, "OrbisLib v2.0 Loaded!\nMade by OSM");
 	return 0;
 }

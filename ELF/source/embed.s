@@ -1,15 +1,15 @@
 .section .rodata
 
-    .global OrbisShellCode
-	.type   OrbisShellCode, @object
+    .global OrbisProcHelper
+	.type   OrbisProcHelper, @object
 	.align  4
 
-OrbisShellCode:
-    .incbin "../ShellCode/ShellCode.bin"
-OrbisShellCodeEnd:
-    .global OrbisShellCodeSize
-    .type   OrbisShellCodeSize, @object
+OrbisProcHelper:
+    .incbin "../ShellCode/OrbisProcHelper.bin"
+OrbisProcHelperEnd:
+    .global OrbisProcHelperSize
+    .type   OrbisProcHelperSize, @object
     .align  4
-OrbisShellCodeSize:
-    .int    OrbisShellCodeEnd - OrbisShellCode
+OrbisProcHelperSize:
+    .int    OrbisProcHelperEnd - OrbisProcHelper
     

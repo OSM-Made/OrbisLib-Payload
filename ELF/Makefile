@@ -3,9 +3,8 @@ AS		:=	gcc
 OBJCOPY	:=	objcopy
 ODIR	:=	build
 SDIR	:=	source
-IDIRS	:=	-I$(LIBPS4)/include -I. -Iinclude -I$(SDIR)/FreeBSD/include -I.
-LDIRS	:=	-L$(LIBPS4) -L. -Llib
-CFLAGS	:=	$(IDIRS) $(LDIRS) -O3 -s -w -std=gnu++11 -fno-builtin -fno-exceptions -fno-asynchronous-unwind-tables -nostartfiles -nostdlib -w -masm=intel -march=btver2 -mtune=btver2 -m64 -mabi=sysv -mcmodel=small -mstackrealign -fPIE
+IDIRS	:=	 -Iinclude -I$(SDIR)/FreeBSD/include -I.
+CFLAGS	:=	$(IDIRS) -O3 -s -w -std=gnu++11 -fno-builtin -fno-exceptions -fno-asynchronous-unwind-tables -nostartfiles -nostdlib -w -masm=intel -march=btver2 -mtune=btver2 -m64 -mabi=sysv -mcmodel=small -mstackrealign -fPIE
 LFLAGS	:=	-Xlinker -T Linker -Wl,--build-id=none -mstackrealign -pie
 CFILES	:=	$(wildcard $(SDIR)/*.cpp)
 SFILES	:=	$(wildcard $(SDIR)/*.s)

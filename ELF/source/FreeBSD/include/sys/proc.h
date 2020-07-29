@@ -490,6 +490,25 @@ do {									\
 #define	TD_SET_RUNNING(td)	(td)->td_state = TDS_RUNNING
 #define	TD_SET_RUNQ(td)		(td)->td_state = TDS_RUNQ
 #define	TD_SET_CAN_RUN(td)	(td)->td_state = TDS_CAN_RUN
+
+struct dynlib
+{
+	dynlib* dynlib_next;		//0x00
+	const char* LibraryPath;	//0x08
+	char _0x010[0x18];
+	int ModuleHandle;			//0x28
+	void* codeBase;				//0x30
+	unsigned int codeSize;		//0x40
+	void* dataBase;				//0x48
+	unsigned int dataSize;		//0x50
+	char _0x058[0xA8];
+}; //Size 0x100
+
+struct dynlibptr
+{
+	dynlib* p_dynlib;
+};
+
  /*
  * Process structure.
  */
@@ -567,7 +586,7 @@ struct proc {
 	
 	char		*p_patchpath;	/* patch file path */
 	int			p_unk338;
-	void		*p_dynlib;      /* Sony Dynlib info */
+	dynlibptr* p_dynlibptr; /* Sony Dynlib info */ //Size 0x100
 
 	#ifdef SOFTWARE_VERSION_505
 	char	unk348[0x48];
@@ -608,7 +627,7 @@ struct proc {
 	u_short		p_xstat;	/* (c) Exit status; also stop sig. */
 	struct knlist	p_klist;	/* (c) Knotes attached to this proc. */
 	int		p_numthreads;	/* (c) Number of threads. */
-	struct mdproc	p_md;		/* Any machine-dependent fields. */
+	struct mdproc*	p_md;		/* Any machine-dependent fields. */
 	struct callout	p_itcallout;	/* (h + c) Interval timer callout. */
 	u_short		p_acflag;	/* (c) Accounting flags. */
 	struct proc	*p_peers;	/* (r) */

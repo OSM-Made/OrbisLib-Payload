@@ -1,17 +1,18 @@
 #include "../main.hpp"
 #include "OrbisProc.hpp"
-#include "../Util/Proc.hpp"
 
 OrbisProc::OrbisProc()
 {
     DebugLog(LOGTYPE_INFO, "Initialization!!");
 
+    orbisShellCode = new OrbisShellCode();
 }
 
 OrbisProc::~OrbisProc()
 {
     DebugLog(LOGTYPE_INFO, "Destruction!!");
 
+    _free(orbisShellCode);
 }
 
 void SendStatus(int Socket, int Status)
@@ -32,7 +33,7 @@ void OrbisProc::Proc_GetList(int Socket)
         memcpy(&ProcList[proc_count].ProcName, allproc->p_comm, strlen(allproc->p_comm) + 1);
         memcpy(&ProcList[proc_count].TitleID, allproc->titleId, 10);
 
-        DebugLog(LOGTYPE_INFO, "#%d-%s-%s-%s", ProcList[proc_count].ProcessID, ProcList[proc_count].Attached ? "True" : "False", ProcList[proc_count].ProcName, ProcList[proc_count].TitleID);
+        //DebugLog(LOGTYPE_INFO, "#%d-%s-%s-%s", ProcList[proc_count].ProcessID, ProcList[proc_count].Attached ? "True" : "False", ProcList[proc_count].ProcName, ProcList[proc_count].TitleID);
 
         proc_count ++;
         allproc = allproc->p_list.le_next;
@@ -72,7 +73,7 @@ void OrbisProc::Proc_Attach(int Socket, char* ProcName)
         //TODO: Implement
 
         //clear shell code from last process.
-        //TODO: Implement
+        orbisShellCode->DestroyShellCode();
 
         //Detach from last process.
         err = kptrace(td, PT_DETACH, CurrentProcessID, (void*)SIGCONT, 0);
@@ -114,8 +115,10 @@ void OrbisProc::Proc_Attach(int Socket, char* ProcName)
         return;
     }
 
+    pause("Client Thread", 200);
+
     //Inject shellcode to help with our proc modifications
-    //TODO:Implement this...
+    orbisShellCode->InstallShellCode(ProcName);
 
     //Set Current proc attached to.
     CurrentlyAttached = true;
@@ -166,7 +169,7 @@ void OrbisProc::Proc_Detach(int Socket)
     //TODO: Implement
 
     //clear shell code from last process.
-    //TODO: Implement
+    orbisShellCode->DestroyShellCode();
 
     err = kptrace(td, PT_DETACH, CurrentProcessID, (void*)SIGCONT, 0);
     if(err)
@@ -365,3 +368,58 @@ void OrbisProc::Proc_Write(int Socket, uint64_t Address, size_t len)
     _free(Buffer);
 }
   
+void OrbisProc::Proc_Kill(int Socket)
+{
+    proc* proc = proc_find_by_name(CurrentProcName);
+    thread* td = curthread();
+    int err = 0;
+    char* Buffer = 0;
+    
+    //Make sure were are attached to a process.
+    if(!CurrentlyAttached)
+    {
+        DebugLog(LOGTYPE_INFO, "Not currently attached to any process.");
+
+        SendStatus(Socket, false);
+        return;
+    }
+    
+    //Make sure the process were attached to still exists.
+    if(!proc)
+    {
+        DebugLog(LOGTYPE_ERR, "Could not find Proc \"%s\".", CurrentProcName);
+
+        //Reset Data Values
+        CurrentProcessID = -1;
+        memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
+        CurrentlyAttached = false;
+
+        SendStatus(Socket, false);
+        return;
+    }
+
+    kpsignal(proc, SIGSTOP);
+    pause("Client Thread", 150);
+    kpsignal(proc, SIGKILL);
+    pause("Client Thread", 150);
+
+    //Clear any breakpoints or watchpoints set.
+    //TODO: Implement
+
+    //clear shell code from last process.
+    //orbisShellCode->DestroyShellCode(); //Probably dont need to do this since were not gracefully shutting down the process
+
+    //Detach from last process.
+    err = kptrace(td, PT_DETACH, CurrentProcessID, (void*)SIGCONT, 0);
+    if(err)
+    {
+        DebugLog(LOGTYPE_ERR, "ptrace PT_DETACH failed %d.", err);
+    }
+
+    //Reset Data Values
+    CurrentProcessID = -1;
+    memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
+    CurrentlyAttached = false;
+
+    SendStatus(Socket, true);
+}

@@ -6,11 +6,10 @@ AS		:=	gcc
 OBJCOPY	:=	objcopy
 ODIR	:=	build
 SDIR	:=	source
-IDIRS	:=	-I$(LIBPS4)/include -I. -Iinclude
-LDIRS	:=	-L$(LIBPS4) -L. -Llib 
+IDIRS	:= -Iinclude
 CFLAGS	:=	$(IDIRS) -O2 -std=c11 -fno-builtin -nostartfiles -nostdlib -Wall -masm=intel -march=btver2 -mtune=btver2 -m64 -mabi=sysv -mcmodel=large -DTEXT_ADDRESS=$(TEXT) -DDATA_ADDRESS=$(DATA)
 SFLAGS	:=	-nostartfiles -nostdlib -march=btver2 -mtune=btver2
-LFLAGS	:=	$(LDIRS) -Xlinker -T ./Linkfile -Wl,--build-id=none -Ttext=$(TEXT) -Tdata=$(DATA)
+LFLAGS	:=	-Xlinker -T ./Linkfile -Wl,--build-id=none -Ttext=$(TEXT) -Tdata=$(DATA)
 CFILES	:=	$(wildcard $(SDIR)/*.c)
 SFILES	:=	$(wildcard $(SDIR)/*.s)
 OBJS	:=	$(patsubst $(SDIR)/%.c, $(ODIR)/%.o, $(CFILES)) $(patsubst $(SDIR)/%.s, $(ODIR)/%.o, $(SFILES))

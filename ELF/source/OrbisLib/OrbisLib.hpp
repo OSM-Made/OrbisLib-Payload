@@ -28,6 +28,7 @@ private:
         API_PROC_GET_CURRENT,
         API_PROC_READ,
         API_PROC_WRITE,
+        API_PROC_KILL,
         
         /* Remote Library functions */
         API_PROC_LOAD_SPRX,

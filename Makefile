@@ -1,6 +1,7 @@
 all:	
 	clear
 	
+	+$(MAKE) -C ShellCode clean
 	+$(MAKE) -C ShellCode
 	+$(MAKE) -C ELF clean
 	+$(MAKE) -C ELF

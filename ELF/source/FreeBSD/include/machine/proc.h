@@ -35,7 +35,8 @@
 
 #include <machine/segments.h>
 
-struct proc_ldt {
+struct proc_ldt 
+{
 	caddr_t ldt_base;
 	int     ldt_refcnt;
 };

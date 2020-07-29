@@ -1,4 +1,5 @@
 #pragma once
+#include "OrbisShellCode.hpp"
 
 class OrbisProc
 {
@@ -6,6 +7,7 @@ private:
     char CurrentProcName[0x20] = { };
     bool CurrentlyAttached = false;
     int CurrentProcessID = -1;
+    OrbisShellCode* orbisShellCode;
 
     struct RESP_ProcList
     {
@@ -32,5 +34,5 @@ public:
     void Proc_GetCurrent(int Socket);
     void Proc_Read(int Socket, uint64_t Address, size_t len);
     void Proc_Write(int Socket, uint64_t Address, size_t len);
-    
+    void Proc_Kill(int Socket);
 };

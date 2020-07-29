@@ -22,5 +22,9 @@ void Install_Patches()
 	*(uint16_t*)resolve(addr_copyout2) = 0x9090;
 	*(uint16_t*)resolve(addr_copyout3) = 0x9090;
 
+	//swword_lwpid check to see if child_tid/parent_tid is in kernel memory
+	*(uint16_t*)resolve(0x1EA9D2) = 0x9090;
+	*(uint16_t*)resolve(0x1EA9E1) = 0x9090;
+
  	__writecr0(CR0);
 }
