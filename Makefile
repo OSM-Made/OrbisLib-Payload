@@ -1,6 +1,8 @@
 all:	
 	clear
-	
+
+	+$(MAKE) -C FTP clean
+	+$(MAKE) -C FTP
 	+$(MAKE) -C ShellCode clean
 	+$(MAKE) -C ShellCode
 	+$(MAKE) -C ELF clean

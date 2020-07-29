@@ -139,11 +139,13 @@ int proc_rw_mem(proc *p, void *ptr, size_t size, void *data, size_t *n, int writ
 	return r;
 }
 
-inline int proc_read_mem(struct proc *p, void *ptr, size_t size, void *data, size_t *n) {
+int proc_read_mem(struct proc *p, void *ptr, size_t size, void *data, size_t *n) 
+{
 	return proc_rw_mem(p, ptr, size, data, n, 0);
 }
 
-inline int proc_write_mem(struct proc *p, void *ptr, size_t size, void *data, size_t *n) {
+int proc_write_mem(struct proc *p, void *ptr, size_t size, void *data, size_t *n) 
+{
 	return proc_rw_mem(p, ptr, size, data, n, 1);
 }
 

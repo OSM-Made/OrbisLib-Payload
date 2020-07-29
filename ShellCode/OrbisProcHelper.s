@@ -13,7 +13,7 @@ ShouldExit: db 0
 ModulePath: db 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 argc: dd 0
 argv: dq 0
-flags: dd 0
+pflags: dd 0
 pOpt: dd 0
 pRes: dd 0
 ModuleHandle: dq 0
@@ -26,15 +26,15 @@ Result: dq 0
 
 
 ;Addresses
+sceKernelUsleep: dq 0
+asceKernelLoadStartModule: dq 0
+asceKernelStopUnloadModule: dq 0
 libkernel: dq 0
 str_libkernel: db 'libkernel.sprx', 0
 str_libkernelweb: db 'libkernel_web.sprx', 0
 str_libkernelsys: db 'libkernel_sys.sprx', 0
-sceKernelUsleep: dq 0
 str_sceKernelSleep: db 'sceKernelUsleep', 0
-asceKernelLoadStartModule: dq 0
 str_sceKernelLoadStartModule: db 'sceKernelLoadStartModule', 0
-asceKernelStopUnloadModule: dq 0
 str_sceKernelStopUnloadModule: db 'sceKernelStopUnloadModule', 0
 
 shellcode:
@@ -94,27 +94,23 @@ FirstCall:
 	cmp byte[CommandIndex], 1
 	jne SecondCall
 
-	mov byte [ShellCodeComplete], 0
 	call sceKernelLoadStartModule
     mov byte [ShellCodeComplete], 1
+	mov byte[CommandIndex], 0
 
 	jmp EndofCase
 SecondCall:
 	cmp byte[CommandIndex], 2
 	jne EndofCase
 	
-	mov byte [ShellCodeComplete], 0
 	call sceKernelStopUnloadModule
     mov byte [ShellCodeComplete], 1
-
-	jmp EndofCase
+	mov byte[CommandIndex], 0
 
 EndofCase:
 	mov rdi, 100000
 	mov r12, qword [sceKernelUsleep]
 	call r12
-
-	mov byte[CommandIndex], 0
 	jmp LoopStart
 
 LoopExit:
@@ -125,30 +121,30 @@ LoopExit:
 
 
 sceKernelStopUnloadModule:
+	mov r9, [pRes]
+	mov r8, [pOpt]
+	mov rcx, [pflags]
+	mov rdx, [argp]
+	mov rsi, [args]
 	mov rdi, [handle]
- 	mov rsi, qword [args]
-	mov rdx, qword [argp]
-	mov rcx, [flags]
-	mov r8, qword [pOpt]
-	mov r9, qword [pRes]
 	mov r12, qword [asceKernelStopUnloadModule]
 	call r12
 	mov qword [Result], rax
 	xor eax, eax
-	ret
+	retn
 
 sceKernelLoadStartModule:
-	mov rdi, qword [ModulePath]
-	mov rsi, [argc]
-	mov rdx, qword [argv]
-	mov rcx, [flags]
-	mov r8, [pOpt]
 	mov r9, [pRes]
-	mov r12, qword [asceKernelLoadStartModule]
+    mov r8, [pOpt]
+    mov rcx, [pflags]
+    mov rdx, [argv]
+    mov rsi, [argc]
+    lea rdi, [ModulePath]
+    mov r12, qword [asceKernelLoadStartModule]
 	call r12
 	mov qword [ModuleHandle], rax
 	xor eax, eax
-	ret
+	retn
 
 sys_dynlib_load_prx:
 	mov rax, 594

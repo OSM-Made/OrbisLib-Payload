@@ -6,8 +6,26 @@ struct payloadArgs {
 	size_t psize;
 };
 
+struct payload_info {
+  	uint8_t* buffer;
+  	size_t size;
+};
+
+struct payload_header {
+  	uint64_t signature;
+  	size_t entrypoint_offset;
+};
+
+struct install_payload_args {
+  void* syscall_handler;
+  struct payload_info* payload_info;
+};
+
 extern uint8_t OrbisLibElf[];
 extern int32_t OrbisLibElfSize;
+
+extern uint8_t OrbisHen[];
+extern int32_t OrbisHenSize;
 
 int install_payload(struct thread *td, uint64_t kernbase, void *payload, size_t psize) {
 	vm_offset_t (*kmem_alloc)(vm_map_t map, vm_size_t size) = (void *)(kernbase + __kmem_alloc);
@@ -109,9 +127,49 @@ int install_orbis(struct thread *td, struct payloadArgs *args) {
 	return install_payload(td, kernbase, args->payload, args->psize);
 }
 
+int install_hen(struct thread *td, struct install_payload_args* args) {
+	uint8_t* kernel_base = (uint8_t*)getkernbase();
+
+		void (*pmap_protect)(void* pmap, uint64_t sva, uint64_t eva, uint8_t pr) = (void*)(kernel_base + 0x2E3090);
+  	void *kernel_pmap_store = (void*)(kernel_base + 0x22CB570);
+
+  	uint8_t* payload_data = args->payload_info->buffer;
+  	size_t payload_size = args->payload_info->size;
+  	struct payload_header* payload_header = (struct payload_header*)payload_data;
+  	uint8_t* payload_buffer = (uint8_t*)&kernel_base[0xB5EF30];
+
+  	if (!payload_data || payload_size < sizeof(payload_header) || payload_header->signature != 0x5041594C4F414458ull)
+  	  	return -1;
+
+  	uint64_t cr0 = __readcr0();
+  	__writecr0(cr0 & ~(1 << 16));
+
+  	memset(payload_buffer, 0, 0x4000);
+  	memcpy(payload_buffer, payload_data, payload_size);
+
+  	uint64_t sss = (uint64_t)payload_buffer & ~0x3FFF;
+  	uint64_t eee = ((uint64_t)payload_buffer + payload_size + 0x3FFF) & ~0x3FFF;
+  	kernel_base[0x2E30D4] = 0xEB;
+  	pmap_protect(kernel_pmap_store, sss, eee, 7);
+  	kernel_base[0x2E30D4] = 0x75;
+
+  	__writecr0(cr0);
+
+  	int (*payload_entrypoint)();
+  	*((void**)&payload_entrypoint) = (void*)(&payload_buffer[payload_header->entrypoint_offset]);
+
+  	return payload_entrypoint();
+}
+
 int _main(void) { //TODO: Make modular for porting to multiple software versions
 
 	syscall(11, install_orbis, OrbisLibElf, OrbisLibElfSize);
+
+	struct payload_info payload_info;
+  	payload_info.buffer = (uint8_t*)OrbisHen;
+  	payload_info.size = (size_t)OrbisHenSize;
+
+	syscall(11, install_hen, &payload_info);
 
 	resolveImports();
 	

@@ -26,5 +26,10 @@ void Install_Patches()
 	*(uint16_t*)resolve(0x1EA9D2) = 0x9090;
 	*(uint16_t*)resolve(0x1EA9E1) = 0x9090;
 
+	//Enable mount for unprivileged user
+	*(uint16_t*)resolve(0x1DEBFE) = 0x9090;
+	*(uint16_t*)resolve(0x1DEBFE + 0x2) = 0x9090;
+	*(uint16_t*)resolve(0x1DEBFE + 0x4) = 0x9090;
+
  	__writecr0(CR0);
 }

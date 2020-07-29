@@ -123,11 +123,11 @@ void OrbisShellCode::InstallShellCode(char* ProcName)
         return;
     }
 
-    DebugLog(LOGTYPE_INFO, "Starting ShellCode Thread.");
     struct thread *thr = TAILQ_FIRST(&proc->p_threads);
 	uint64_t ShellCodeEntry = (uint64_t)gShellCodePtr + *(uint64_t *)(OrbisProcHelper + 4);
 	create_thread(thr, NULL, (void*)ShellCodeEntry, NULL, (char*)gStackPtr, StackSize, NULL, NULL, NULL, 0, NULL);
-    DebugLog(LOGTYPE_INFO, "Started ShellCode Thread.");
+    
+    ShellCodeLoaded = true;
 }
 
 void OrbisShellCode::DestroyShellCode()
@@ -137,12 +137,20 @@ void OrbisShellCode::DestroyShellCode()
     uint8_t ShouldExit = 1;
     size_t n;
 
+    if(!ShellCodeLoaded)
+    {
+        DebugLog(LOGTYPE_INFO, "ShellCode not loaded.");
+
+        return;
+    }
+
     if(!proc)
     {
         DebugLog(LOGTYPE_ERR, "Could not find Proc \"%s\".", ProcName);
 
         gShellCodePtr = NULL;
 	    gStackPtr = NULL;
+        ShellCodeLoaded = false;
 
         return;
     }
@@ -164,10 +172,12 @@ void OrbisShellCode::DestroyShellCode()
 
     gShellCodePtr = NULL;
     gStackPtr = NULL;
+    ShellCodeLoaded = false;
 }
 
-int OrbisShellCode::sceKernelLoadStartModule(struct proc* proc, const char *name, size_t argc, const void *argv, unsigned int flags, int pOpt, int pRes)
+int OrbisShellCode::sceKernelLoadStartModule(const char *name, size_t argc, const void *argv, unsigned int flags, int pOpt, int pRes)
 {
+    proc* proc = proc_find_by_name(ProcName);
 	size_t n = 0;
     int err = 0;
 	uint8_t CommandIndex = CMD_sceKernelLoadStartModule;
@@ -182,7 +192,7 @@ int OrbisShellCode::sceKernelLoadStartModule(struct proc* proc, const char *name
     err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisProcHelper_header, pRes), sizeof(pRes), (void *)&pRes, &n, 1);
     if(err)
     {
-        DebugLog(LOGTYPE_ERR, "Failed to write Data to ShellCode.");
+        DebugLog(LOGTYPE_ERR, "Failed to write params to ShellCode.");
         return 0;
     }
 
@@ -196,7 +206,7 @@ int OrbisShellCode::sceKernelLoadStartModule(struct proc* proc, const char *name
     err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisProcHelper_header, ShellCodeComplete), sizeof(ShellCodeComplete), (void *)&ShellCodeComplete, &n, 1);
 	if(err)
     {
-        DebugLog(LOGTYPE_ERR, "Failed to reset ShellCodeComplete to zero.");
+        DebugLog(LOGTYPE_ERR, "Failed to set ShellCodeComplete to zero.");
         return 0;
     }
 
@@ -215,6 +225,9 @@ int OrbisShellCode::sceKernelLoadStartModule(struct proc* proc, const char *name
             DebugLog(LOGTYPE_ERR, "Failed to read ShellCodeComplete.");
             return 0;
         }
+
+        DebugLog(LOGTYPE_INFO, "Waiting for ShellCode to compelete!");
+        pause("", 100);
 	}
 
     err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisProcHelper_header, ModuleHandle), sizeof(ModuleHandle), (void *)&ModuleHandle, &n, 0);
@@ -225,4 +238,76 @@ int OrbisShellCode::sceKernelLoadStartModule(struct proc* proc, const char *name
     }
 
 	return (int)(ModuleHandle);
+}
+
+int OrbisShellCode::sceKernelStopUnloadModule(int handle, size_t args, const void *argp, uint32_t flags, int* pOpt, int* pRes)
+{
+    proc* proc = proc_find_by_name(ProcName);
+	size_t n = 0;
+    int err = 0;
+	uint8_t CommandIndex = CMD_sceKernelStopUnloadModule;
+    uint8_t ShellCodeComplete = 0;
+    uint64_t Result = 0;
+
+    DebugLog(LOGTYPE_INFO, "handle = %d", handle);
+
+    err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisProcHelper_header, handle), sizeof(handle), (void *)&handle, &n, 1);
+    err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisProcHelper_header, args), sizeof(args), (void *)&args, &n, 1);
+    err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisProcHelper_header, argp), sizeof(argp), (void *)&argp, &n, 1);
+    err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisProcHelper_header, flags), sizeof(flags), (void *)&flags, &n, 1);
+    err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisProcHelper_header, pOpt), sizeof(pOpt), (void *)&pOpt, &n, 1);
+    err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisProcHelper_header, pRes), sizeof(pRes), (void *)&pRes, &n, 1);
+    if(err)
+    {
+        DebugLog(LOGTYPE_ERR, "Failed to write params to ShellCode.");
+        return 0;
+    }
+    DebugLog(LOGTYPE_INFO, "Here");
+    err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisProcHelper_header, Result), sizeof(Result), (void *)&Result, &n, 1);
+	if(err)
+    {
+        DebugLog(LOGTYPE_ERR, "Failed to reset Result to zero.");
+        return 0;
+    }
+    DebugLog(LOGTYPE_INFO, "Here");
+
+    err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisProcHelper_header, ShellCodeComplete), sizeof(ShellCodeComplete), (void *)&ShellCodeComplete, &n, 1);
+	if(err)
+    {
+        DebugLog(LOGTYPE_ERR, "Failed to set ShellCodeComplete to zero.");
+        return 0;
+    }
+
+    DebugLog(LOGTYPE_INFO, "Here");
+
+    err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisProcHelper_header, CommandIndex), sizeof(CommandIndex), (void *)&CommandIndex, &n, 1);
+	if(err)
+    {
+        DebugLog(LOGTYPE_ERR, "Failed to set CommandIndex.");
+        return 0;
+    }
+
+    DebugLog(LOGTYPE_INFO, "Here");
+
+	while (!ShellCodeComplete) 
+	{
+        err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisProcHelper_header, ShellCodeComplete), sizeof(ShellCodeComplete), (void *)&ShellCodeComplete, &n, 0);
+        if(err)
+        {
+            DebugLog(LOGTYPE_ERR, "Failed to read ShellCodeComplete.");
+            return 0;
+        }
+
+        DebugLog(LOGTYPE_INFO, "Waiting for ShellCode to compelete!");
+        pause("", 100);
+	}
+
+    err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisProcHelper_header, Result), sizeof(Result), (void *)&Result, &n, 0);
+    if(err)
+    {
+        DebugLog(LOGTYPE_ERR, "Failed to read Result.");
+        return 0;
+    }
+
+	return (int)(Result);
 }

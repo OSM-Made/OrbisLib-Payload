@@ -9,6 +9,7 @@ private:
     void* gShellCodePtr = NULL;
     void* gStackPtr = NULL;
     size_t gShellCodeSize = 0;
+    bool ShellCodeLoaded = false;
 
     struct OrbisProcHelper_header
     {
@@ -32,6 +33,10 @@ private:
         uint64_t argp;
         int32_t handle;
         uint64_t Result;
+
+        uint64_t sceKernelUsleep;
+        uint64_t asceKernelLoadStartModule;
+        uint64_t asceKernelStopUnloadModule;
     }__attribute__((packed));
 
     enum ShellCodeCommands
@@ -48,6 +53,7 @@ public:
     void InstallShellCode(char* ProcName);
     void DestroyShellCode();
 
-    int sceKernelLoadStartModule(struct proc* proc, const char *name, size_t argc, const void *argv, unsigned int flags, int pOpt, int pRes);
+    int sceKernelLoadStartModule(const char *name, size_t argc, const void *argv, unsigned int flags, int pOpt, int pRes);
+    int sceKernelStopUnloadModule(int handle, size_t args, const void *argp, uint32_t flags, int* pOpt, int* pRes);
 
 };

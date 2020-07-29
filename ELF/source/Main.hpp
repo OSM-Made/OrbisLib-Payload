@@ -13,6 +13,7 @@
 #include "Util/Proc.hpp"
 #include "Util/Network.hpp"
 #include "Util/Debug-Logger.hpp"
+#include "Util/ELFLoader.hpp"
 #include "OrbisLib/OrbisLib.hpp"
 
 extern "C"

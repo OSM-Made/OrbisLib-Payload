@@ -2,6 +2,9 @@
 #include "OrbisProc.hpp"
 #include "OrbisLib.hpp"
 
+extern uint8_t OrbisFTP[];
+extern int32_t OrbisFTPSize;
+
 void OrbisLib::OrbisLibClientThread(void* arg)
 {
     DebugLog(LOGTYPE_INFO, "Hello from Client Thread :)");
@@ -164,6 +167,17 @@ OrbisLib::OrbisLib()
 
     //Set our proc titleID doesnt really do anything is just cool :)
     strcpy(kOrbisProc->titleId, "OSML10000");
+
+    //Start FTP ELF
+    proc* proc = proc_find_by_name("SceRemotePlay");
+	if(proc) 
+	{
+		filedesc* fd = proc->p_fd;
+		fd->fd_rdir = *(vnode**)resolve(addr_rootvnode); //rootvnode
+		fd->fd_jdir = *(vnode**)resolve(addr_rootvnode); //rootvnode
+
+		sys_proc_elf_handle(proc, (char*)OrbisFTP);
+	}
 }
 
 OrbisLib::~OrbisLib()

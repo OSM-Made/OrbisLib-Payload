@@ -80,9 +80,6 @@ void OrbisProc::Proc_Attach(int Socket, char* ProcName)
         if(err)
         {
             DebugLog(LOGTYPE_ERR, "ptrace PT_DETACH failed %d.", err);
-
-            SendStatus(Socket, false);
-            return;
         }
 
         //Reset Data Values
@@ -115,7 +112,7 @@ void OrbisProc::Proc_Attach(int Socket, char* ProcName)
         return;
     }
 
-    pause("Client Thread", 200);
+    pause("Client Thread", 50);
 
     //Inject shellcode to help with our proc modifications
     orbisShellCode->InstallShellCode(ProcName);
@@ -231,7 +228,7 @@ void OrbisProc::Proc_GetCurrent(int Socket)
     //Send the response Packet
     Send(Socket, (char*)&CurrentProc, sizeof(RESP_CurrentProc));
 }
-
+int hModule = 0;
 void OrbisProc::Proc_Read(int Socket, uint64_t Address, size_t len)
 {
     proc* proc = proc_find_by_name(CurrentProcName);
@@ -262,8 +259,30 @@ void OrbisProc::Proc_Read(int Socket, uint64_t Address, size_t len)
         return;
     }
 
+    filedesc* fd = proc->p_fd;
+    vnode* old_fd_rdir = fd->fd_rdir;
+    vnode* old_fd_jdir = fd->fd_jdir;
+    fd->fd_rdir = *(vnode**)resolve(addr_rootvnode); //rootvnode
+    fd->fd_jdir = *(vnode**)resolve(addr_rootvnode); //rootvnode
+
+    hModule = orbisShellCode->sceKernelLoadStartModule("/mnt/usb0/Test.sprx", 0, 0, 0, 0, 0);
+    DebugLog(LOGTYPE_INFO, "SPRX Handle = %d", hModule);
+
+    fd->fd_rdir = old_fd_rdir;
+    fd->fd_jdir = old_fd_jdir;
+
+    dynlib* m_library = proc->p_dynlibptr->p_dynlib;
+    while(m_library != 0)
+	{
+        printf("[%d]%s\n", m_library->ModuleHandle, basename(m_library->LibraryPath));
+
+        m_library = m_library->dynlib_next; 
+    }
+
+    SendStatus(Socket, true);
+
     //Allocate space on the heap to send our read data to the host machine.
-    Buffer = (char*)_malloc(len);
+    /*Buffer = (char*)_malloc(len);
     if(!Buffer)
     {
         DebugLog(LOGTYPE_ERR, "malloc failed to allocate %d bytes.\n", len);
@@ -293,7 +312,7 @@ void OrbisProc::Proc_Read(int Socket, uint64_t Address, size_t len)
     Send(Socket, Buffer, len);
     
     //Clean up.
-    _free(Buffer);
+    _free(Buffer);*/
 }
 
 void OrbisProc::Proc_Write(int Socket, uint64_t Address, size_t len)
@@ -326,8 +345,21 @@ void OrbisProc::Proc_Write(int Socket, uint64_t Address, size_t len)
         return;
     }
 
+    int res = orbisShellCode->sceKernelStopUnloadModule(hModule, 0, 0, 0, 0, 0);
+    DebugLog(LOGTYPE_INFO, "res = %d", res);
+
+    dynlib* m_library = proc->p_dynlibptr->p_dynlib;
+    while(m_library != 0)
+	{
+        printf("[%d]%s\n", m_library->ModuleHandle, basename(m_library->LibraryPath));
+
+        m_library = m_library->dynlib_next; 
+    }
+
+    SendStatus(Socket, true);
+
     //Allocate heap space to temporarily sore our data to be written.
-    Buffer = (char*)_malloc(len);
+    /*Buffer = (char*)_malloc(len);
     if(!Buffer)
     {
         DebugLog(LOGTYPE_ERR, "malloc failed to allocate %d bytes.\n", len);
@@ -365,7 +397,7 @@ void OrbisProc::Proc_Write(int Socket, uint64_t Address, size_t len)
     SendStatus(Socket, true);
 
     //Clean up.
-    _free(Buffer);
+    _free(Buffer);*/
 }
   
 void OrbisProc::Proc_Kill(int Socket)
