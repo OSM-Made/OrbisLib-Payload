@@ -26,7 +26,7 @@ void printf(char* fmt, ...) {
 	sockAddr.sin_family = AF_INET;
 	#ifdef OSM
 	sockAddr.sin_port = 44582; //29975
-	sockAddr.sin_addr.s_addr = IP(192, 168, 1, 166);
+	sockAddr.sin_addr.s_addr = IP(192, 168, 1, 64);
 	#else
 	sockAddr.sin_port = 29975; //
 	sockAddr.sin_addr.s_addr = 0x7F8EC20A;

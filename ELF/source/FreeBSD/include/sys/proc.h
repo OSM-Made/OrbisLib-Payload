@@ -494,7 +494,7 @@ do {									\
 struct dynlib
 {
 	dynlib* dynlib_next;		//0x00
-	const char* LibraryPath;	//0x08
+	const char* ModulePath;	//0x08
 	char _0x010[0x18];
 	int ModuleHandle;			//0x28
 	void* codeBase;				//0x30

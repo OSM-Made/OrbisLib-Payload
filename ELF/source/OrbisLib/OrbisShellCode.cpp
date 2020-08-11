@@ -81,13 +81,13 @@ void OrbisShellCode::InstallShellCode(char* ProcName)
     dynlib* m_library = proc->p_dynlibptr->p_dynlib;
     while(m_library != 0)
 	{
-        if(!strcmp(basename(m_library->LibraryPath), "libkernel.sprx"))
+        if(!strcmp(basename(m_library->ModulePath), "libkernel.sprx"))
 			thr_initial = (uint64_t)m_library->codeBase + 0x84C20;
 
-        if(!strcmp(basename(m_library->LibraryPath), "libkernel_web.sprx"))
+        if(!strcmp(basename(m_library->ModulePath), "libkernel_web.sprx"))
 			thr_initial = (uint64_t)m_library->codeBase + 0x84C20;
 
-        if(!strcmp(basename(m_library->LibraryPath), "libkernel_sys.sprx"))
+        if(!strcmp(basename(m_library->ModulePath), "libkernel_sys.sprx"))
 			thr_initial = (uint64_t)m_library->codeBase + 0x89030;
 
         m_library = m_library->dynlib_next;

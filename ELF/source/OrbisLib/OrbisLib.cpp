@@ -66,11 +66,23 @@ void OrbisLib::OrbisLibClientThread(void* arg)
 
         /* Remote Library functions */
         case API_PROC_LOAD_SPRX:
-
+            orbisProc->Proc_LoadSPRX(Socket, Packet->PROC_SPRX.ModuleDir, Packet->PROC_SPRX.Flags);
             break;
 
         case API_PROC_UNLOAD_SPRX:
+            orbisProc->Proc_UnloadSPRX(Socket, Packet->PROC_SPRX.hModule, Packet->PROC_SPRX.Flags);
+            break;
 
+        case API_PROC_RELOAD_SPRX_NAME:
+            orbisProc->Proc_ReloadSPRX(Socket, Packet->PROC_SPRX.ModuleDir);
+            break;
+
+        case API_PROC_RELOAD_SPRX_HANDLE:
+            orbisProc->Proc_ReloadSPRX(Socket, Packet->PROC_SPRX.hModule);
+            break;
+
+        case  API_PROC_MODULE_LIST:
+            orbisProc->Proc_GetModuleList(Socket);
             break;
         }
     }

@@ -33,6 +33,9 @@ private:
         /* Remote Library functions */
         API_PROC_LOAD_SPRX,
         API_PROC_UNLOAD_SPRX,
+        API_PROC_RELOAD_SPRX_NAME,
+        API_PROC_RELOAD_SPRX_HANDLE,
+        API_PROC_MODULE_LIST,
     };
 
     struct API_Packet_s
@@ -46,9 +49,13 @@ private:
                uint64_t Address;
                size_t len;
             }PROC_RW;
-            
+            struct
+            {
+                char ModuleDir[0x100];
+                int hModule;
+                int Flags;
+            }PROC_SPRX;
         };
-        
     };
 
     static void OrbisLibClientThread(void* arg);

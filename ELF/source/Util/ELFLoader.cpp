@@ -71,7 +71,7 @@ int proc_create_thread(struct proc *p, uint64_t address) {
     dynlib* m_library = p->p_dynlibptr->p_dynlib;
     while(m_library != 0)
 	{
-        if(!strcmp(basename(m_library->LibraryPath), "libkernel.sprx"))
+        if(!strcmp(basename(m_library->ModulePath), "libkernel.sprx"))
         {
             _scePthreadAttrInit = (uint64_t)m_library->codeBase + 0x12660;
             _scePthreadAttrSetstacksize = (uint64_t)m_library->codeBase + 0x12680;
@@ -79,7 +79,7 @@ int proc_create_thread(struct proc *p, uint64_t address) {
             _thr_initial = (uint64_t)m_library->codeBase + 0x84C20;
         }
 
-        if(!strcmp(basename(m_library->LibraryPath), "libkernel_web.sprx"))
+        if(!strcmp(basename(m_library->ModulePath), "libkernel_web.sprx"))
         {
             _scePthreadAttrInit = (uint64_t)m_library->codeBase + 0x1E730;
             _scePthreadAttrSetstacksize = (uint64_t)m_library->codeBase + 0xFA80;
@@ -87,7 +87,7 @@ int proc_create_thread(struct proc *p, uint64_t address) {
             _thr_initial = (uint64_t)m_library->codeBase + 0x84C20;
         }
 
-        if(!strcmp(basename(m_library->LibraryPath), "libkernel_sys.sprx"))
+        if(!strcmp(basename(m_library->ModulePath), "libkernel_sys.sprx"))
 		{
             _scePthreadAttrInit = (uint64_t)m_library->codeBase + 0x13190;
             _scePthreadAttrSetstacksize = (uint64_t)m_library->codeBase + 0x131B0;

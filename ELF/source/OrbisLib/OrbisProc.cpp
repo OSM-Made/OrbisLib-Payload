@@ -404,7 +404,7 @@ void OrbisProc::Proc_Kill(int Socket)
     //TODO: Implement
 
     //clear shell code from last process.
-    //orbisShellCode->DestroyShellCode(); //Probably dont need to do this since were not gracefully shutting down the process
+    orbisShellCode->DestroyShellCode(); //Probably dont need to do this since were not gracefully shutting down the process
 
     //Detach from last process.
     err = kptrace(td, PT_DETACH, CurrentProcessID, (void*)SIGCONT, 0);
@@ -419,4 +419,282 @@ void OrbisProc::Proc_Kill(int Socket)
     CurrentlyAttached = false;
 
     SendStatus(Socket, true);
+}
+
+void OrbisProc::Proc_LoadSPRX(int Socket, const char *name, unsigned int flags)
+{
+    proc* proc = proc_find_by_name(CurrentProcName);
+    thread* td = curthread();
+    int Handle = 0;
+
+     //Make sure were are attached to a process.
+    if(!CurrentlyAttached)
+    {
+        DebugLog(LOGTYPE_INFO, "Not currently attached to any process.");
+
+        SendStatus(Socket, false);
+        return;
+    }
+    
+    //Make sure the process were attached to still exists.
+    if(!proc)
+    {
+        DebugLog(LOGTYPE_ERR, "Could not find Proc \"%s\".", CurrentProcName);
+
+        //Reset Data Values
+        CurrentProcessID = -1;
+        memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
+        CurrentlyAttached = false;
+
+        SendStatus(Socket, false);
+        return;
+    }
+
+    Handle = this->orbisShellCode->sceKernelLoadStartModule(name, 0, 0, flags, 0, 0);
+
+    Send(Socket, (char*)&Handle, sizeof(int));
+}
+
+void OrbisProc::Proc_UnloadSPRX(int Socket, int handle, uint32_t flags)
+{
+    proc* proc = proc_find_by_name(CurrentProcName);
+    thread* td = curthread();
+    int Result = 0;
+
+     //Make sure were are attached to a process.
+    if(!CurrentlyAttached)
+    {
+        DebugLog(LOGTYPE_INFO, "Not currently attached to any process.");
+
+        SendStatus(Socket, false);
+        return;
+    }
+    
+    //Make sure the process were attached to still exists.
+    if(!proc)
+    {
+        DebugLog(LOGTYPE_ERR, "Could not find Proc \"%s\".", CurrentProcName);
+
+        //Reset Data Values
+        CurrentProcessID = -1;
+        memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
+        CurrentlyAttached = false;
+
+        SendStatus(Socket, false);
+        return;
+    }
+
+    Result = this->orbisShellCode->sceKernelStopUnloadModule(handle, 0, 0, flags, 0, 0);
+
+    Send(Socket, (char*)&Result, sizeof(int));
+}
+
+void OrbisProc::Proc_ReloadSPRX(int Socket, const char *name)
+{
+    proc* proc = proc_find_by_name(CurrentProcName);
+    thread* td = curthread();
+    int Handle = -1;
+    int Result = 0;
+    char Path[0x100] = { 0 };
+
+     //Make sure were are attached to a process.
+    if(!CurrentlyAttached)
+    {
+        DebugLog(LOGTYPE_INFO, "Not currently attached to any process.");
+
+        SendStatus(Socket, false);
+        return;
+    }
+    
+    //Make sure the process were attached to still exists.
+    if(!proc)
+    {
+        DebugLog(LOGTYPE_ERR, "Could not find Proc \"%s\".", CurrentProcName);
+
+        //Reset Data Values
+        CurrentProcessID = -1;
+        memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
+        CurrentlyAttached = false;
+
+        SendStatus(Socket, false);
+        return;
+    }
+
+    //Find the module handle and path from the name.
+    dynlib* m_library = proc->p_dynlibptr->p_dynlib;
+    while(m_library != 0)
+	{
+        if(!strcmp(basename(m_library->ModulePath), name))
+        {
+			Handle = m_library->ModuleHandle;
+            strcpy(Path, (char*)m_library->ModulePath);
+            break;
+        }
+
+        m_library = m_library->dynlib_next;
+    }
+
+    //Make sure we found the module handle.
+    if(Handle == -1)
+    {
+        SendStatus(Socket, false);
+        return;
+    }
+
+    Result = this->orbisShellCode->sceKernelStopUnloadModule(Handle, 0, 0, 0, 0, 0);
+
+    //Make Sure we unloaded the module.
+    if(Result)
+    {
+        SendStatus(Socket, false);
+        return;
+    }
+
+    Handle = this->orbisShellCode->sceKernelLoadStartModule(Path, 0, 0, 0, 0, 0);
+
+    //Make sure we loaded the module.
+    if(Handle == 0)
+    {
+        SendStatus(Socket, false);
+        return;
+    }
+
+    //Send the success status and the module handle
+    SendStatus(Socket, true);
+
+    Send(Socket, (char*)&Handle, sizeof(int));
+}
+
+void OrbisProc::Proc_ReloadSPRX(int Socket, int Handle)
+{
+    proc* proc = proc_find_by_name(CurrentProcName);
+    thread* td = curthread();
+    int Result = 0;
+    char Path[0x100] = { 0 };
+
+     //Make sure were are attached to a process.
+    if(!CurrentlyAttached)
+    {
+        DebugLog(LOGTYPE_INFO, "Not currently attached to any process.");
+
+        SendStatus(Socket, false);
+        return;
+    }
+    
+    //Make sure the process were attached to still exists.
+    if(!proc)
+    {
+        DebugLog(LOGTYPE_ERR, "Could not find Proc \"%s\".", CurrentProcName);
+
+        //Reset Data Values
+        CurrentProcessID = -1;
+        memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
+        CurrentlyAttached = false;
+
+        SendStatus(Socket, false);
+        return;
+    }
+
+    //Find the module handle and path from the name.
+    dynlib* m_library = proc->p_dynlibptr->p_dynlib;
+    while(m_library != 0)
+	{
+        if(m_library->ModuleHandle == Handle)
+        {
+            strcpy(Path, (char*)m_library->ModulePath);
+            break;
+        }
+
+        m_library = m_library->dynlib_next;
+    }
+
+    //Make sure we found the module Path.
+    if(!strcmp(Path, ""))
+    {
+        SendStatus(Socket, false);
+        return;
+    }
+
+    Result = this->orbisShellCode->sceKernelStopUnloadModule(Handle, 0, 0, 0, 0, 0);
+
+    //Make Sure we unloaded the module.
+    if(Result)
+    {
+        SendStatus(Socket, false);
+        return;
+    }
+
+    Handle = this->orbisShellCode->sceKernelLoadStartModule(Path, 0, 0, 0, 0, 0);
+
+    //Make sure we loaded the module.
+    if(Handle == 0)
+    {
+        SendStatus(Socket, false);
+        return;
+    }
+
+    //Send the success status and the module handle
+    SendStatus(Socket, true);
+
+    Send(Socket, (char*)&Handle, sizeof(int));
+}
+
+void OrbisProc::Proc_GetModuleList(int Socket)
+{
+    proc* proc = proc_find_by_name(CurrentProcName);
+    thread* td = curthread();
+    int ProcessCount = 0, SetCount = 0;
+    RESP_ModuleList* ModuleList = 0;
+
+    //Make sure were are attached to a process.
+    if(!CurrentlyAttached)
+    {
+        DebugLog(LOGTYPE_INFO, "Not currently attached to any process.");
+
+        SendStatus(Socket, false);
+        return;
+    }
+    
+    //Make sure the process were attached to still exists.
+    if(!proc)
+    {
+        DebugLog(LOGTYPE_ERR, "Could not find Proc \"%s\".", CurrentProcName);
+
+        //Reset Data Values
+        CurrentProcessID = -1;
+        memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
+        CurrentlyAttached = false;
+
+        SendStatus(Socket, false);
+        return;
+    }
+
+    //Get the number of modules loaded in our attached process.
+    dynlib* m_library = proc->p_dynlibptr->p_dynlib;
+    while(m_library != 0)
+	{
+        ProcessCount ++;
+        m_library = m_library->dynlib_next;
+    }
+
+    //Allocate memory to store our data.
+    ModuleList = (RESP_ModuleList*)_malloc(sizeof(RESP_ModuleList) * ProcessCount);
+
+    //Populate our buffer with data.
+    dynlib* m_library = proc->p_dynlibptr->p_dynlib;
+    while(m_library != 0)
+	{
+        strcpy(ModuleList[SetCount].mName, (char*)basename(m_library->ModulePath));
+        strcpy(ModuleList[SetCount].mPath, (char*)m_library->ModulePath);
+        ModuleList[SetCount].mHandle = m_library->ModuleHandle;
+        ModuleList[SetCount].mTextSegmentBase = (uint64_t)m_library->codeBase;
+        ModuleList[SetCount].mTextSegmentLen = m_library->codeSize;
+        ModuleList[SetCount].mDataSegmentBase = (uint64_t)m_library->dataBase;
+        ModuleList[SetCount].mDataSegmentLen = m_library->dataSize;
+
+        SetCount ++;
+        m_library = m_library->dynlib_next;
+    }
+
+    Send(Socket, (char*)&ModuleList[0], sizeof(RESP_ModuleList) * ProcessCount);
 }
