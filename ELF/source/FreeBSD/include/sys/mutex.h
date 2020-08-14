@@ -36,7 +36,7 @@
 #include <sys/_lock.h>
 #include <sys/_mutex.h>
 
-#ifdef _KERNEL
+
 #include <sys/pcpu.h>
 #include <sys/lock_profile.h>
 #include <sys/lockstat.h>
@@ -85,6 +85,7 @@
  * [See below for descriptions]
  *
  */
+#ifdef _KERNEL
 void	mtx_init(struct mtx *m, const char *name, const char *type, int opts);
 void	mtx_destroy(struct mtx *m);
 void	mtx_sysinit(void *arg);

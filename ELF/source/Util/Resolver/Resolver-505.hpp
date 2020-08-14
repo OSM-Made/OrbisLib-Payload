@@ -75,4 +75,26 @@
 #define addr_vm_map_delete						0x1A19D0
 #define addr_vm_map_protect						0x1A3A50
 
+/*Mutex Locks*/
+#define addr_mtx_init                           0x402780
+#define addr_mtx_destroy                        0x4027F0
+#define addr_mtx_lock_flags                     0x401CD0
+#define addr_mtx_unlock_flags                   0x401FA0
+
+/* Fake Selfs */
+#define addr_sbl_drv_msg_mtx                    0x271E210
+#define addr_gpu_va_page_list                   0x271E208
+#define addr_mini_syscore_self_binary           0x14C9D48
+#define addr_sceSblAuthMgrGetSelfInfo           0x63CD40
+#define addr_sceSblAuthMgrIsLoadable2           0x63C4F0
+#define addr_sceSblAuthMgrSmStart               0x6418E0
+#define addr_sceSblAuthMgrVerifyHeader          0x63C550
+#define addr_sceSblServiceMailbox               0x632540
+#define addr_sceSblAuthMgrVerifyHeaderHook1     0x63EAFC
+#define addr_sceSblAuthMgrVerifyHeaderHook2     0x63F718
+#define addr_SceSblAuthMgrIsLoadable2Hook       0x63E3A1
+#define addr_SceSblAuthMgrSmLoadSelfSegment_Mailbox 0x64318B
+#define addr_SceSblAuthMgrSmLoadSelfBlock_Mailbox 0x643DA2
+
+
 #endif

@@ -12,9 +12,10 @@
 #include "Util/Resolver/Patches.hpp"
 #include "Util/Proc.hpp"
 #include "Util/Network.hpp"
-#include "Util/Debug-Logger.hpp"
+#include "Util/DebugLogger.hpp"
 #include "Util/ELFLoader.hpp"
 #include "OrbisLib/OrbisLib.hpp"
+#include "Util/Helpers/HelperManager.hpp"
 
 extern "C"
 {
@@ -28,8 +29,15 @@ extern "C"
     #include <sys/uio.h>
 	#include <sys/mount.h>
     #include <sys/mman.h>
-
+    #include <sys/pcpu.h>
     #include <vm/vm.h>
     #include <vm/pmap.h>
     #include <vm/vm_map.h>
+
+    #include <errno.h>
+    #include <sys/elf_common.h>
+    #include <sys/elf64.h>
+
 }
+
+extern OrbisLib* orbisLib;

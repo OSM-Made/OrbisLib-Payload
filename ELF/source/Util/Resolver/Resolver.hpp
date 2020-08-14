@@ -6,10 +6,13 @@ extern "C"
     #include <vm/pmap.h>
     #include <vm/vm_map.h>
     #include <sys/uio.h>
+    #include <sys/elf64.h>
 }
 
 #include "Resolver-505.hpp"
 #include "Resolver-672.hpp"
+
+#include "../Helpers/FakeSelfHelper.hpp"
 
 extern uint8_t* gpKernelBase;
 
@@ -70,5 +73,20 @@ extern void (*vm_map_lock)(vm_map* map);
 extern void (*vm_map_unlock)(vm_map* map);
 extern int (*vm_map_delete)(vm_map* map, uint64_t start, uint64_t end);
 extern int (*vm_map_protect)(vm_map* map, uint64_t start, uint64_t end, int new_prot, uint64_t set_max);
+
+/*Mutex Locks*/
+extern void (*mtx_init)(mtx *m, const char *name, const char *type, int opts);
+extern void (*mtx_destroy)(mtx *mutex);
+extern void (*mtx_lock_flags)(mtx *mutex, int flags);
+extern void (*mtx_unlock_flags)(mtx *mutex, int flags);
+extern void (*_mtx_lock_flags)(mtx *mutex, int flags, const char *file, int line);
+extern void (*_mtx_unlock_flags)(mtx *mutex, int flags, const char *file, int line);
+
+/* Fake Selfs */
+extern int (*sceSblAuthMgrGetSelfInfo)(SelfContext* ctx, void *exInfo);
+extern int (*sceSblAuthMgrIsLoadable2)(SelfContext* pSelfContext, SelfAuthInfo* pOldAuthInfo, int32_t pPathId, SelfAuthInfo* pNewAuthInfo);
+extern void (*sceSblAuthMgrSmStart)(void**);
+extern int (*sceSblAuthMgrVerifyHeader)(SelfContext* pSelfContext);
+extern int (*sceSblServiceMailbox)(uint32_t pServiceId, void* pRequest, void* pResponse);
 
 void ResolveFunctions();

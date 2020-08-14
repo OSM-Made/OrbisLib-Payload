@@ -73,7 +73,7 @@ typedef Elf64_Syminfo	GElf_Syminfo;	/* Symbol information */
 #define	GELF_ST_VISIBILITY		ELF64_ST_VISIBILITY
 
 __BEGIN_DECLS
-long		gelf_checksum(Elf *_elf);
+/*long		gelf_checksum(Elf *_elf);
 size_t		gelf_fsize(Elf *_elf, Elf_Type _type, size_t _count,
 			unsigned int _version);
 int		gelf_getclass(Elf *_elf);
@@ -106,7 +106,7 @@ GElf_Move	*gelf_getmove(Elf_Data *_src, int _index, GElf_Move *_dst);
 GElf_Syminfo	*gelf_getsyminfo(Elf_Data *_src, int _index, GElf_Syminfo *_dst);
 int		gelf_update_cap(Elf_Data *_dst, int _index, GElf_Cap *_src);
 int		gelf_update_move(Elf_Data *_dst, int _index, GElf_Move *_src);
-int		gelf_update_syminfo(Elf_Data *_dst, int _index, GElf_Syminfo *_src);
+int		gelf_update_syminfo(Elf_Data *_dst, int _index, GElf_Syminfo *_src);*/
 #endif
 __END_DECLS
 

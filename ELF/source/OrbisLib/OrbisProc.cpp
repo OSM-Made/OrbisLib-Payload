@@ -426,6 +426,7 @@ void OrbisProc::Proc_LoadSPRX(int Socket, const char *name, unsigned int flags)
     proc* proc = proc_find_by_name(CurrentProcName);
     thread* td = curthread();
     int Handle = 0;
+    vnode* fd_rdir = 0, *fd_jdir = 0;
 
      //Make sure were are attached to a process.
     if(!CurrentlyAttached)
@@ -450,7 +451,21 @@ void OrbisProc::Proc_LoadSPRX(int Socket, const char *name, unsigned int flags)
         return;
     }
 
+    DebugLog(LOGTYPE_INFO, "Loading SPRX \"%s\"", name);
+
+    SendStatus(Socket, true);
+
+    filedesc* fd = proc->p_fd;
+    fd_rdir = fd->fd_rdir;
+    fd_jdir = fd->fd_jdir;
+
+    fd->fd_rdir = *(vnode**)resolve(addr_rootvnode); //rootvnode
+    fd->fd_jdir = *(vnode**)resolve(addr_rootvnode); //rootvnode
+
     Handle = this->orbisShellCode->sceKernelLoadStartModule(name, 0, 0, flags, 0, 0);
+
+    fd->fd_rdir = fd_rdir;
+    fd->fd_jdir = fd_jdir;
 
     Send(Socket, (char*)&Handle, sizeof(int));
 }
@@ -483,6 +498,8 @@ void OrbisProc::Proc_UnloadSPRX(int Socket, int handle, uint32_t flags)
         SendStatus(Socket, false);
         return;
     }
+
+    SendStatus(Socket, true);
 
     Result = this->orbisShellCode->sceKernelStopUnloadModule(handle, 0, 0, flags, 0, 0);
 
@@ -549,6 +566,9 @@ void OrbisProc::Proc_ReloadSPRX(int Socket, const char *name)
         SendStatus(Socket, false);
         return;
     }
+
+    //Sleep for a short time so out module can unload.
+    pause("", 100);
 
     Handle = this->orbisShellCode->sceKernelLoadStartModule(Path, 0, 0, 0, 0, 0);
 
@@ -624,6 +644,9 @@ void OrbisProc::Proc_ReloadSPRX(int Socket, int Handle)
         return;
     }
 
+    //Sleep for a short time so out module can unload.
+    pause("", 100);
+
     Handle = this->orbisShellCode->sceKernelLoadStartModule(Path, 0, 0, 0, 0, 0);
 
     //Make sure we loaded the module.
@@ -643,8 +666,9 @@ void OrbisProc::Proc_GetModuleList(int Socket)
 {
     proc* proc = proc_find_by_name(CurrentProcName);
     thread* td = curthread();
-    int ProcessCount = 0, SetCount = 0;
+    int ModuleCount = 0, SetCount = 0;
     RESP_ModuleList* ModuleList = 0;
+    dynlib* m_library = 0;
 
     //Make sure were are attached to a process.
     if(!CurrentlyAttached)
@@ -670,18 +694,18 @@ void OrbisProc::Proc_GetModuleList(int Socket)
     }
 
     //Get the number of modules loaded in our attached process.
-    dynlib* m_library = proc->p_dynlibptr->p_dynlib;
+    m_library = proc->p_dynlibptr->p_dynlib;
     while(m_library != 0)
 	{
-        ProcessCount ++;
+        ModuleCount ++;
         m_library = m_library->dynlib_next;
     }
 
     //Allocate memory to store our data.
-    ModuleList = (RESP_ModuleList*)_malloc(sizeof(RESP_ModuleList) * ProcessCount);
+    ModuleList = (RESP_ModuleList*)_malloc(sizeof(RESP_ModuleList) * ModuleCount);
 
     //Populate our buffer with data.
-    dynlib* m_library = proc->p_dynlibptr->p_dynlib;
+    m_library = proc->p_dynlibptr->p_dynlib;
     while(m_library != 0)
 	{
         strcpy(ModuleList[SetCount].mName, (char*)basename(m_library->ModulePath));
@@ -696,5 +720,9 @@ void OrbisProc::Proc_GetModuleList(int Socket)
         m_library = m_library->dynlib_next;
     }
 
-    Send(Socket, (char*)&ModuleList[0], sizeof(RESP_ModuleList) * ProcessCount);
+    SendStatus(Socket, true);
+
+    Send(Socket, (char*)&ModuleCount, sizeof(int));
+
+    Send(Socket, (char*)&ModuleList[0], sizeof(RESP_ModuleList) * ModuleCount);
 }

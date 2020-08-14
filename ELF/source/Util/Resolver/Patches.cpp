@@ -12,7 +12,6 @@ void Install_Patches()
         return;
     }
 
-    //TODO: Make patches	
  	uint64_t CR0 = __readcr0();
  	__writecr0(CR0 & ~CR0_WP);
 

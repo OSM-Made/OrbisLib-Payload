@@ -1,6 +1,7 @@
 #include "Main.hpp"
 
-OrbisLib* kproc = NULL;
+OrbisLib* orbisLib = NULL;
+HelperManager* pHelperManager = NULL;
 
 extern "C" void _main(uint64_t* p)
 {
@@ -9,5 +10,11 @@ extern "C" void _main(uint64_t* p)
 
 	Log("Hello from Kernel Land!!!");
 
-	kproc = new OrbisLib();
+	orbisLib = new OrbisLib();
+
+	//Start up the DebugLogger
+    StartDebugLogger();
+
+	//Start up the Helper Manager
+	pHelperManager = new HelperManager();
 }

@@ -226,7 +226,7 @@ int OrbisShellCode::sceKernelLoadStartModule(const char *name, size_t argc, cons
             return 0;
         }
 
-        DebugLog(LOGTYPE_INFO, "Waiting for ShellCode to compelete!");
+        //DebugLog(LOGTYPE_INFO, "Waiting for ShellCode to compelete!");
         pause("", 100);
 	}
 
@@ -249,8 +249,6 @@ int OrbisShellCode::sceKernelStopUnloadModule(int handle, size_t args, const voi
     uint8_t ShellCodeComplete = 0;
     uint64_t Result = 0;
 
-    DebugLog(LOGTYPE_INFO, "handle = %d", handle);
-
     err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisProcHelper_header, handle), sizeof(handle), (void *)&handle, &n, 1);
     err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisProcHelper_header, args), sizeof(args), (void *)&args, &n, 1);
     err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisProcHelper_header, argp), sizeof(argp), (void *)&argp, &n, 1);
@@ -262,14 +260,13 @@ int OrbisShellCode::sceKernelStopUnloadModule(int handle, size_t args, const voi
         DebugLog(LOGTYPE_ERR, "Failed to write params to ShellCode.");
         return 0;
     }
-    DebugLog(LOGTYPE_INFO, "Here");
+
     err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisProcHelper_header, Result), sizeof(Result), (void *)&Result, &n, 1);
 	if(err)
     {
         DebugLog(LOGTYPE_ERR, "Failed to reset Result to zero.");
         return 0;
     }
-    DebugLog(LOGTYPE_INFO, "Here");
 
     err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisProcHelper_header, ShellCodeComplete), sizeof(ShellCodeComplete), (void *)&ShellCodeComplete, &n, 1);
 	if(err)
@@ -278,16 +275,12 @@ int OrbisShellCode::sceKernelStopUnloadModule(int handle, size_t args, const voi
         return 0;
     }
 
-    DebugLog(LOGTYPE_INFO, "Here");
-
     err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisProcHelper_header, CommandIndex), sizeof(CommandIndex), (void *)&CommandIndex, &n, 1);
 	if(err)
     {
         DebugLog(LOGTYPE_ERR, "Failed to set CommandIndex.");
         return 0;
     }
-
-    DebugLog(LOGTYPE_INFO, "Here");
 
 	while (!ShellCodeComplete) 
 	{
@@ -298,7 +291,7 @@ int OrbisShellCode::sceKernelStopUnloadModule(int handle, size_t args, const voi
             return 0;
         }
 
-        DebugLog(LOGTYPE_INFO, "Waiting for ShellCode to compelete!");
+        //DebugLog(LOGTYPE_INFO, "Waiting for ShellCode to compelete!");
         pause("", 100);
 	}
 

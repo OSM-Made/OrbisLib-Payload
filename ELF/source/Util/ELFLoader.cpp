@@ -39,7 +39,7 @@ static const uint8_t rpcldr[255] = {
     0x5B, 0x5D, 0xC3
 };
 
-int proc_create_thread(struct proc *p, uint64_t address) {
+/*int proc_create_thread(struct proc *p, uint64_t address) {
     void *rpcldraddr = NULL;
     void *stackaddr = NULL;
     struct proc_vm_map_entry *entries = NULL;
@@ -300,15 +300,15 @@ int proc_load_elf(struct proc *p, void *elf, uint64_t *elfbase, uint64_t *entry)
     }
 
     if (entry) {
-        *entry = (uint64_t)elfaddr + ehdr->e_entry;
+        *entry = (Elf64_Addr)((Elf64_Addr)elfaddr + ehdr->e_entry);
     }
 
 error:
     return r;
-}
+}*/
 
 int sys_proc_elf_handle(struct proc *p, char* elf) {
-    struct proc_vm_map_entry *entries;
+    /*struct proc_vm_map_entry *entries;
     uint64_t num_entries;
     uint64_t entry;
 
@@ -337,5 +337,5 @@ int sys_proc_elf_handle(struct proc *p, char* elf) {
         return 1;
     }
 
-    return 0;
+    return 0;*/
 }

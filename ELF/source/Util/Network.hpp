@@ -1,7 +1,5 @@
 #pragma once
 
-#include "../Main.hpp"
-
 #define MAX_PACKET_SIZE 0x400
 #define min(a,b) (((a) < (b)) ? (a) : (b))
 

@@ -169,7 +169,7 @@ int _main(void) { //TODO: Make modular for porting to multiple software versions
   	payload_info.buffer = (uint8_t*)OrbisHen;
   	payload_info.size = (size_t)OrbisHenSize;
 
-	syscall(11, install_hen, &payload_info);
+	//syscall(11, install_hen, &payload_info);
 
 	resolveImports();
 	

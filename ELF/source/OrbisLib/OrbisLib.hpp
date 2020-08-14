@@ -6,9 +6,8 @@ class OrbisLib
 {
 private:
     bool IsRunning = false;
-    proc* kOrbisProc = 0;
     OrbisProc* orbisProc;
-    int HostIPAddr;
+    int LastHostIPAddr;
 
     struct ClientThreadArgs
     {
@@ -62,6 +61,9 @@ private:
     static void OrbisLibProcThread(void *arg);
 
 public:
+    proc* kOrbisProc = 0;
+    int HostIPAddr;
+
     OrbisLib();
     ~OrbisLib();
 };

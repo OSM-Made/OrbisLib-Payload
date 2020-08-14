@@ -57,6 +57,22 @@ void (*vm_map_unlock)(vm_map* map);
 int (*vm_map_delete)(vm_map* map, uint64_t start, uint64_t end);
 int (*vm_map_protect)(vm_map* map, uint64_t start, uint64_t end, int new_prot, uint64_t set_max);
 
+/*Mutex Locks*/
+void (*mtx_init)(mtx *m, const char *name, const char *type, int opts);
+void (*mtx_destroy)(mtx *mutex);
+void (*mtx_lock_flags)(mtx *mutex, int flags);
+void (*mtx_unlock_flags)(mtx *mutex, int flags);
+void (*_mtx_lock_flags)(mtx *mutex, int flags, const char *file, int line);
+void (*_mtx_unlock_flags)(mtx *mutex, int flags, const char *file, int line);
+
+/* Fake Selfs */
+//void (*)();
+int (*sceSblAuthMgrGetSelfInfo)(SelfContext* ctx, void *exInfo);
+int (*sceSblAuthMgrIsLoadable2)(SelfContext* pSelfContext, SelfAuthInfo* pOldAuthInfo, int32_t pPathId, SelfAuthInfo* pNewAuthInfo);
+void (*sceSblAuthMgrSmStart)(void**);
+int (*sceSblAuthMgrVerifyHeader)(SelfContext* pSelfContext);
+int (*sceSblServiceMailbox)(uint32_t pServiceId, void* pRequest, void* pResponse);
+
 void ResolveFunctions()
 {
     //something = ()resolve();
@@ -115,4 +131,18 @@ void ResolveFunctions()
     vm_map_delete = (int(*)(vm_map* map, uint64_t start, uint64_t end))resolve(addr_vm_map_delete);
     vm_map_protect = (int(*)(vm_map* map, uint64_t start, uint64_t end, int new_prot, uint64_t set_max))resolve(addr_vm_map_protect);
     
+    /*Mutex Locks*/
+    mtx_init = (void(*)(mtx *m, const char *name, const char *type, int opts))resolve(addr_mtx_init);
+    mtx_destroy = (void(*)(mtx *mutex))resolve(addr_mtx_destroy);
+    mtx_lock_flags = (void(*)(mtx *mutex, int flags))resolve(addr_mtx_lock_flags);
+    mtx_unlock_flags = (void(*)(mtx *mutex, int flags))resolve(addr_mtx_unlock_flags);
+    _mtx_lock_flags = (void(*)(mtx *mutex, int flags, const char *file, int line))resolve(addr_mtx_lock_flags);
+    _mtx_unlock_flags = (void(*)(mtx *mutex, int flags, const char *file, int line))resolve(addr_mtx_unlock_flags);
+
+    /* Fake Selfs */
+    sceSblAuthMgrGetSelfInfo = (int(*)(SelfContext* ctx, void *exInfo))resolve(addr_sceSblAuthMgrGetSelfInfo);
+    sceSblAuthMgrIsLoadable2 = (int(*)(SelfContext* pSelfContext, SelfAuthInfo* pOldAuthInfo, int32_t pPathId, SelfAuthInfo* pNewAuthInfo))resolve(addr_sceSblAuthMgrIsLoadable2);
+    sceSblAuthMgrSmStart = (void(*)(void**))resolve(addr_sceSblAuthMgrSmStart);
+    sceSblAuthMgrVerifyHeader = (int(*)(SelfContext* pSelfContext))resolve(addr_sceSblAuthMgrVerifyHeader);
+    sceSblServiceMailbox = (int(*)(uint32_t pServiceId, void* pRequest, void* pResponse))resolve(addr_sceSblServiceMailbox);
 }

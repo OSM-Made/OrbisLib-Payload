@@ -7,7 +7,7 @@ extern int32_t OrbisFTPSize;
 
 void OrbisLib::OrbisLibClientThread(void* arg)
 {
-    DebugLog(LOGTYPE_INFO, "Hello from Client Thread :)");
+    //DebugLog(LOGTYPE_INFO, "Hello from Client Thread :)");
 
     ClientThreadArgs* clientThreadArgs = (ClientThreadArgs*)arg;
     OrbisLib* orbisLib = clientThreadArgs->orbisLib;
@@ -103,14 +103,15 @@ void OrbisLib::OrbisLibProcThread(void *arg)
 
     //kproc_kthread_add(BreakMonitorThread, 0, &kDebugProc, NULL, NULL, 0, "OrbisLib3.elf", "Proc Watcher Thread");
 
-    sockaddr_in servaddr = { 0 };
-
+    //Create a new socket for our listener.
 	int ClientSocket = -1;
 	int ServerSocket = sys_socket(AF_INET, SOCK_STREAM, 0);
 
     int optval = 1;
 	sys_setsockopt(ServerSocket, SOL_SOCKET, SO_NOSIGPIPE, (void *)&optval, sizeof(int));
 
+    //Bind and start listening on port 6900 with a back log of 100.
+    sockaddr_in servaddr = { 0 };
 	servaddr.sin_family = AF_INET;
 	servaddr.sin_addr.s_addr = INADDR_ANY;
 	servaddr.sin_port = htons(6900);
@@ -118,12 +119,13 @@ void OrbisLib::OrbisLibProcThread(void *arg)
     sys_bind(ServerSocket, (struct sockaddr *)&servaddr, sizeof(servaddr));
 	sys_listen(ServerSocket, 100);
 
-    DebugLog(LOGTYPE_INFO, "API Start listening on port 6900...");
+    DebugLog(LOGTYPE_INFO, "API Started listening on port 6900...");
 
     while(orbisLib->IsRunning)
     {
         kthread_suspend_check();
-
+        
+        //Wait for incoming connections.
         sockaddr_in clientaddr = { 0 };
 		int addrlen = sizeof(struct sockaddr_in);
 		ClientSocket = sys_accept(ServerSocket, (struct sockaddr *)&clientaddr, &addrlen);
@@ -131,16 +133,22 @@ void OrbisLib::OrbisLibProcThread(void *arg)
 
         if (ClientSocket != -1) 
 		{
-			DebugLog(LOGTYPE_INFO, "New Host Connection (%i.%i.%i.%i)", clientaddr.sin_addr.s_addr & 0xFF, (clientaddr.sin_addr.s_addr >> 8) & 0xFF, (clientaddr.sin_addr.s_addr >> 16) & 0xFF, (clientaddr.sin_addr.s_addr >> 24) & 0xFF);
+            if(orbisLib->LastHostIPAddr != orbisLib->HostIPAddr)
+			    DebugLog(LOGTYPE_INFO, "New Host Connection (%i.%i.%i.%i)", clientaddr.sin_addr.s_addr & 0xFF, (clientaddr.sin_addr.s_addr >> 8) & 0xFF, (clientaddr.sin_addr.s_addr >> 16) & 0xFF, (clientaddr.sin_addr.s_addr >> 24) & 0xFF);
 
 			int optval = 1;
 			sys_setsockopt(ClientSocket, SOL_SOCKET, SO_NOSIGPIPE, (void *)&optval, sizeof(int));
 
+            
+            //Add a thread to handle the new client API Request.
             ClientThreadArgs ClientArgs = { ClientSocket, orbisLib };
-
 			kproc_kthread_add(OrbisLibClientThread, &ClientArgs, &orbisLib->kOrbisProc, NULL, NULL, 0, "OrbisLib.elf", "Client Thread");
 
+            //Reset the temp socket for the next connection.
 			ClientSocket = -1;
+
+            //Set our last Connection so we can tell when we have a new host.
+            orbisLib->LastHostIPAddr = orbisLib->HostIPAddr;
 		}
     }
 
@@ -184,9 +192,10 @@ OrbisLib::OrbisLib()
     proc* proc = proc_find_by_name("SceRemotePlay");
 	if(proc) 
 	{
+        //Give Root FS Perms
 		filedesc* fd = proc->p_fd;
-		fd->fd_rdir = *(vnode**)resolve(addr_rootvnode); //rootvnode
-		fd->fd_jdir = *(vnode**)resolve(addr_rootvnode); //rootvnode
+		fd->fd_rdir = *(vnode**)resolve(addr_rootvnode);
+		fd->fd_jdir = *(vnode**)resolve(addr_rootvnode);
 
 		sys_proc_elf_handle(proc, (char*)OrbisFTP);
 	}
@@ -198,4 +207,11 @@ OrbisLib::~OrbisLib()
     
     //Signal threads to shutdown.
     IsRunning = false;
+
+    //Kill the DebugLogger
+    StopDebugLogger();
+
+    //Free the OrbisProc Class
+    delete orbisProc;
+
 }
