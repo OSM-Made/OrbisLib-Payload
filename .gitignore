@@ -1,8 +1,0 @@
-#ignore all .o Files
-*.o
-
-#ignore all .bin Files
-*.bin
-
-#ignore all .ELF Files
-*elf
