@@ -187,18 +187,6 @@ OrbisLib::OrbisLib()
 
     //Set our proc titleID doesnt really do anything is just cool :)
     strcpy(kOrbisProc->titleId, "OSML10000");
-
-    //Start FTP ELF
-    proc* proc = proc_find_by_name("SceRemotePlay");
-	if(proc) 
-	{
-        //Give Root FS Perms
-		filedesc* fd = proc->p_fd;
-		fd->fd_rdir = *(vnode**)resolve(addr_rootvnode);
-		fd->fd_jdir = *(vnode**)resolve(addr_rootvnode);
-
-		sys_proc_elf_handle(proc, (char*)OrbisFTP);
-	}
 }
 
 OrbisLib::~OrbisLib()

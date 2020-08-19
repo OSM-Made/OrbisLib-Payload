@@ -114,8 +114,8 @@ void OrbisShellCode::InstallShellCode(char* ProcName)
         m_library = m_library->dynlib_next;
     }
 
-    DebugLog(LOGTYPE_INFO, "thr_initial = %llX", thr_initial);
-    DebugLog(LOGTYPE_INFO, "gShellCodePtr = %llX", gShellCodePtr);
+    //DebugLog(LOGTYPE_INFO, "thr_initial = %llX", thr_initial);
+    //DebugLog(LOGTYPE_INFO, "gShellCodePtr = %llX", gShellCodePtr);
 
     err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisProcHelper_header, thr_initial), sizeof(thr_initial), (void *)&thr_initial, &n, 1);
     if(err)

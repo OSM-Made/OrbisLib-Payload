@@ -38,7 +38,7 @@ str_sceKernelLoadStartModule: db 'sceKernelLoadStartModule', 0
 str_sceKernelStopUnloadModule: db 'sceKernelStopUnloadModule', 0
 
 shellcode:
-	; load thr_initial into fs
+	; load thread into fs
 	mov rdi, qword [thr_initial]
 	mov rsi, qword [rdi]
 	mov rdi, qword [rsi + 0x1E0]

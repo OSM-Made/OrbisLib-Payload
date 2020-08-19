@@ -3,6 +3,14 @@
 	.type   OrbisProcHelper, @object
 	.align  4
 
+    .global OrbisELFLoader
+	.type   OrbisELFLoader, @object
+	.align  4
+
+    .global OrbisFTP
+	.type   OrbisFTP, @object
+	.align  4
+
 OrbisProcHelper:
     .incbin "../ShellCode/OrbisProcHelper.bin"
 OrbisProcHelperEnd:
@@ -12,10 +20,14 @@ OrbisProcHelperEnd:
 OrbisProcHelperSize:
     .int    OrbisProcHelperEnd - OrbisProcHelper
 
-.section .rodata
-    .global OrbisFTP
-	.type   OrbisFTP, @object
-	.align  4
+OrbisELFLoader:
+    .incbin "../ShellCode/OrbisELFLoader.bin"
+OrbisELFLoaderEnd:
+    .global OrbisELFLoaderSize
+    .type   OrbisELFLoaderSize, @object
+    .align  4
+OrbisELFLoaderSize:
+    .int    OrbisELFLoaderEnd - OrbisELFLoader
 
 OrbisFTP:
     .incbin "../FTP/OrbisFTP.elf"

@@ -1,147 +1,163 @@
 #include "../Main.hpp"
 #include "ELFLoader.hpp"
 
-#define RPCLDR_MAGIC 0x52444C52
-
-struct rpcldr_header {
+ struct OrbisELFLoader_header
+{
     uint32_t magic;
     uint64_t entry;
-    uint8_t ldrdone;
-    uint64_t stubentry;
-    uint64_t scePthreadAttrInit;
-    uint64_t scePthreadAttrSetstacksize;
-    uint64_t scePthreadCreate;
+
     uint64_t thr_initial;
-} __attribute__((packed));
+    uint8_t ShellCodeComplete;
+    uint64_t ELFEntryPoint;
+}__attribute__((packed));
 
-static const uint8_t rpcldr[255] = {
-    0x52, 0x4C, 0x44, 0x52, 0x4D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x72, 0x70, 0x63,
-    0x73, 0x74, 0x75, 0x62, 0x00, 0x48, 0x8B, 0x3D, 0xD9, 0xFF, 0xFF, 0xFF,
-    0x48, 0x8B, 0x37, 0x48, 0x8B, 0xBE, 0xE0, 0x01, 0x00, 0x00, 0xE8, 0x7A,
-    0x00, 0x00, 0x00, 0x48, 0x8D, 0x3D, 0xD3, 0xFF, 0xFF, 0xFF, 0x4C, 0x8B,
-    0x25, 0xA4, 0xFF, 0xFF, 0xFF, 0x41, 0xFF, 0xD4, 0xBE, 0x00, 0x00, 0x08,
-    0x00, 0x48, 0x8D, 0x3D, 0xBD, 0xFF, 0xFF, 0xFF, 0x4C, 0x8B, 0x25, 0x96,
-    0xFF, 0xFF, 0xFF, 0x41, 0xFF, 0xD4, 0x4C, 0x8D, 0x05, 0xB4, 0xFF, 0xFF,
-    0xFF, 0xB9, 0x00, 0x00, 0x00, 0x00, 0x48, 0x8B, 0x15, 0x70, 0xFF, 0xFF,
-    0xFF, 0x48, 0x8D, 0x35, 0x99, 0xFF, 0xFF, 0xFF, 0x48, 0x8D, 0x3D, 0x8A,
-    0xFF, 0xFF, 0xFF, 0x4C, 0x8B, 0x25, 0x73, 0xFF, 0xFF, 0xFF, 0x41, 0xFF,
-    0xD4, 0xC6, 0x05, 0x50, 0xFF, 0xFF, 0xFF, 0x01, 0xBF, 0x00, 0x00, 0x00,
-    0x00, 0xE8, 0x01, 0x00, 0x00, 0x00, 0xC3, 0xB8, 0xAF, 0x01, 0x00, 0x00,
-    0x49, 0x89, 0xCA, 0x0F, 0x05, 0xC3, 0xB8, 0xA5, 0x00, 0x00, 0x00, 0x49,
-    0x89, 0xCA, 0x0F, 0x05, 0xC3, 0x55, 0x48, 0x89, 0xE5, 0x53, 0x48, 0x83,
-    0xEC, 0x18, 0x48, 0x89, 0x7D, 0xE8, 0x48, 0x8D, 0x75, 0xE8, 0xBF, 0x81,
-    0x00, 0x00, 0x00, 0xE8, 0xDA, 0xFF, 0xFF, 0xFF, 0x48, 0x83, 0xC4, 0x18,
-    0x5B, 0x5D, 0xC3
-};
+extern uint8_t OrbisELFLoader[];
+extern int32_t OrbisELFLoaderSize;
 
-/*int proc_create_thread(struct proc *p, uint64_t address) {
-    void *rpcldraddr = NULL;
-    void *stackaddr = NULL;
-    struct proc_vm_map_entry *entries = NULL;
-    uint64_t num_entries = 0;
-    uint64_t n = 0;
-    int r = 0;
+int proc_create_thread(proc *proc, uint64_t address) 
+{
+    size_t n;
+    int err = 0;
+    uint64_t thr_initial = 0;
+    uint8_t ShellCodeComplete = 0;
+    void* gShellCodePtr = NULL;
+    void* gStackPtr = NULL;
+    size_t gShellCodeSize = 0;
 
-    uint64_t ldrsize = sizeof(rpcldr);
-    ldrsize += (PAGE_SIZE - (ldrsize % PAGE_SIZE));
-    
-    uint64_t stacksize = 0x80000;
-
-    r = proc_allocate(p, &rpcldraddr, ldrsize);
-    if (r) {
-        return r;
+    if(proc == NULL)
+    {
+        DebugLog(LOGTYPE_ERR, "Proc was NULL.");
+        return err;
     }
 
-    r = proc_allocate(p, &stackaddr, stacksize);
-    if (r) {
-        return r;
+    gShellCodeSize = OrbisELFLoaderSize;
+	gShellCodeSize += (PAGE_SIZE - (gShellCodeSize % PAGE_SIZE));
+	if(proc_allocate(proc, &gShellCodePtr, gShellCodeSize)) 
+    {
+        DebugLog(LOGTYPE_ERR, "Failed to allocate ShellCode Memory.");
+        return err;
     }
 
-    r = proc_write_mem(p, rpcldraddr, sizeof(rpcldr), (void *)rpcldr, &n);
-    if (r) {
-        return r;
+    size_t StackSize = 0x80000;
+	if(proc_allocate(proc, &gStackPtr, StackSize)) {
+        DebugLog(LOGTYPE_ERR, "Failed to allocate Stack Memory.");
+
+        if (gShellCodePtr)
+			proc_deallocate(proc, gShellCodePtr, gShellCodeSize);
+
+        return err;
     }
 
-    uint64_t _scePthreadAttrInit = 0, _scePthreadAttrSetstacksize = 0, _scePthreadCreate = 0, _thr_initial = 0;
-    dynlib* m_library = p->p_dynlibptr->p_dynlib;
+    err = proc_rw_mem(proc, gShellCodePtr, OrbisELFLoaderSize, (void *)OrbisELFLoader, &n, 1);
+    if(err)
+    {
+        DebugLog(LOGTYPE_ERR, "Failed to write Shellcode to Memory. Error: %d.", err);
+
+        if (gShellCodePtr)
+			proc_deallocate(proc, gShellCodePtr, gShellCodeSize);
+
+		if (gStackPtr)
+			proc_deallocate(proc, gStackPtr, 0x80000);
+
+        return err;
+    }
+
+    if(proc->p_dynlibptr == NULL) 
+    {
+        DebugLog(LOGTYPE_ERR, "p_dynlibptr is NULL.");
+
+        if (gShellCodePtr)
+			proc_deallocate(proc, gShellCodePtr, gShellCodeSize);
+
+		if (gStackPtr)
+			proc_deallocate(proc, gStackPtr, 0x80000);
+
+        return err;
+    }
+
+    dynlib* m_library = proc->p_dynlibptr->p_dynlib;
     while(m_library != 0)
 	{
         if(!strcmp(basename(m_library->ModulePath), "libkernel.sprx"))
-        {
-            _scePthreadAttrInit = (uint64_t)m_library->codeBase + 0x12660;
-            _scePthreadAttrSetstacksize = (uint64_t)m_library->codeBase + 0x12680;
-            _scePthreadCreate = (uint64_t)m_library->codeBase + 0x12AA0;
-            _thr_initial = (uint64_t)m_library->codeBase + 0x84C20;
-        }
+			thr_initial = (uint64_t)m_library->codeBase + 0x84C20;
 
         if(!strcmp(basename(m_library->ModulePath), "libkernel_web.sprx"))
-        {
-            _scePthreadAttrInit = (uint64_t)m_library->codeBase + 0x1E730;
-            _scePthreadAttrSetstacksize = (uint64_t)m_library->codeBase + 0xFA80;
-            _scePthreadCreate = (uint64_t)m_library->codeBase + 0x98C0;
-            _thr_initial = (uint64_t)m_library->codeBase + 0x84C20;
-        }
+			thr_initial = (uint64_t)m_library->codeBase + 0x84C20;
 
         if(!strcmp(basename(m_library->ModulePath), "libkernel_sys.sprx"))
-		{
-            _scePthreadAttrInit = (uint64_t)m_library->codeBase + 0x13190;
-            _scePthreadAttrSetstacksize = (uint64_t)m_library->codeBase + 0x131B0;
-            _scePthreadCreate = (uint64_t)m_library->codeBase + 0x135D0;
-            _thr_initial = (uint64_t)m_library->codeBase + 0x89030;
-        }
+			thr_initial = (uint64_t)m_library->codeBase + 0x89030;
 
         m_library = m_library->dynlib_next;
     }
 
-    if (!_scePthreadAttrInit) {
-        return r;
+    if(thr_initial == 0) 
+    {
+		DebugLog(LOGTYPE_ERR, "Failed to resolve thr_initial.");
+
+        if (gShellCodePtr)
+			proc_deallocate(proc, gShellCodePtr, gShellCodeSize);
+
+		if (gStackPtr)
+			proc_deallocate(proc, gStackPtr, 0x80000);
+
+        return err;
     }
 
-    r = proc_write_mem(p, rpcldraddr + offsetof(rpcldr_header, stubentry), sizeof(address), (void *)&address, &n);
-    r = proc_write_mem(p, rpcldraddr + offsetof(rpcldr_header, scePthreadAttrInit), sizeof(_scePthreadAttrInit), (void *)&_scePthreadAttrInit, &n);
-    r = proc_write_mem(p, rpcldraddr + offsetof(rpcldr_header, scePthreadAttrSetstacksize), sizeof(_scePthreadAttrSetstacksize), (void *)&_scePthreadAttrSetstacksize, &n);
-    r = proc_write_mem(p, rpcldraddr + offsetof(rpcldr_header, scePthreadCreate), sizeof(_scePthreadCreate), (void *)&_scePthreadCreate, &n);
-    r = proc_write_mem(p, rpcldraddr + offsetof(rpcldr_header, thr_initial), sizeof(_thr_initial), (void *)&_thr_initial, &n);
-    if (r) {
-        return r;
+    err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisELFLoader_header, thr_initial), sizeof(thr_initial), (void *)&thr_initial, &n, 1);
+    if(err)
+    {
+        DebugLog(LOGTYPE_ERR, "Failed to write thr_initial to ShellCode. Error: %d.", err);
+
+        if (gShellCodePtr)
+			proc_deallocate(proc, gShellCodePtr, gShellCodeSize);
+
+		if (gStackPtr)
+			proc_deallocate(proc, gStackPtr, 0x80000);
+
+        return err;
     }
 
-    struct thread *thr = TAILQ_FIRST(&p->p_threads);
-    uint64_t ldrentryaddr = (uint64_t)rpcldraddr + *(uint64_t *)(rpcldr + 4);
-    r = create_thread(thr, NULL, (void *)ldrentryaddr, NULL, (char*)stackaddr, stacksize, NULL, NULL, NULL, 0, NULL);
-    if (r) {
-        return r;
+    err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisELFLoader_header, ELFEntryPoint), sizeof(address), (void *)&address, &n, 1);
+    if(err)
+    {
+        DebugLog(LOGTYPE_ERR, "Failed to write ELFEntryPoint to ShellCode. Error: %d.", err);
+
+        if (gShellCodePtr)
+			proc_deallocate(proc, gShellCodePtr, gShellCodeSize);
+
+		if (gStackPtr)
+			proc_deallocate(proc, gStackPtr, 0x80000);
+
+        return err;
     }
 
-    uint8_t ldrdone = 0;
-    while (!ldrdone) {
-        r = proc_read_mem(p, (void *)(rpcldraddr + offsetof(rpcldr_header, ldrdone)), sizeof(ldrdone), &ldrdone, &n);
-        if (r) {
-            return r;
+    struct thread *thr = TAILQ_FIRST(&proc->p_threads);
+	uint64_t ShellCodeEntry = (uint64_t)gShellCodePtr + *(uint64_t *)(OrbisELFLoader + 4);
+	create_thread(thr, NULL, (void*)ShellCodeEntry, NULL, (char*)gStackPtr, StackSize, NULL, NULL, NULL, 0, NULL);
+
+    while (!ShellCodeComplete) 
+	{
+        err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisELFLoader_header, ShellCodeComplete), sizeof(ShellCodeComplete), (void *)&ShellCodeComplete, &n, 0);
+        if(err)
+        {
+            DebugLog(LOGTYPE_ERR, "Failed to read ShellCodeComplete.");
+            return err;
         }
-    }
 
-    if (entries) {
-        free(entries, M_TEMP);
-    }
+        //DebugLog(LOGTYPE_INFO, "Waiting for ShellCode to compelete!");
+        pause("", 100);
+	}
 
-    if (rpcldraddr) {
-        proc_deallocate(p, rpcldraddr, ldrsize);
-    }
+    if (gShellCodePtr)
+        proc_deallocate(proc, gShellCodePtr, gShellCodeSize);
 
-    if (stackaddr) {
-        proc_deallocate(p, stackaddr, stacksize);
-    }
+    if (gStackPtr)
+        proc_deallocate(proc, gStackPtr, 0x80000);
 
-    return r;
+    return err;
 }
 
-static inline struct Elf64_Phdr *elf_pheader(struct Elf64_Ehdr *hdr) {
+/*static inline struct Elf64_Phdr *elf_pheader(struct Elf64_Ehdr *hdr) {
 	if (!hdr->e_phoff) {
 		return NULL;
 	}
