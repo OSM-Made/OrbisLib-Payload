@@ -96,5 +96,8 @@
 #define addr_SceSblAuthMgrSmLoadSelfSegment_Mailbox 0x64318B
 #define addr_SceSblAuthMgrSmLoadSelfBlock_Mailbox 0x643DA2
 
+/* Critical Sections */
+#define addr_EnterCriticalSection               0x28E7A0
+#define addr_ExitCriticalSection                0x28E7B0
 
 #endif

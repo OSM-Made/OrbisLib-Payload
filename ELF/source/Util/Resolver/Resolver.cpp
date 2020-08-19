@@ -66,12 +66,15 @@ void (*_mtx_lock_flags)(mtx *mutex, int flags, const char *file, int line);
 void (*_mtx_unlock_flags)(mtx *mutex, int flags, const char *file, int line);
 
 /* Fake Selfs */
-//void (*)();
 int (*sceSblAuthMgrGetSelfInfo)(SelfContext* ctx, void *exInfo);
 int (*sceSblAuthMgrIsLoadable2)(SelfContext* pSelfContext, SelfAuthInfo* pOldAuthInfo, int32_t pPathId, SelfAuthInfo* pNewAuthInfo);
 void (*sceSblAuthMgrSmStart)(void**);
 int (*sceSblAuthMgrVerifyHeader)(SelfContext* pSelfContext);
 int (*sceSblServiceMailbox)(uint32_t pServiceId, void* pRequest, void* pResponse);
+
+/*Critical Sections*/
+void (*EnterCriticalSection)();
+void (*ExitCriticalSection)();
 
 void ResolveFunctions()
 {
@@ -145,4 +148,8 @@ void ResolveFunctions()
     sceSblAuthMgrSmStart = (void(*)(void**))resolve(addr_sceSblAuthMgrSmStart);
     sceSblAuthMgrVerifyHeader = (int(*)(SelfContext* pSelfContext))resolve(addr_sceSblAuthMgrVerifyHeader);
     sceSblServiceMailbox = (int(*)(uint32_t pServiceId, void* pRequest, void* pResponse))resolve(addr_sceSblServiceMailbox);
+
+    /* Critical Sections */
+    EnterCriticalSection = (void(*)())resolve(addr_EnterCriticalSection);
+    ExitCriticalSection = (void(*)())resolve(addr_ExitCriticalSection);
 }

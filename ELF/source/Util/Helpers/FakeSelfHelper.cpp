@@ -1,6 +1,15 @@
 #include "../../Main.hpp"
 #include "FakeSelfHelper.hpp"
 
+/*
+Credits:
+
+    Implemented from: https://github.com/xvortex/ps4-hen-vtx
+    Ported by: kiwidog (@kd_tech_)
+    Bugfixes: SiSTRo (https://github.com/SiSTR0), SocraticBliss (https://github.com/SocraticBliss)
+
+*/
+
 const uint8_t FakeSelfHelper::s_auth_info_for_exec[] =
 {
   0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x31, 0x00, 0x00, 0x00, 0x00, 0x80, 0x03, 0x00, 0x20,
@@ -152,7 +161,7 @@ int FakeSelfHelper::SceSblAuthMgrGetSelfAuthInfoFake(SelfContext* pSelfContext, 
         return 0;
     }
 
-    DebugLog(LOGTYPE_ERR, "ealready (no valid authinfo)");
+    //DebugLog(LOGTYPE_ERR, "EALREADY (no valid authinfo)");
     return -EALREADY;
 }
 
@@ -273,8 +282,6 @@ int FakeSelfHelper::AuthSelfHeader(SelfContext* pContext)
 
 int FakeSelfHelper::SceSblAuthMgrVerifyHeaderHook(SelfContext* pSelfContext)
 {
-    DebugLog(LOGTYPE_INFO, "Hello!");
-
     void* s_Temp = nullptr;
     sceSblAuthMgrSmStart(&s_Temp);
 
@@ -379,21 +386,17 @@ int FakeSelfHelper::SceSblAuthMgrSmLoadSelfBlock_MailboxHook(uint64_t pServiceId
 
 FakeSelfHelper::FakeSelfHelper()
 {
-    //SceSblAuthMgrVerifyHeader1
-    //SceSblAuthMgrVerifyHeader2
-    //sceSblAuthMgrIsLoadable2
-    //SceSblAuthMgrSmLoadSelfSegment_Mailbox
-    //SceSblAuthMgrSmLoadSelfBlock_Mailbox
+    auto sv = (struct sysentvec*)resolve(addr_sysvec);
+    struct sysent* sysents = sv->sv_table;
 
-    uint64_t CR0 = __readcr0();
- 	__writecr0(CR0 & ~CR0_WP);
-
-
-
-    __writecr0(CR0);
+    HookFunctionCall((uint8_t*)sysents[409].sy_call, (void*)SceSblAuthMgrVerifyHeaderHook, resolve(addr_sceSblAuthMgrVerifyHeaderHook1));
+    HookFunctionCall((uint8_t*)sysents[384].sy_call, (void*)SceSblAuthMgrVerifyHeaderHook, resolve(addr_sceSblAuthMgrVerifyHeaderHook2));
+    HookFunctionCall((uint8_t*)sysents[385].sy_call, (void*)SceSblAuthMgrIsLoadable2Hook, resolve(addr_SceSblAuthMgrIsLoadable2Hook));
+    HookFunctionCall((uint8_t*)sysents[387].sy_call, (void*)SceSblAuthMgrSmLoadSelfSegment_MailboxHook, resolve(addr_SceSblAuthMgrSmLoadSelfSegment_Mailbox));
+    HookFunctionCall((uint8_t*)sysents[386].sy_call, (void*)SceSblAuthMgrSmLoadSelfBlock_MailboxHook, resolve(addr_SceSblAuthMgrSmLoadSelfBlock_Mailbox));
 }
 
 FakeSelfHelper::~FakeSelfHelper()
 {
-
+    
 }

@@ -89,4 +89,8 @@ extern void (*sceSblAuthMgrSmStart)(void**);
 extern int (*sceSblAuthMgrVerifyHeader)(SelfContext* pSelfContext);
 extern int (*sceSblServiceMailbox)(uint32_t pServiceId, void* pRequest, void* pResponse);
 
+/* Critical Sections */
+extern void (*EnterCriticalSection)();
+extern void (*ExitCriticalSection)();
+
 void ResolveFunctions();

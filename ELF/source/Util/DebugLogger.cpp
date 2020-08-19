@@ -172,6 +172,9 @@ void StartDebugLogger()
 
 	ShouldDebugLoggerRun = true;
 
+	//TODO:Remove after testing...
+	orbisLib->HostIPAddr = IP(192, 168, 1, 64);
+
 	while(orbisLib->kOrbisProc == 0)
 		pause("", 100);
 

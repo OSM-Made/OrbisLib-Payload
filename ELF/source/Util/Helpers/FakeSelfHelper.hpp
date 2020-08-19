@@ -1,4 +1,5 @@
 #pragma once
+#include "../Detour.hpp"
 
 typedef enum _SelfFormat
     {
@@ -105,6 +106,12 @@ class FakeSelfHelper
 private:
     static const uint8_t s_auth_info_for_exec[0x88];
     static const uint8_t s_auth_info_for_dynlib[0x88];
+
+    Detour* SceSblAuthMgrVerifyHeader1Detour;
+    Detour* SceSblAuthMgrVerifyHeader2Detour;
+    Detour* sceSblAuthMgrIsLoadable2Detour;
+    Detour* SceSblAuthMgrSmLoadSelfSegment_MailboxDetour;
+    Detour* SceSblAuthMgrSmLoadSelfBlock_MailboxDetour;
 
 public:
     static SblMapListEntry* SceSblDriverFindMappedPageListByGpuVa(vm_offset_t p_GpuVa);

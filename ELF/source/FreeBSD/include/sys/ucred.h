@@ -43,7 +43,7 @@ struct loginclass;
 * Please do not inspect cr_uid directly to determine superuserness.  The
 * priv(9) interface should be used to check for privilege.
 */
-#if defined(_KERNEL) || defined(_WANT_UCRED)
+//#if defined(_KERNEL) || defined(_WANT_UCRED)
 struct ucred {
 	u_int	cr_ref;			/* reference count */
 #define	cr_startcopy cr_uid
@@ -72,7 +72,7 @@ struct ucred {
 };
 #define	NOCRED	((struct ucred *)0)	/* no credential available */
 #define	FSCRED	((struct ucred *)-1)	/* filesystem credential */
-#endif /* _KERNEL || _WANT_UCRED */
+//#endif /* _KERNEL || _WANT_UCRED */
 
 #define	XU_NGROUPS	16
 

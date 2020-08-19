@@ -106,6 +106,14 @@ void OrbisShellCode::InstallShellCode(char* ProcName)
         return;
     }
 
+    //Set Text Segments as writeable.
+    m_library = proc->p_dynlibptr->p_dynlib;
+    while(m_library != 0)
+	{ 
+        proc_mprotect(proc, (void *)m_library->codeBase, (void*)m_library->codeSize, VM_PROT_ALL);
+        m_library = m_library->dynlib_next;
+    }
+
     DebugLog(LOGTYPE_INFO, "thr_initial = %llX", thr_initial);
     DebugLog(LOGTYPE_INFO, "gShellCodePtr = %llX", gShellCodePtr);
 
