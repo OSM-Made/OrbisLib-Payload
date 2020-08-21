@@ -131,7 +131,7 @@ do {									\
 		_EVENTHANDLER_INVOKE(name, _el , ## __VA_ARGS__);	\
 } while (0)
 
-#define EVENTHANDLER_REGISTER(name, func, arg, priority)		\
+/*#define EVENTHANDLER_REGISTER(name, func, arg, priority)		\
 	eventhandler_register(NULL, #name, func, arg, priority)
 
 #define EVENTHANDLER_DEREGISTER(name, tag) 				\
@@ -148,7 +148,7 @@ eventhandler_tag eventhandler_register(struct eventhandler_list *list,
 void	eventhandler_deregister(struct eventhandler_list *list,
 	    eventhandler_tag tag);
 struct eventhandler_list *eventhandler_find_list(const char *name);
-void	eventhandler_prune_list(struct eventhandler_list *list);
+void	eventhandler_prune_list(struct eventhandler_list *list);*/
 
 #ifdef VIMAGE
 typedef	void (*vimage_iterator_func_t)(void *, ...);

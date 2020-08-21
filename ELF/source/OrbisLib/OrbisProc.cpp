@@ -1,11 +1,26 @@
 #include "../main.hpp"
 #include "OrbisProc.hpp"
 
+extern "C"
+{
+    #include <wait.h>
+}
+
+/*void OnTrapFatalHook(trapframe *frame)
+{
+	DebugLog(LOGTYPE_INFO, "Trap Fatal Hit!");
+}*/
+
 OrbisProc::OrbisProc()
 {
     DebugLog(LOGTYPE_INFO, "Initialization!!");
 
     orbisShellCode = new OrbisShellCode();
+
+    //Detour* OnTrapFatalDetour = new Detour((void*)resolve(addr_trap_fatalHook), (void*)OnTrapFatalHook, 17);
+    ProcessExitEvent = EVENTHANDLER_REGISTER(process_exit,(void*)OnProcessExit, this, EVENTHANDLER_PRI_ANY);
+
+    IsRunning = true;
 }
 
 OrbisProc::~OrbisProc()
@@ -13,6 +28,149 @@ OrbisProc::~OrbisProc()
     DebugLog(LOGTYPE_INFO, "Destruction!!");
 
     _free(orbisShellCode);
+
+    IsRunning = false;
+}
+
+void OrbisProc::OnProcessExit(void *arg, struct proc *p)
+{
+    OrbisProc* orbisProc = (OrbisProc*)arg;
+
+    if(strcmp(p->p_comm, orbisProc->CurrentProcName))
+        return;
+    
+    char ProcName[0x20];
+    proc* proc = NULL;
+    thread* td = curthread();
+    int err = 0;
+
+    if(!orbisProc->CurrentlyAttached)
+    {
+        DebugLog(LOGTYPE_INFO, "Not currently attached to any process.");
+        return;
+    }
+
+    strcpy(ProcName, orbisProc->CurrentProcName);
+    proc = proc_find_by_name(ProcName);
+    if(!proc)
+    {
+        DebugLog(LOGTYPE_ERR, "Could not find Proc \"%s\" it might have been killed.", ProcName);
+
+        //Reset Data Values
+        orbisProc->CurrentProcessID = -1;
+        memset(&orbisProc->CurrentProcName[0], 0, sizeof(CurrentProcName));
+        orbisProc->CurrentlyAttached = false;
+
+        return;
+    }
+
+    DebugLog(LOGTYPE_INFO, "Detaching from process \"%s\".", ProcName);
+
+    //Clear any breakpoints or watchpoints set.
+    //TODO: Implement
+
+    //clear shell code from last process.
+    orbisProc->orbisShellCode->DestroyShellCode();
+
+    err = kptrace(td, PT_DETACH, orbisProc->CurrentProcessID, (void*)SIGCONT, 0);
+    if(err)
+    {
+        DebugLog(LOGTYPE_ERR, "ptrace PT_DETACH failed %d.", err);
+
+        return;
+    }
+
+     //Reset Data Values
+    orbisProc->CurrentProcessID = -1;
+    memset(&orbisProc->CurrentProcName[0], 0, sizeof(CurrentProcName));
+    orbisProc->CurrentlyAttached = false;
+
+    DebugLog(LOGTYPE_INFO, "Detached from process \"%s\".", ProcName);
+}
+
+void OrbisProc::WatcherThread(void* arg)
+{
+    OrbisProc* orbisProc = (OrbisProc*)arg;
+    size_t n = 0;
+	uint8_t int3 = 0xCC;
+	reg Registers;
+    proc* proc = 0;
+    thread* td = 0;
+    static uint64_t PreviousBreakAddress = 0;
+
+    while(orbisProc->IsRunning)
+    {
+        kthread_suspend_check();
+
+        pause("", 10);
+
+        if(!orbisProc->CurrentlyAttached)
+            continue;
+
+        proc = proc_find_by_name(orbisProc->CurrentProcName);
+        if(!proc)
+            continue;
+
+        td = curthread();
+        if(!td)
+            continue;
+        
+        int status = 0;
+        int res = kwait4(proc->p_pid, &status, WUNTRACED, 0);
+        int Signal = WSTOPSIG(status);
+
+        DebugLog(LOGTYPE_INFO, "Res = %d, Status = %d, Signal = %d\n", res, status, WSTOPSIG(status));
+
+        if(Signal == SIGTRAP)
+        {
+            //Clearout Register Structure.
+            memset(&Registers, 0, sizeof(struct reg));
+
+            //Get registers
+            if(kptrace(td, PT_GETREGS, proc->p_pid, (void*)&Registers, 0))
+                continue;
+
+            if(Registers.r_rip - 1 == 0xC5CAF0)
+            {
+                Log("Software Breakpoint Hit - 0x%llX (0x%X)", Registers.r_rip - 1, 0x55);
+
+                uint8_t tempop = 0x55;
+                uint64_t Address = 0xC5CAF0;
+
+                //restore original OP code
+                n = 0;
+                if(proc_rw_mem(proc, (void*)Address, (size_t)0x01, (void*)&tempop, &n, 1))
+                    continue;
+                
+                //Back step one byte
+                Registers.r_rip -= 1;
+                if(kptrace(td, PT_SETREGS, proc->p_pid, (void*)&Registers, 0))
+                    continue;
+
+                //Step to execute break instruction
+                if(kptrace(td, PT_STEP, proc->p_pid, (void *)1, 0))
+                    continue;
+
+                pause("", 150);
+
+                Log("Software Breakpoint Handled!");
+
+                ptrace_lwpinfo * lwpinfo = (ptrace_lwpinfo*)_malloc(sizeof(ptrace_lwpinfo));
+
+                if(kptrace(td, PT_LWPINFO, proc->p_pid, lwpinfo, sizeof(ptrace_lwpinfo)))
+                    continue;
+
+                DebugLog(LOGTYPE_INFO, "Thread Name = %s\n", lwpinfo->pl_tdname);
+
+                _free(lwpinfo);
+
+                if(kptrace(td, PT_CONTINUE, proc->p_pid, (void*)1, 0))
+                    continue;
+            }
+        }
+    }
+
+    kproc_exit(0); 
 }
 
 void SendStatus(int Socket, int Status)
@@ -365,26 +523,41 @@ void OrbisProc::Proc_Write(int Socket, uint64_t Address, size_t len)
     _free(Buffer);
 }
   
-void OrbisProc::Proc_Kill(int Socket)
+void OrbisProc::Proc_Kill(int Socket, char* ProcName)
 {
-    proc* proc = proc_find_by_name(CurrentProcName);
-    thread* td = curthread();
+    proc* proc = 0;
+    thread* td = 0;
     int err = 0;
     char* Buffer = 0;
-    
-    //Make sure were are attached to a process.
-    if(!CurrentlyAttached)
-    {
-        DebugLog(LOGTYPE_INFO, "Not currently attached to any process.");
+    char KillProcName[0x20] = { 0 };
+    bool IsAttachedProc = false;
 
-        SendStatus(Socket, false);
-        return;
+    if(!strcmp(ProcName, ""))
+    {
+        strcpy(KillProcName, CurrentProcName);
+
+        //Make sure were are attached to a process.
+        if(!CurrentlyAttached)
+        {
+            DebugLog(LOGTYPE_INFO, "Not currently attached to any process.");
+
+            SendStatus(Socket, false);
+            return;
+        }
     }
+    else
+        strcpy(KillProcName, ProcName);
+
+    proc = proc_find_by_name(KillProcName);
+    td = curthread();
     
-    //Make sure the process were attached to still exists.
+    //Make sure the process still exists.
     if(!proc)
     {
-        DebugLog(LOGTYPE_ERR, "Could not find Proc \"%s\".", CurrentProcName);
+        DebugLog(LOGTYPE_ERR, "Could not find Proc \"%s\".", KillProcName);
+
+        if(!IsAttachedProc)
+            return;
 
         //Reset Data Values
         CurrentProcessID = -1;
@@ -400,23 +573,26 @@ void OrbisProc::Proc_Kill(int Socket)
     kpsignal(proc, SIGKILL);
     pause("Client Thread", 150);
 
-    //Clear any breakpoints or watchpoints set.
-    //TODO: Implement
-
-    //clear shell code from last process.
-    orbisShellCode->DestroyShellCode(); //Probably dont need to do this since were not gracefully shutting down the process
-
-    //Detach from last process.
-    err = kptrace(td, PT_DETACH, CurrentProcessID, (void*)SIGCONT, 0);
-    if(err)
+    /*if(!IsAttachedProc)
     {
-        DebugLog(LOGTYPE_ERR, "ptrace PT_DETACH failed %d.", err);
-    }
+        //Clear any breakpoints or watchpoints set.
+        //TODO: Implement
 
-    //Reset Data Values
-    CurrentProcessID = -1;
-    memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
-    CurrentlyAttached = false;
+        //clear shell code from last process.
+        orbisShellCode->DestroyShellCode(); //Probably dont need to do this since were not gracefully shutting down the process
+
+        //Detach from last process.
+        err = kptrace(td, PT_DETACH, CurrentProcessID, (void*)SIGCONT, 0);
+        if(err)
+        {
+            DebugLog(LOGTYPE_ERR, "ptrace PT_DETACH failed %d.", err);
+        }
+
+        //Reset Data Values
+        CurrentProcessID = -1;
+        memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
+        CurrentlyAttached = false;
+    }*/
 
     SendStatus(Socket, true);
 }

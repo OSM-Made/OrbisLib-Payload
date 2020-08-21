@@ -37,6 +37,7 @@ extern "C"
     #include <errno.h>
     #include <sys/elf_common.h>
     #include <sys/elf64.h>
+    #include <sys/eventhandler.h>
 
 }
 

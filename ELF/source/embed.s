@@ -37,4 +37,3 @@ OrbisFTPEnd:
     .align  4
 OrbisFTPSize:
     .int    OrbisFTPEnd - OrbisFTP
-    

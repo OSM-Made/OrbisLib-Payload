@@ -7,6 +7,7 @@ extern "C"
     #include <vm/vm_map.h>
     #include <sys/uio.h>
     #include <sys/elf64.h>
+    #include <sys/eventhandler.h>
 }
 
 #include "Resolver-505.hpp"
@@ -92,5 +93,30 @@ extern int (*sceSblServiceMailbox)(uint32_t pServiceId, void* pRequest, void* pR
 /* Critical Sections */
 extern void (*EnterCriticalSection)();
 extern void (*ExitCriticalSection)();
+
+/* Event Resolving */
+extern eventhandler_tag (*eventhandler_register)(eventhandler_list *list, const char *name, void *func, void *arg, int priority);
+extern void (*eventhandler_deregister)(eventhandler_list* a, eventhandler_entry* b);
+extern eventhandler_list* (*eventhandler_find_list)(const char *name);
+
+/*
+	process_exec
+	process_exit
+
+	system_suspend_phase1
+	system_resume_phase1
+	shutdown_pre_sync
+*/
+
+#define EVENTHANDLER_REGISTER(name, func, arg, priority)		\
+	eventhandler_register(NULL, #name, func, arg, priority)
+
+#define EVENTHANDLER_DEREGISTER(name, tag) 				\
+do {									\
+	struct eventhandler_list *_el;					\
+									\
+	if ((_el = eventhandler_find_list(#name)) != NULL)		\
+		eventhandler_deregister(_el, tag);			\
+} while(0)
 
 void ResolveFunctions();

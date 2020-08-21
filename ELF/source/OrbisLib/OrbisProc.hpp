@@ -4,10 +4,13 @@
 class OrbisProc
 {
 private:
+    bool IsRunning = false;
     char CurrentProcName[0x20] = { };
     bool CurrentlyAttached = false;
     int CurrentProcessID = -1;
     OrbisShellCode* orbisShellCode;
+
+    eventhandler_entry* ProcessExitEvent;
 
     struct RESP_ProcList
     {
@@ -39,13 +42,16 @@ public:
     OrbisProc();
     ~OrbisProc();
 
+    static void OnProcessExit(void *arg, struct proc *p);
+    static void WatcherThread(void* arg);
+
     void Proc_GetList(int Socket);
     void Proc_Attach(int Socket, char* ProcName);
     void Proc_Detach(int Socket);
     void Proc_GetCurrent(int Socket);
     void Proc_Read(int Socket, uint64_t Address, size_t len);
     void Proc_Write(int Socket, uint64_t Address, size_t len);
-    void Proc_Kill(int Socket);
+    void Proc_Kill(int Socket, char* ProcName);
 
     void Proc_LoadSPRX(int Socket, const char *name, unsigned int flags);
     void Proc_UnloadSPRX(int Socket, int handle, uint32_t flags);

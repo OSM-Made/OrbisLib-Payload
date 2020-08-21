@@ -11,6 +11,7 @@
     uint64_t ELFEntryPoint;
 }__attribute__((packed));
 
+static const char ElfMagic[] = { 0x7f, 'E', 'L', 'F', '\0' };
 extern uint8_t OrbisELFLoader[];
 extern int32_t OrbisELFLoaderSize;
 
@@ -157,49 +158,49 @@ int proc_create_thread(proc *proc, uint64_t address)
     return err;
 }
 
-/*static inline struct Elf64_Phdr *elf_pheader(struct Elf64_Ehdr *hdr) {
+static inline Elf64_Phdr *elf_pheader(Elf64_Ehdr *hdr) {
 	if (!hdr->e_phoff) {
 		return NULL;
 	}
 
-	return (struct Elf64_Phdr *)((uint64_t)hdr + hdr->e_phoff);
+	return (Elf64_Phdr *)((uint64_t)hdr + hdr->e_phoff);
 }
-static inline struct Elf64_Phdr *elf_segment(struct Elf64_Ehdr *hdr, int idx) {
+static inline Elf64_Phdr *elf_segment(Elf64_Ehdr *hdr, int idx) {
 	uint64_t addr = (uint64_t)elf_pheader(hdr);
 	if (!addr) {
 		return NULL;
 	}
 
-	return (struct Elf64_Phdr *)(addr + (hdr->e_phentsize * idx));
+	return (Elf64_Phdr *)(addr + (hdr->e_phentsize * idx));
 }
-static inline struct Elf64_Shdr *elf_sheader(struct Elf64_Ehdr *hdr) {
+static inline Elf64_Shdr *elf_sheader(Elf64_Ehdr *hdr) {
 	if (!hdr->e_shoff) {
 		return NULL;
 	}
 
-	return (struct Elf64_Shdr *)((uint64_t)hdr + hdr->e_shoff);
+	return (Elf64_Shdr *)((uint64_t)hdr + hdr->e_shoff);
 }
-static inline struct Elf64_Shdr *elf_section(struct Elf64_Ehdr *hdr, int idx) {
+static inline Elf64_Shdr *elf_section(Elf64_Ehdr *hdr, int idx) {
 	uint64_t addr = (uint64_t)elf_sheader(hdr);
 	if (!addr) {
 		return NULL;
 	}
 
-	return (struct Elf64_Shdr *)(addr + (hdr->e_shentsize * idx));
+	return (Elf64_Shdr *)(addr + (hdr->e_shentsize * idx));
 }
 
 int elf_mapped_size(void *elf, uint64_t *msize) {
-    struct Elf64_Ehdr *ehdr = (struct Elf64_Ehdr *)elf;
+    Elf64_Ehdr *ehdr = (Elf64_Ehdr*)elf;
 
     if (memcmp(ehdr->e_ident, ElfMagic, 4)) {
         return 1;
     }
 
     uint64_t s = 0;
-    struct Elf64_Phdr *phdr = elf_pheader(ehdr);
+    Elf64_Phdr *phdr = elf_pheader(ehdr);
     if (phdr) {
         for (int i = 0; i < ehdr->e_phnum; i++) {
-            struct Elf64_Phdr *phdr = elf_segment(ehdr, i);
+            Elf64_Phdr *phdr = elf_segment(ehdr, i);
 
             uint64_t delta = phdr->p_paddr + phdr->p_memsz;
             if (delta > s) {
@@ -208,7 +209,7 @@ int elf_mapped_size(void *elf, uint64_t *msize) {
         }
     } else {
         for (int i = 0; i < ehdr->e_shnum; i++) {
-            struct Elf64_Shdr *shdr = elf_section(ehdr, i);
+            Elf64_Shdr *shdr = elf_section(ehdr, i);
 
             uint64_t delta = shdr->sh_addr + shdr->sh_size;
             if (delta > s) {
@@ -225,12 +226,12 @@ int elf_mapped_size(void *elf, uint64_t *msize) {
 }
 
 int proc_map_elf(struct proc *p, void *elf, void *exec) {
-    struct Elf64_Ehdr *ehdr = (struct Elf64_Ehdr *)elf;
+    Elf64_Ehdr *ehdr = (Elf64_Ehdr*)elf;
 
-    struct Elf64_Phdr *phdr = elf_pheader(ehdr);
+    Elf64_Phdr *phdr = elf_pheader(ehdr);
     if (phdr) {
         for (int i = 0; i < ehdr->e_phnum; i++) {
-            struct Elf64_Phdr *phdr = elf_segment(ehdr, i);
+            Elf64_Phdr *phdr = elf_segment(ehdr, i);
 
             if (phdr->p_filesz) {
                 proc_write_mem(p, (void *)((uint8_t *)exec + phdr->p_paddr), phdr->p_filesz, (void *)((uint8_t *)elf + phdr->p_offset), NULL);
@@ -238,7 +239,7 @@ int proc_map_elf(struct proc *p, void *elf, void *exec) {
         }
     } else {
         for (int i = 0; i < ehdr->e_shnum; i++) {
-            struct Elf64_Shdr *shdr = elf_section(ehdr, i);
+            Elf64_Shdr *shdr = elf_section(ehdr, i);
 
             if (!(shdr->sh_flags & SHF_ALLOC)) {
                 continue;
@@ -254,15 +255,15 @@ int proc_map_elf(struct proc *p, void *elf, void *exec) {
 }
 
 int proc_relocate_elf(struct proc *p, void *elf, void *exec) {
-    struct Elf64_Ehdr *ehdr = (struct Elf64_Ehdr *)elf;
+    Elf64_Ehdr *ehdr = (Elf64_Ehdr*)elf;
 
     for (int i = 0; i < ehdr->e_shnum; i++) {
-        struct Elf64_Shdr *shdr = elf_section(ehdr, i);
+        Elf64_Shdr *shdr = elf_section(ehdr, i);
 
 
         if (shdr->sh_type == SHT_REL) {
             for (int j = 0; j < shdr->sh_size / shdr->sh_entsize; j++) {
-                struct Elf64_Rela *reltab = &((struct Elf64_Rela *)((uint64_t)ehdr + shdr->sh_offset))[j];
+                Elf64_Rela *reltab = &((Elf64_Rela *)((uint64_t)ehdr + shdr->sh_offset))[j];
                 uint8_t **ref = (uint8_t **)((uint8_t *)exec + reltab->r_offset);
                 uint8_t *value = NULL;
 
@@ -272,7 +273,7 @@ int proc_relocate_elf(struct proc *p, void *elf, void *exec) {
                     proc_write_mem(p, ref, sizeof(value), (void *)&value, NULL);
                     break;
                 case R_X86_64_64:
-                case R_X86_64_JUMP_SLOT:
+                case R_X86_64_JMP_SLOT:
                 case R_X86_64_GLOB_DAT:
                     // not supported
                     break;
@@ -289,7 +290,7 @@ int proc_load_elf(struct proc *p, void *elf, uint64_t *elfbase, uint64_t *entry)
     uint64_t msize = 0;
     int r = 0;
 
-    struct Elf64_Ehdr *ehdr = (struct Elf64_Ehdr *)elf;
+    Elf64_Ehdr *ehdr = (Elf64_Ehdr*)elf;
     r = elf_mapped_size(elf, &msize);
     if (r) {
         goto error;
@@ -321,10 +322,10 @@ int proc_load_elf(struct proc *p, void *elf, uint64_t *elfbase, uint64_t *entry)
 
 error:
     return r;
-}*/
+}
 
-int sys_proc_elf_handle(struct proc *p, char* elf) {
-    /*struct proc_vm_map_entry *entries;
+int sys_proc_elf_handle(proc *p, char* elf) {
+    proc_vm_map_entry *entries;
     uint64_t num_entries;
     uint64_t entry;
 
@@ -353,5 +354,5 @@ int sys_proc_elf_handle(struct proc *p, char* elf) {
         return 1;
     }
 
-    return 0;*/
+    return 0;
 }

@@ -57,8 +57,8 @@ private:
         };
     };
 
-    static void OrbisLibClientThread(void* arg);
-    static void OrbisLibProcThread(void *arg);
+    static void ClientThread(void* arg);
+    static void ProcThread(void *arg);
 
 public:
     proc* kOrbisProc = 0;

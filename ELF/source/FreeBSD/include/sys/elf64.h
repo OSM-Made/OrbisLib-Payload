@@ -61,7 +61,8 @@ typedef Elf64_Sxword	Elf64_Ssize;
  * ELF header.
  */
 
-typedef struct {
+typedef struct Elf64_Ehdr
+{
 	unsigned char	e_ident[EI_NIDENT];	/* File identification. */
 	Elf64_Half	e_type;		/* File type. */
 	Elf64_Half	e_machine;	/* Machine architecture. */
@@ -76,13 +77,13 @@ typedef struct {
 	Elf64_Half	e_shentsize;	/* Size of section header entry. */
 	Elf64_Half	e_shnum;	/* Number of section header entries. */
 	Elf64_Half	e_shstrndx;	/* Section name strings section. */
-} Elf64_Ehdr;
+};
 
 /*
  * Section header.
  */
 
-typedef struct {
+typedef struct Elf64_Shdr {
 	Elf64_Word	sh_name;	/* Section name (index into the
 					   section header string table). */
 	Elf64_Word	sh_type;	/* Section type. */
@@ -94,7 +95,7 @@ typedef struct {
 	Elf64_Word	sh_info;	/* Depends on section type. */
 	Elf64_Xword	sh_addralign;	/* Alignment in bytes. */
 	Elf64_Xword	sh_entsize;	/* Size of each entry in section. */
-} Elf64_Shdr;
+};
 
 /*
  * Program header.
@@ -134,11 +135,12 @@ typedef struct {
 } Elf64_Rel;
 
 /* Relocations that need an addend field. */
-typedef struct {
+typedef struct Elf64_Rela
+{
 	Elf64_Addr	r_offset;	/* Location to be relocated. */
 	Elf64_Xword	r_info;		/* Relocation type and symbol index. */
 	Elf64_Sxword	r_addend;	/* Addend. */
-} Elf64_Rela;
+};
 
 /* Macros for accessing the fields of r_info. */
 #define	ELF64_R_SYM(info)	((info) >> 32)

@@ -145,3 +145,8 @@ static inline __attribute__((always_inline)) void __writecr4(uint64_t cr4) {
 	    : "memory"
 	);
 }
+
+caddr_t kmmap(caddr_t addr, size_t len, int prot, int flags, int fd, off_t pos);
+int kmunmap(caddr_t addr, size_t len);
+int kern_reboot(int opt);
+int kwait4(int pid, int *status, int options, struct rusage *rusage);

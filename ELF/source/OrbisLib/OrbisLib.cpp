@@ -2,10 +2,7 @@
 #include "OrbisProc.hpp"
 #include "OrbisLib.hpp"
 
-extern uint8_t OrbisFTP[];
-extern int32_t OrbisFTPSize;
-
-void OrbisLib::OrbisLibClientThread(void* arg)
+void OrbisLib::ClientThread(void* arg)
 {
     //DebugLog(LOGTYPE_INFO, "Hello from Client Thread :)");
 
@@ -60,7 +57,7 @@ void OrbisLib::OrbisLibClientThread(void* arg)
             break;
 
         case API_PROC_KILL:
-            orbisProc->Proc_Kill(Socket);
+            orbisProc->Proc_Kill(Socket, Packet->ProcName);
             break;
 
 
@@ -92,7 +89,7 @@ void OrbisLib::OrbisLibClientThread(void* arg)
     kthread_exit();
 }
 
-void OrbisLib::OrbisLibProcThread(void *arg) 
+void OrbisLib::ProcThread(void *arg) 
 {
     OrbisLib* orbisLib = (OrbisLib*)arg;
 
@@ -101,7 +98,7 @@ void OrbisLib::OrbisLibProcThread(void *arg)
     //TODO: Start watcher thread to manage proc changes and handle intercepts
     //      Possibly maybe change this to call backs if we can and maybe hook the trap function
 
-    //kproc_kthread_add(BreakMonitorThread, 0, &kDebugProc, NULL, NULL, 0, "OrbisLib3.elf", "Proc Watcher Thread");
+    kproc_kthread_add(orbisLib->orbisProc->WatcherThread, orbisLib->orbisProc, &orbisLib->kOrbisProc, NULL, NULL, 0, "OrbisLib.elf", "Proc Watcher Thread");
 
     //Create a new socket for our listener.
 	int ClientSocket = -1;
@@ -142,7 +139,7 @@ void OrbisLib::OrbisLibProcThread(void *arg)
             
             //Add a thread to handle the new client API Request.
             ClientThreadArgs ClientArgs = { ClientSocket, orbisLib };
-			kproc_kthread_add(OrbisLibClientThread, &ClientArgs, &orbisLib->kOrbisProc, NULL, NULL, 0, "OrbisLib.elf", "Client Thread");
+			kproc_kthread_add(ClientThread, &ClientArgs, &orbisLib->kOrbisProc, NULL, NULL, 0, "OrbisLib.elf", "Client Thread");
 
             //Reset the temp socket for the next connection.
 			ClientSocket = -1;
@@ -175,7 +172,7 @@ OrbisLib::OrbisLib()
     }
 
     //Create Proc used to run the API and debugging.
-    kproc_create(OrbisLibProcThread, this, &kOrbisProc, 0, 0, "OrbisLib.elf");
+    kproc_create(ProcThread, this, &kOrbisProc, 0, 0, "OrbisLib.elf");
 
     //Make sure the proc was made.
     if(!kOrbisProc)

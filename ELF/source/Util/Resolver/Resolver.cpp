@@ -76,6 +76,11 @@ int (*sceSblServiceMailbox)(uint32_t pServiceId, void* pRequest, void* pResponse
 void (*EnterCriticalSection)();
 void (*ExitCriticalSection)();
 
+/* Event Handling */
+eventhandler_tag (*eventhandler_register)(eventhandler_list *list, const char *name, void *func, void *arg, int priority) override;
+void (*eventhandler_deregister)(eventhandler_list* a, eventhandler_entry* b);
+eventhandler_list* (*eventhandler_find_list)(const char *name);
+
 void ResolveFunctions()
 {
     //something = ()resolve();
@@ -152,4 +157,9 @@ void ResolveFunctions()
     /* Critical Sections */
     EnterCriticalSection = (void(*)())resolve(addr_EnterCriticalSection);
     ExitCriticalSection = (void(*)())resolve(addr_ExitCriticalSection);
+
+    /* Event Handling */
+    eventhandler_register = (eventhandler_tag(*)(eventhandler_list *list, const char *name, void *func, void *arg, int priority))resolve(addr_eventhandler_register);
+    eventhandler_deregister = (void(*)(struct eventhandler_list* a, struct eventhandler_entry* b))resolve(addr_eventhandler_deregister);
+    eventhandler_find_list = (eventhandler_list * (*)(const char *name))resolve(addr_eventhandler_find_list);
 }

@@ -100,4 +100,13 @@
 #define addr_EnterCriticalSection               0x28E7A0
 #define addr_ExitCriticalSection                0x28E7B0
 
+/* Event Handling */
+#define addr_eventhandler_register              0x1EC400
+#define addr_eventhandler_deregister            0x1EC790
+#define addr_eventhandler_find_list             0x1EC980
+
+/* Trap Hooks */
+#define addr_trapHook                           0x170E80
+#define addr_trap_fatalHook                     0x171580
+
 #endif
