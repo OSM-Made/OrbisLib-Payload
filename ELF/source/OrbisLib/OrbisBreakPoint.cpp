@@ -5,7 +5,7 @@ void OrbisBreakPoint::OnProcessExit(void *arg, struct proc *p)
 {
     OrbisBreakPoint* orbisBreakPoint = (OrbisBreakPoint*)arg;
 
-    if(orbisBreakPoint->Used)
+    if(!strcmp(p->p_comm, orbisBreakPoint->CurrentProcName) && orbisBreakPoint->Used)
     {
         uint64_t OldAddress = orbisBreakPoint->Address;
         orbisBreakPoint->Used = false;
