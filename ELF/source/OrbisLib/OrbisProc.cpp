@@ -1,11 +1,6 @@
 #include "../main.hpp"
 #include "OrbisProc.hpp"
 
-extern "C"
-{
-    #include <wait.h>
-}
-
 /*void OnTrapFatalHook(trapframe *frame)
 {
 	DebugLog(LOGTYPE_INFO, "Trap Fatal Hit!");
@@ -151,21 +146,16 @@ void OrbisProc::WatcherThread(void* arg)
                 if(kptrace(td, PT_STEP, proc->p_pid, (void *)1, 0))
                     continue;
 
-                pause("", 150);
+                int status = 0;
+                int res = kwait4(proc->p_pid, &status, WUNTRACED, 0);
+                int Signal = WSTOPSIG(status);
 
-                Log("Software Breakpoint Handled!");
-
-                ptrace_lwpinfo * lwpinfo = (ptrace_lwpinfo*)_malloc(sizeof(ptrace_lwpinfo));
-
-                if(kptrace(td, PT_LWPINFO, proc->p_pid, lwpinfo, sizeof(ptrace_lwpinfo)))
-                    continue;
-
-                DebugLog(LOGTYPE_INFO, "Thread Name = %s\n", lwpinfo->pl_tdname);
-
-                _free(lwpinfo);
+                DebugLog(LOGTYPE_INFO, "Res = %d, Status = %d, Signal = %d\n", res, status, WSTOPSIG(status));
 
                 if(kptrace(td, PT_CONTINUE, proc->p_pid, (void*)1, 0))
                     continue;
+
+                Log("Software Breakpoint Handled!");
             }
         }
     }
@@ -689,6 +679,7 @@ void OrbisProc::Proc_ReloadSPRX(int Socket, const char *name)
     int Handle = -1;
     int Result = 0;
     char Path[0x100] = { 0 };
+    vnode* fd_rdir = 0, *fd_jdir = 0;
 
      //Make sure were are attached to a process.
     if(!CurrentlyAttached)
@@ -744,9 +735,19 @@ void OrbisProc::Proc_ReloadSPRX(int Socket, const char *name)
     }
 
     //Sleep for a short time so out module can unload.
-    pause("", 100);
+    pause("", 200);
+
+    filedesc* fd = proc->p_fd;
+    fd_rdir = fd->fd_rdir;
+    fd_jdir = fd->fd_jdir;
+
+    fd->fd_rdir = *(vnode**)resolve(addr_rootvnode); //rootvnode
+    fd->fd_jdir = *(vnode**)resolve(addr_rootvnode); //rootvnode
 
     Handle = this->orbisShellCode->sceKernelLoadStartModule(Path, 0, 0, 0, 0, 0);
+
+    fd->fd_rdir = fd_rdir;
+    fd->fd_jdir = fd_jdir;
 
     //Make sure we loaded the module.
     if(Handle == 0)
@@ -767,6 +768,7 @@ void OrbisProc::Proc_ReloadSPRX(int Socket, int Handle)
     thread* td = curthread();
     int Result = 0;
     char Path[0x100] = { 0 };
+    vnode* fd_rdir = 0, *fd_jdir = 0;
 
      //Make sure were are attached to a process.
     if(!CurrentlyAttached)
@@ -821,9 +823,19 @@ void OrbisProc::Proc_ReloadSPRX(int Socket, int Handle)
     }
 
     //Sleep for a short time so out module can unload.
-    pause("", 100);
+    pause("", 200);
+
+    filedesc* fd = proc->p_fd;
+    fd_rdir = fd->fd_rdir;
+    fd_jdir = fd->fd_jdir;
+
+    fd->fd_rdir = *(vnode**)resolve(addr_rootvnode); //rootvnode
+    fd->fd_jdir = *(vnode**)resolve(addr_rootvnode); //rootvnode
 
     Handle = this->orbisShellCode->sceKernelLoadStartModule(Path, 0, 0, 0, 0, 0);
+
+    fd->fd_rdir = fd_rdir;
+    fd->fd_jdir = fd_jdir;
 
     //Make sure we loaded the module.
     if(Handle == 0)

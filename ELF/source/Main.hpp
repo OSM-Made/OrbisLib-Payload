@@ -19,6 +19,7 @@
 
 extern "C"
 {
+    
     #include <sys/lock.h>
     #include <sys/mutex.h>
 
@@ -38,6 +39,7 @@ extern "C"
     #include <sys/elf_common.h>
     #include <sys/elf64.h>
     #include <sys/eventhandler.h>
+    #include <wait.h>
 
 }
 
