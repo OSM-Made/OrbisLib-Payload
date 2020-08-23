@@ -28,7 +28,7 @@
 
 
 
-#include "elf_common.h"
+#include "elf_common.hpp"
 
 /*
  * ELF definitions common to all 64-bit architectures.

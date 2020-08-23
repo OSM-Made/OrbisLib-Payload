@@ -1,4 +1,4 @@
-#include "../include/syscall.h"
+#include "../include/syscall.hpp"
 
 unsigned long syscall(unsigned int n, ...) {
 	asm(".intel_syntax noprefix");

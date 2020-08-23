@@ -1,9 +1,9 @@
-#include "../include/main.h"
-#include "../include/FTP.h"
-#include "../include/FTPS4.h"
-#include "../include/File.h"
-#include "../include/types.h"
-#include "../include/dump.h"
+#include "../include/main.hpp"
+#include "../include/FTP.hpp"
+#include "../include/FTPS4.hpp"
+#include "../include/File.hpp"
+#include "../include/types.hpp"
+#include "../include/dump.hpp"
 
 #define UNUSED(x) (void)(x)
 

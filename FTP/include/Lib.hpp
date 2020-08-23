@@ -3,8 +3,8 @@
 #include <stdint.h>
 #include <stdarg.h>
 
-#include "types.h"
-#include "syscall.h"
+#include "types.hpp"
+#include "syscall.hpp"
 
 #define AF_INET 0x0002
 

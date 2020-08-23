@@ -1,8 +1,8 @@
-#include "../include/main.h"
-#include "../include/Lib.h"
-#include "../include/FTPS4.h"
-#include "../include/File.h"
-#include "../include/FTP.h"
+#include "../include/main.hpp"
+#include "../include/Lib.hpp"
+#include "../include/FTPS4.hpp"
+#include "../include/File.hpp"
+#include "../include/FTP.hpp"
 
 int run;
 

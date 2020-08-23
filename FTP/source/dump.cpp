@@ -1,9 +1,9 @@
-#include "types.h"
-#include "Lib.h"
-#include "dump.h"
-#include "elf64.h"
-#include "File.h"
-#include "memory.h"
+#include "types.hpp"
+#include "Lib.hpp"
+#include "dump.hpp"
+#include "elf64.hpp"
+#include "File.hpp"
+#include "memory.hpp"
 
 #define TRUE 1
 #define FALSE 0

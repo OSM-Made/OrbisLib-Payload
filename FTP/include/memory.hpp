@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types.h"
+#include "types.hpp"
 
 #define PAGE_SIZE (16 * 1024)
 

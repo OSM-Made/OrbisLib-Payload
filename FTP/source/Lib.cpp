@@ -1,4 +1,4 @@
-#include "../include/Lib.h"
+#include "../include/Lib.hpp"
 
 //Kernel
 unsigned int(*sceKernelSleep)(unsigned int seconds);

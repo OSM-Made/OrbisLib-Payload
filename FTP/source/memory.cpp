@@ -1,5 +1,5 @@
-#include "../include/main.h"
-#include "memory.h"
+#include "../include/main.hpp"
+#include "memory.hpp"
 
 void *mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 {

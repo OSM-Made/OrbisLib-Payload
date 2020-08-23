@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "name": "PS4",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "D:\\Modding\\PS4\\Projects\\2020\\FreeBSD\\include/**"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "windowsSdkVersion": "10.0.17763.0",
+            "compilerPath": "/usr/bin/g++",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "gcc-x64"
+        }
+    ],
+    "version": 4
+}
