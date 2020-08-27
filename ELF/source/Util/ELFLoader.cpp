@@ -88,6 +88,9 @@ int proc_create_thread(proc *proc, uint64_t address)
         if(!strcmp(basename(m_library->ModulePath), "libkernel_sys.sprx"))
 			thr_initial = (uint64_t)m_library->codeBase + 0x89030;
 
+        if(!strcmp(basename(m_library->ModulePath), "mini-syscore.elf"))
+			thr_initial = (uint64_t)m_library->codeBase + 0xA7558;
+
         m_library = m_library->dynlib_next;
     }
 
@@ -348,7 +351,13 @@ int sys_proc_elf_handle(proc *p, char* elf) {
         }
     }
 
-    DebugLog(LOGTYPE_INFO, "Starting Thread!!");
+    //Set Text Segments as writeable.
+    dynlib* m_library = p->p_dynlibptr->p_dynlib;
+    while(m_library != 0)
+	{
+        proc_mprotect(p, (void *)m_library->codeBase, (void*)m_library->codeSize, VM_PROT_ALL);
+        m_library = m_library->dynlib_next;
+    }
     
     if(proc_create_thread(p, entry)) {
         return 1;

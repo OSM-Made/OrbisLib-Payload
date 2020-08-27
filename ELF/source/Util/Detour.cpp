@@ -59,10 +59,10 @@ void* Detour::DetourFunction(void* FunctionPtr, void* HookPtr, int32_t Instructi
     memcpy(this->RestoreInstructions, (void*)FunctionPtr, InstructionSize);
 
     //Allocate Executable memory for stub and write instructions to stub and a jump back to original execution.
-    /*this->StubSize = (InstructionSize + 14);
+    this->StubSize = (InstructionSize + 14);
 	this->StubPtr = (void*)kmmap(0, this->StubSize, 1 | 2 | 4, 0x1000 | 0x2, -1, 0);
     memcpy(StubPtr, (void*)FunctionPtr, InstructionSize);
-    WriteJump((uint64_t)(this->StubPtr + InstructionSize), HookPtr + InstructionSize);*/
+    WriteJump((void*)(this->StubPtr + InstructionSize), HookPtr + InstructionSize);
 
     DebugLog(LOGTYPE_INFO, "Here");
     

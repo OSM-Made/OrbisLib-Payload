@@ -75,6 +75,7 @@ static inline __attribute__((always_inline)) uint64_t __readmsr(uint32_t __regis
 
 	return (((uint64_t)__edx) << 32) | (uint64_t)__eax;
 }
+
 static inline __attribute__((always_inline)) void __writemsr(uint32_t __register, uint64_t __msr) {
 	uint32_t __low, __high;
 
@@ -150,3 +151,5 @@ caddr_t kmmap(caddr_t addr, size_t len, int prot, int flags, int fd, off_t pos);
 int kmunmap(caddr_t addr, size_t len);
 int kern_reboot(int opt);
 int kwait4(int pid, int *status, int options, struct rusage *rusage);
+int ksetuid(uid_t uid, thread* td);
+int kdup2(int oldd, int newd, struct thread* td);

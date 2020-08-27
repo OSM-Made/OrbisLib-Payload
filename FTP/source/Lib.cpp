@@ -86,6 +86,8 @@ time_t (*time)(time_t *tloc);
 struct tm *(*gmtime_s)(const time_t *timep, struct tm *result);
 char *(*strdup)(const char *s);
 
+int (*sysctlbyname)(char *name, char *oldval, size_t *oldlen, char *newval, size_t newlen);
+
 int sys_dynlib_dlsym(int loadedModuleID, const char *name, void *destination) {
 	return syscall(591, loadedModuleID, name, destination);
 }
@@ -101,6 +103,8 @@ void LoadImports()
     if (sys_dynlib_load_prx("libkernel.sprx", &Libkernel_library))
 		if (sys_dynlib_load_prx("libkernel_web.sprx", &Libkernel_library))
 			sys_dynlib_load_prx("libkernel_sys.sprx", &Libkernel_library);
+
+	sys_dynlib_dlsym(Libkernel_library, "sysctlbyname", &sysctlbyname);
 
 	sys_dynlib_dlsym(Libkernel_library, "sceKernelSleep", &sceKernelSleep);
 	sys_dynlib_dlsym(Libkernel_library, "sceKernelUsleep", &sceKernelUsleep);
@@ -198,7 +202,7 @@ void Sleep(unsigned int milliseconds) {
 
 #define OSM
 void printf(const char *fmt, ...) {
-	char buffer[0x400] = { 0 };
+	/*char buffer[0x400] = { 0 };
 	va_list args;
 	va_start(args, fmt);
 	vsprintf(buffer, fmt, args);
@@ -222,5 +226,5 @@ void printf(const char *fmt, ...) {
 	sceNetSend(sock, buffer, 0x400, 0);
 	sceNetSocketClose(sock);
 
-	va_end(args);
+	va_end(args);*/
 }

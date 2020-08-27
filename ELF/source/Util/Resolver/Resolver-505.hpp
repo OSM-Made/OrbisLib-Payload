@@ -20,6 +20,7 @@
 
 /* STD Lib */
 #define addr_M_TEMP                             0x14B4110
+#define addr_M_MOUNT                            0x19BF300
 #define addr_malloc								0x10E250 
 #define addr_free					    		0x10E460 
 #define addr_memcpy								0x1EA530 
@@ -27,10 +28,15 @@
 #define addr_memcmp								0x50AC0 
 #define addr_strlen                             0x3B71A0
 #define addr_strcpy								0x8F250
+#define addr_strncpy                            0x3C0B0
 #define addr_strcmp                             0x1D0FD0 
-#define addr_sprintf                            0x436280 
+#define addr_sprintf                            0x436280
+#define addr_snprintf                           0x436350
 #define addr_vsprintf                           0x436310 
 #define addr_vprintf                            0x4360B0 
+#define addr_sscanf                             0x175900
+#define addr_strdup                             0x1C1C30
+#define addr_realloc                            0x10E590
 
 #define addr_kmem_alloc							0xFCC80
 

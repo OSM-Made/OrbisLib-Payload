@@ -30,6 +30,9 @@ void Install_Patches()
 	*(uint16_t*)resolve(0x1DEBFE + 0x2) = 0x9090;
 	*(uint16_t*)resolve(0x1DEBFE + 0x4) = 0x9090;
 
+	//Skip the write protected step for sysctl
+	//*(uint16_t*)resolve(0x262589) = 0xEB13;
+
 	//*(uint8_t*)resolve(0x10D390) = 0xC3;
 
  	__writecr0(CR0);

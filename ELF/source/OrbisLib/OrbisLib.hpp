@@ -28,6 +28,21 @@ private:
         API_PROC_READ,
         API_PROC_WRITE,
         API_PROC_KILL,
+
+        /* Breakpoint functions */
+        API_BREAKPOINT_GETFREE,
+        API_BREAKPOINT_SET,
+        API_BREAKPOINT_UPDATE,
+        API_BREAKPOINT_REMOVE,
+        API_BREAKPOINT_GETINFO,
+        API_BREAKPOINT_LIST,
+
+        /* Watchpoint functions */
+        API_WATCHPOINT_SET,
+        API_WATCHPOINT_UPDATE,
+        API_WATCHPOINT_REMOVE,
+        API_WATCHPOINT_GETINFO,
+        API_WATCHPOINT_LIST,
         
         /* Remote Library functions */
         API_PROC_LOAD_SPRX,
@@ -54,6 +69,14 @@ private:
                 int hModule;
                 int Flags;
             }PROC_SPRX;
+            struct
+            {
+                int32_t Index;
+                uint64_t Address;
+                bool Enable;
+
+            }Breakpoint;
+            
         };
     };
 

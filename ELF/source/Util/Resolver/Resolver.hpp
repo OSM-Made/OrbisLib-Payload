@@ -23,6 +23,7 @@ extern uint8_t* gpKernelBase;
 
 /* STD Lib */
 extern void *M_TEMP;
+extern void* M_MOUNT;
 extern void *(*malloc)(unsigned long size, void *type, int flags);
 extern void (*free)(void *addr, void *type);
 extern void (*memcpy)(void *dst, const void *src, size_t len);
@@ -30,10 +31,15 @@ extern void *(*memset)(void *ptr, int value, size_t num);
 extern int (*memcmp)(const void *ptr1, const void *ptr2, size_t num);
 extern size_t (*strlen)(const char *str);
 extern int (*strcpy)(char * str1, char * str2);
+extern char* (*strncpy)(char *destination, const char *source, size_t num);
 extern int (*strcmp)(const char * str1, const char * str2);
 extern int (*sprintf)(char* dst, const char *fmt, ...);
+extern int (*snprintf)(char *str, size_t size, const char *format, ...);
 extern int (*vsprintf)(char* dst, const char* fmt, va_list ap);
 extern int (*vprintf)(const char *fmt, va_list arg);
+extern int(*sscanf)(const char *str, const char *format, ...);
+extern char *(*strdup)(const char *s, void* type);
+extern char *(*realloc)(void *addr, unsigned long size, void* mtp, int flags);
 
 /* Kproc */
 extern int (*kproc_create)(void (*func)(void *), void *arg, proc **newpp, int flags, int pages, const char *fmt, ...);

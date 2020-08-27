@@ -1,5 +1,10 @@
 #pragma once
 
+extern "C"
+{
+    #include "machine/reg.h";
+}
+
 class OrbisBreakPoint
 {
 private:
@@ -12,6 +17,7 @@ public:
     uint64_t Address = 0;
     uint8_t RestoreByte = 0x0;
     char CurrentProcName[0x20] = { 0 };
+    int32_t HitCount = 0;
 
     void Enable(bool State);
     void Set(char* ProcName, uint64_t Address, bool Enable);

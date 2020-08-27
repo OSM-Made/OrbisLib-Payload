@@ -40,7 +40,12 @@ extern "C"
     #include <sys/elf64.h>
     #include <sys/eventhandler.h>
     #include <wait.h>
+    #include <machine/reg.h>
+    #include <fcntl.h>
+    #include <time.h>
+    #include <dirent.h>
 
+    #include <sys/stat.h>
 }
 
 extern OrbisLib* orbisLib;

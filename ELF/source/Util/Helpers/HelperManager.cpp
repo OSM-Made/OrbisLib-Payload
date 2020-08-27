@@ -6,7 +6,6 @@ HelperManager::HelperManager(/* args */)
     DebugLog(LOGTYPE_INFO, "Initialization...");
 
     this->pFakeSelfHelper = new FakeSelfHelper();
-
 }
 
 HelperManager::~HelperManager()

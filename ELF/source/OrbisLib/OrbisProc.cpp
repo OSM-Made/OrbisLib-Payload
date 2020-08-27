@@ -10,7 +10,12 @@ OrbisProc::OrbisProc()
 {
     DebugLog(LOGTYPE_INFO, "Initialization!!");
 
+    //Initialize shellcode Class
     orbisShellCode = new OrbisShellCode();
+
+    //Initialize Breakpoints
+    for(int i = 0; i < BREAKPOINTS_MAX; i++)
+        this->Breakpoints[i] = new OrbisBreakPoint();
 
     //Detour* OnTrapFatalDetour = new Detour((void*)resolve(addr_trap_fatalHook), (void*)OnTrapFatalHook, 17);
     ProcessExitEvent = EVENTHANDLER_REGISTER(process_exit,(void*)OnProcessExit, this, EVENTHANDLER_PRI_ANY);
@@ -22,7 +27,13 @@ OrbisProc::~OrbisProc()
 {
     DebugLog(LOGTYPE_INFO, "Destruction!!");
 
-    _free(orbisShellCode);
+    EVENTHANDLER_DEREGISTER(process_exit, ProcessExitEvent);
+
+    //Free the Breakpoint Classes
+    for(int i = 0; i < BREAKPOINTS_MAX; i++)
+        delete this->Breakpoints[i];
+
+    delete orbisShellCode;
 
     IsRunning = false;
 }

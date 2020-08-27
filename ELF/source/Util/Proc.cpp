@@ -136,7 +136,7 @@ int proc_rw_mem(proc *p, void *ptr, size_t size, void *data, size_t *n, int writ
 		*n = (size_t)((uint64_t)size - uio.uio_resid);
 	}
 
-	return r;
+	return r; 
 }
 
 int proc_read_mem(struct proc *p, void *ptr, size_t size, void *data, size_t *n) 

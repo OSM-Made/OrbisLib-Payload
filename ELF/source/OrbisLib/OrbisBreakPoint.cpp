@@ -44,12 +44,6 @@ void OrbisBreakPoint::Enable(bool State)
 
 void OrbisBreakPoint::Set(char* ProcName, uint64_t Address, bool Enable)
 {
-    if(Used)
-    {
-        DebugLog(LOGTYPE_ERR, "Breakpoint Already being used...");
-        return;
-    }
-
     proc* proc = proc_find_by_name(ProcName);
     if(!proc)
     {
@@ -57,9 +51,9 @@ void OrbisBreakPoint::Set(char* ProcName, uint64_t Address, bool Enable)
         return;
     }
 
-    Used = true;
     strcpy(CurrentProcName, ProcName);
     this->Address = Address;
+    this->HitCount = 0;
 
     size_t n = 0;
     if(proc_rw_mem(proc, (void*)Address, sizeof(RestoreByte), (void *)&RestoreByte, &n, 0))
@@ -87,6 +81,7 @@ void OrbisBreakPoint::Remove()
     uint64_t OldAddress = Address;
     Used = false;
     Address = 0;
+    HitCount = 0;
     RestoreByte = 0x00;
     memset(CurrentProcName, 0, sizeof(CurrentProcName));
 
@@ -145,6 +140,8 @@ void OrbisBreakPoint::HandleHitEvent(reg Registers)
         return;
     }
 
+    HitCount++;
+
     DebugLog(LOGTYPE_INFO, "Software Breakpoint(%llX) Handled!", Address);
 }
 
@@ -155,5 +152,5 @@ OrbisBreakPoint::OrbisBreakPoint()
 
 OrbisBreakPoint::~OrbisBreakPoint()
 {
-
+    EVENTHANDLER_DEREGISTER(process_exit, ProcessExitEvent);
 }

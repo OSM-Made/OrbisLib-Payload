@@ -6,6 +6,7 @@ extern "C"
 	#include <sys/proc.h>
     #include <sys/sysent.h>
     #include <sys/syscall.h>
+	#include "sys/sysproto.h"
 }
 
 int kern_errorno = 0;
@@ -116,33 +117,53 @@ int kwait4(int pid, int *status, int options, struct rusage *rusage)
 	uap.rusage = (uint64_t)rusage;
 
 	kern_errorno = sys_kwait4(td, &uap);
+	if(kern_errorno)
+		return -kern_errorno;
 
 	return td->td_retval[0];
 }
 
-/*int sys_socket(int domain, int type, int protocol) 
+int ksetuid(uid_t uid, thread* td)
 {
-	struct sys_socket_args {
-		uint64_t domain;
-		uint64_t type;
-		uint64_t protocol;
-	};
+	auto sv = (sysentvec*)resolve(addr_sysvec);
+	sysent* sysents = sv->sv_table;
+	auto sys_setuid = (int(*)(thread *, setuid_args *))sysents[23].sy_call;
 
-    auto sv = (sysentvec*)resolve(addr_sysvec);
-    sysent* sysents = sv->sv_table;
+	setuid_args uap;
 
-    auto sys_socket = (int(*)(thread * td, sys_socket_args * uap))sysents[SYS_socket].sy_call;
+	// clear errors
+	td->td_retval[0] = 0;
 
-	thread *td = curthread();
+	// call syscall
+	uap.uid = uid;
 
-    td->td_retval[0] = 0;
+	kern_errorno = sys_setuid(td, &uap);
+	if(kern_errorno)
+		return -kern_errorno;
 
-	sys_socket_args uap;
-	uap.domain = domain;
-	uap.type = type;
-	uap.protocol = protocol;
-
-	kern_errorno = sys_socket(td, &uap);
-
+	// success
 	return td->td_retval[0];
-}*/
+}
+
+int kdup2(int oldd, int newd, struct thread* td)
+{
+	auto sv = (sysentvec*)resolve(addr_sysvec);
+ 	sysent* sysents = sv->sv_table;
+	auto sys_dup2 = (int(*)(thread *, dup2_args *))sysents[90].sy_call;
+
+	struct dup2_args uap;
+
+	// clear errors
+	td->td_retval[0] = 0;
+
+	// call syscall
+	uap.from = oldd;
+	uap.to = newd;
+
+	kern_errorno = sys_dup2(td, &uap);
+	if(kern_errorno)
+		return -kern_errorno;
+
+	// success
+	return td->td_retval[0];
+}

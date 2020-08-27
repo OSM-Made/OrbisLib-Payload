@@ -278,6 +278,8 @@ extern time_t (*time)(time_t *tloc);
 extern struct tm *(*gmtime_s)(const time_t *timep, struct tm *result);
 extern char *(*strdup)(const char *s);
 
+extern int (*sysctlbyname)(char *name, char *oldval, size_t *oldlen, char *newval, size_t newlen);
+
 int sys_dynlib_dlsym(int loadedModuleID, const char *name, void *destination);
 int sys_dynlib_load_prx(const char *name, int *idDestination);
 
@@ -285,7 +287,7 @@ void LoadImports();
 void Sleep(unsigned int milliseconds);
 void printf(const char *fmt, ...);
 
-inline void* operator new(size_t size) { return malloc(size); }
-inline void* operator new[](size_t size) { return malloc(size); }
+inline void* operator new(long unsigned int size) { return malloc(size); }
+inline void* operator new[](long unsigned int size) { return malloc(size); }
 inline void operator delete(void* ptr) { free(ptr); }
 inline void operator delete[](void* ptr) { free(ptr); }

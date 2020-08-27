@@ -5,6 +5,7 @@ uint8_t* gpKernelBase = 0;
 
 /* STD Lib */
 void *M_TEMP;
+void* M_MOUNT;
 void *(*malloc)(unsigned long size, void *type, int flags);
 void (*free)(void *addr, void *type);
 void (*memcpy)(void *dst, const void *src, size_t len);
@@ -12,10 +13,15 @@ void *(*memset)(void *ptr, int value, size_t num);
 int (*memcmp)(const void *ptr1, const void *ptr2, size_t num);
 size_t (*strlen)(const char *str);
 int (*strcpy)(char * str1, char * str2);
+char* (*strncpy)(char *destination, const char *source, size_t num);
 int (*strcmp)(const char * str1, const char * str2);
 int (*sprintf)(char* dst, const char *fmt, ...);
+int (*snprintf)(char *str, size_t size, const char *format, ...);
 int (*vsprintf)(char* dst, const char* fmt, va_list ap);
 int (*vprintf)(const char *fmt, va_list arg);
+int(*sscanf)(const char *str, const char *format, ...);
+char *(*strdup)(const char *s, void* type);
+char *(*realloc)(void *addr, unsigned long size, void* mtp, int flags);
 
 /* Kproc */
 int (*kproc_create)(void (*func)(void *), void *arg, struct proc **newpp, int flags, int pages, const char *fmt, ...);
@@ -87,6 +93,7 @@ void ResolveFunctions()
 
     /* STD Lib */
     M_TEMP = resolve(addr_M_TEMP);
+    M_MOUNT = resolve(addr_M_MOUNT);
     malloc = (void*(*)(unsigned long size, void *type, int flags))resolve(addr_malloc);
     free = (void(*)(void *addr, void *type))resolve(addr_free);
     memcpy = (void(*)(void *dst, const void *src, size_t len))resolve(addr_memcpy);
@@ -94,10 +101,15 @@ void ResolveFunctions()
     memcmp = (int(*)(const void *ptr1, const void *ptr2, size_t num))resolve(addr_memcmp);
     strlen = (size_t(*)(const char *str))resolve(addr_strlen);
     strcpy = (int(*)(char * str1, char * str2))resolve(addr_strcpy);
+    strncpy = (char*(*)(char *destination, const char *source, size_t num))resolve(addr_strncpy);
     strcmp = (int(*)(const char * str1, const char * str2))resolve(addr_strcmp);
     sprintf = (int(*)(char* dst, const char *fmt, ...))resolve(addr_sprintf);
+    snprintf = (int(*)(char *str, size_t size, const char *format, ...))resolve(addr_snprintf);
     vsprintf = (int(*)(char* dst, const char* fmt, va_list ap))resolve(addr_vsprintf);
     vprintf = (int(*)(const char *fmt, va_list arg))resolve(addr_vprintf);
+    sscanf = (int(*)(const char *str, const char *format, ...))resolve(addr_sscanf);
+    strdup = (char*(*)(const char *s, void*))resolve(addr_strdup);
+    realloc = (char*(*)(void *addr, unsigned long size, void* mtp, int flags))resolve(addr_realloc);
 
     /* Kproc */
     kproc_create = (int(*)(void (*func)(void *), void *arg, struct proc **newpp, int flags, int pages, const char *fmt, ...))resolve(addr_kproc_create);
