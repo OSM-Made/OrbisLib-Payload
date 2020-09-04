@@ -26,13 +26,5 @@ extern "C" void _main(uint64_t* p)
     StartDebugLogger();
 
 	pHelperManager->pUserlandHelper->sceSysUtilSendNotificationRequest("OrbisLib v2.0 Loaded!\nMade by OSM");
-
-	proc* proc = proc_find_by_name("SceShellCore");
-	if(proc)
-	{
-		Log("Text:\nBase %llX Size %llX", proc->p_vmspace->vm_taddr, proc->p_vmspace->vm_tsize * PAGE_SIZE);
-		Log("Data:\nBase %llX Size %llX", proc->p_vmspace->vm_daddr, proc->p_vmspace->vm_dsize * PAGE_SIZE);
-	}
-
-	//Log("Hello from Kernel Land!!!");
+	
 }

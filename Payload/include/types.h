@@ -2,9 +2,12 @@
 
 #include <stdint.h>
 
-#ifndef NULL
 #define NULL 0
-#endif
+
+#define FALSE 0
+#define TRUE 1
+
+#define PAGE_SIZE (16 * 1024)
 
 #define BIT(n) (1 << (n))
 
@@ -75,6 +78,39 @@ typedef long suseconds_t;
 
 typedef unsigned int SceKernelUseconds;
 
+typedef int vm_prot_t;
+typedef uint64_t vm_offset_t;
+typedef uint64_t vm_map_t;
+typedef uint64_t vm_size_t;
+typedef unsigned long size_t;
+#define	VM_PROT_NONE	((vm_prot_t) 0x00)
+#define VM_PROT_READ	((vm_prot_t) 0x01)	/* read permission */
+#define VM_PROT_WRITE	((vm_prot_t) 0x02)	/* write permission */
+#define VM_PROT_EXECUTE	((vm_prot_t) 0x04)	/* execute permission */
+#define VM_PROT_DEFAULT	(VM_PROT_READ|VM_PROT_WRITE)
+#define VM_PROT_ALL			(VM_PROT_READ | VM_PROT_WRITE | VM_PROT_EXECUTE)
+#define VM_PROT_NO_CHANGE	((vm_prot_t) 0x08)
+#define VM_PROT_COPY		((vm_prot_t) 0x10)
+#define VM_PROT_WANTS_COPY	((vm_prot_t) 0x10)
+
+#define JOIN_HELPER(x, y) x##y
+#define JOIN(x, y) JOIN_HELPER(x, y)
+
+#define TYPE_PAD(size) char JOIN(_pad_, __COUNTER__)[size]
+#define TYPE_VARIADIC_BEGIN(name) name { union {
+#define TYPE_BEGIN(name, size) name { union { TYPE_PAD(size)
+#define TYPE_END(...) }; } __VA_ARGS__
+#define TYPE_FIELD(field, offset) struct { TYPE_PAD(offset); field; }
+
+#define TYPE_CHECK_SIZE(name, size) \
+  _Static_assert(sizeof(name) == (size), "Size of " #name " != " #size)
+
+#define TYPE_CHECK_FIELD_OFFSET(name, member, offset) \
+  _Static_assert(offsetof(name, member) == (offset), "Offset of " #name "." #member " != " #offset)
+
+#define TYPE_CHECK_FIELD_SIZE(name, member, size) \
+  _Static_assert(sizeof(((name*)0)->member) == (size), "Size of " #name "." #member " != " #size)
+
 struct timespec {
 	time_t tv_sec;
 	long tv_nsec;
@@ -96,3 +132,98 @@ struct tm {
 	int tm_yday;
 	int tm_isdst;
 };
+
+struct lock_object {
+	const char* lo_name;
+	uint32_t lo_flags;
+	uint32_t lo_data;
+	void* lo_witness;
+};
+
+struct mtx {
+	struct lock_object lock_object;
+	volatile void* mtx_lock;
+};
+
+struct sx {
+	struct lock_object lock_object;
+	volatile uintptr_t sx_lock;
+};
+
+struct auditinfo_addr {
+	uint8_t useless[184];
+};
+
+struct ucred {
+	uint32_t cr_ref;					// reference count		0x0000
+	uint32_t cr_uid;					// effective user id	0x0004
+	uint32_t cr_ruid;					// real user id			0x0008
+	uint32_t useless2;					// 						0x000C
+	uint32_t useless3;					//
+	uint32_t cr_rgid;					// real group id
+	uint32_t useless4;					//
+	void *useless5;						//
+	void *useless6;						//
+	void *cr_prison;					// jail(2)				0x0030
+	void *useless7;						//
+	uint32_t useless8;					//
+	void *useless9[2];					//
+	void *useless10;					//
+	struct auditinfo_addr cr_audit;		//
+	uint32_t *cr_groups;				// groups
+	uint32_t useless12;					//
+};
+
+struct filedesc {
+	void *useless1[3];
+	void *fd_rdir;
+	void *fd_jdir;
+};
+
+TYPE_BEGIN(struct proc, 0x800); // XXX: random, don't use directly without fixing it
+TYPE_FIELD(struct proc *p_forw, 0);
+TYPE_FIELD(struct ucred *p_ucred, 0x40);
+TYPE_FIELD(struct filedesc *p_fd, 0x48);
+TYPE_FIELD(int pid, 0xB0);
+TYPE_FIELD(char p_comm[32], 0x3F0);
+TYPE_END();
+
+TYPE_BEGIN(struct thread, 0x3D8); // XXX: random, don't use directly without fixing it
+TYPE_FIELD(struct proc *td_proc, 8);
+TYPE_FIELD(struct ucred *td_ucred, 0x130);
+TYPE_FIELD(char td_name[32], 0x284);
+TYPE_END();
+
+#define CR0_WP (1 << 16) // write protect
+
+static inline __attribute__((always_inline)) uint64_t __readmsr(uint32_t __register) {
+	uint32_t __edx, __eax;
+
+	__asm__ volatile (
+	    "rdmsr"
+	    : "=d"(__edx),
+	    "=a"(__eax)
+	    : "c"(__register)
+	);
+
+	return (((uint64_t)__edx) << 32) | (uint64_t)__eax;
+}
+
+static inline __attribute__((always_inline)) uint64_t __readcr0(void) {
+	uint64_t cr0;
+
+	__asm__ volatile (
+	    "movq %0, %%cr0"
+	    : "=r" (cr0)
+	    : : "memory"
+	);
+
+	return cr0;
+}
+static inline __attribute__((always_inline)) void __writecr0(uint64_t cr0) {
+	__asm__ volatile (
+	    "movq %%cr0, %0"
+	    : : "r" (cr0)
+	    : "memory"
+	);
+}

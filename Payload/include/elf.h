@@ -1,10 +1,4 @@
-/* golden */
-/* 1/2/2018 */
-
-// ELF definitions taken from llvm
-
-#ifndef _ELF_H
-#define _ELF_H
+#pragma once
 
 #include "main.h"
 
@@ -1443,6 +1437,12 @@ enum {
 	VER_NEED_CURRENT = 1
 };
 
+/*
+
+Credits to jogolden for the ELF Loading.
+
+*/
+
 // error codes
 #define LDR_SUCCESS			0
 #define LDR_INVALID_ELF		1
@@ -1458,5 +1458,3 @@ int elf_mapped_size(void *elf, size_t *msize);
 // exec - memory allocated RWX
 // msize - size of the allocated memory
 int load_elf(void *elf, size_t size, void *exec, size_t msize, void **entry);
-
-#endif

@@ -115,4 +115,11 @@
 #define addr_trapHook                           0x170E80
 #define addr_trap_fatalHook                     0x171580
 
+/* FileIO */
+#define addr_kern_open                          0x33B9B0
+#define addr_kern_mkdir                         0x340B70
+
+/* Kernel Misc */
+#define addr_kernel_sysctlbyname                0x262770
+
 #endif

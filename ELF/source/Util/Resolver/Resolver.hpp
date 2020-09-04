@@ -129,4 +129,8 @@ do {									\
 extern int (*kern_open)(thread* td, char *path, int pathseg, int flags, int mode);
 extern int (*kern_mkdir)(thread* td, char *path, int pathseg, int mode);
 
+/* Kernel Misc */
+extern int (*kernel_sysctlbyname)(thread *td, char *name, void *old, size_t *oldlenp, void *pnew, size_t newlen, size_t *retval, int flags);
+
+
 void ResolveFunctions();

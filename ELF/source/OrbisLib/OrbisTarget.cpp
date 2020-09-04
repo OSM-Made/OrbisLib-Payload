@@ -76,8 +76,6 @@ void OrbisTarget::Info(int Socket)
     //machdep.idps
     //machdep.openpsid
     //machdep.openpsid_for_sys
-
-    auto kernel_sysctlbyname = (int(*)(thread *td, char *name, void *old, size_t *oldlenp, void *pnew, size_t newlen, size_t *retval, int flags))resolve(0x262770);
 	
 	Log("[CONSOLE INFO]");
 

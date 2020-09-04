@@ -91,6 +91,9 @@ eventhandler_list* (*eventhandler_find_list)(const char *name);
 int (*kern_open)(thread* td, char *path, int pathseg, int flags, int mode);
 int (*kern_mkdir)(thread* td, char *path, int pathseg, int mode);
 
+/* Kernel Misc */
+int (*kernel_sysctlbyname)(thread *td, char *name, void *old, size_t *oldlenp, void *pnew, size_t newlen, size_t *retval, int flags);
+
 void ResolveFunctions()
 {
     //something = ()resolve();
@@ -180,6 +183,9 @@ void ResolveFunctions()
     eventhandler_find_list = (eventhandler_list * (*)(const char *name))resolve(addr_eventhandler_find_list);
 
     /* FileIO */
-    kern_open = (int(*)(thread* td, char *path, int pathseg, int flags, int mode))resolve(0x33B9B0);
-    kern_mkdir = (int(*)(thread* td, char *path, int pathseg, int mode))resolve(0x340B70);
+    kern_open = (int(*)(thread* td, char *path, int pathseg, int flags, int mode))resolve(addr_kern_open);
+    kern_mkdir = (int(*)(thread* td, char *path, int pathseg, int mode))resolve(addr_kern_mkdir);
+
+    /* Kernel Misc */
+    kernel_sysctlbyname = (int(*)(thread *td, char *name, void *old, size_t *oldlenp, void *pnew, size_t newlen, size_t *retval, int flags))resolve(addr_kernel_sysctlbyname);
 }
