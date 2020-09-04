@@ -53,6 +53,8 @@ int(*sceKernelStopUnloadModule)(int handle, size_t args, const void *argp, uint3
 
 //Notifications
 int(*sceSysUtilSendSystemNotificationWithText)(int messageType, const char* message);
+int(*sceSysUtilSendNotificationRequest)(const char* message, int unk);
+
 
 //libc
 void *(*malloc)(size_t size);
@@ -194,6 +196,8 @@ void LoadImports()
     //notify
 	int sysUtilHandle = sceKernelLoadStartModule("libSceSysUtil.sprx", 0, NULL, 0, 0, 0);
 	sys_dynlib_dlsym(sysUtilHandle, "sceSysUtilSendSystemNotificationWithText", &sceSysUtilSendSystemNotificationWithText);
+	sys_dynlib_dlsym(sysUtilHandle, "sceSysUtilSendNotificationRequest", &sceSysUtilSendNotificationRequest);
+	
 }
 
 void Sleep(unsigned int milliseconds) {
@@ -227,4 +231,27 @@ void printf(const char *fmt, ...) {
 	sceNetSocketClose(sock);
 
 	va_end(args);*/
+}
+
+void printf2(const char *fmt, ...) {
+	char buffer[0x400] = { 0 };
+	va_list args;
+	va_start(args, fmt);
+	vsprintf(buffer, fmt, args);
+
+	int sock = sceNetSocket("PS4 Output", AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+    int optval = 1;
+	sceNetSetsockopt(sock, SOL_SOCKET, SO_NOSIGPIPE, (void *)&optval, sizeof(int));
+
+	struct sockaddr_in sockAddr = { 0 };
+	sockAddr.sin_family = AF_INET;
+	sockAddr.sin_port = 44582; //29975
+	sockAddr.sin_addr.s_addr = IP(192, 168, 1, 64); //0x7F8EC20A
+
+	sceNetConnect(sock, (struct sockaddr*)&sockAddr, sizeof(struct sockaddr_in));
+	sceNetSend(sock, buffer, 0x400, 0);
+	sceNetSocketClose(sock);
+
+	va_end(args);
 }

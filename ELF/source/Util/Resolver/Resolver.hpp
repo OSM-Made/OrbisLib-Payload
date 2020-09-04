@@ -125,4 +125,8 @@ do {									\
 		eventhandler_deregister(_el, tag);			\
 } while(0)
 
+/* FileIO */
+extern int (*kern_open)(thread* td, char *path, int pathseg, int flags, int mode);
+extern int (*kern_mkdir)(thread* td, char *path, int pathseg, int mode);
+
 void ResolveFunctions();

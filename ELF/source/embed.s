@@ -7,6 +7,10 @@
 	.type   OrbisELFLoader, @object
 	.align  4
 
+    .global OrbisUserlandHelper
+	.type   OrbisUserlandHelper, @object
+	.align  4
+
     .global OrbisFTP
 	.type   OrbisFTP, @object
 	.align  4
@@ -28,6 +32,15 @@ OrbisELFLoaderEnd:
     .align  4
 OrbisELFLoaderSize:
     .int    OrbisELFLoaderEnd - OrbisELFLoader
+
+OrbisUserlandHelper:
+    .incbin "../ShellCode/OrbisUserlandHelper.bin"
+OrbisUserlandHelperEnd:
+    .global OrbisUserlandHelperSize
+    .type   OrbisUserlandHelperSize, @object
+    .align  4
+OrbisUserlandHelperSize:
+    .int    OrbisUserlandHelperEnd - OrbisUserlandHelper
 
 OrbisFTP:
     .incbin "../FTP/OrbisFTP.elf"

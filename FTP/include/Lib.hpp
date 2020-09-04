@@ -245,6 +245,7 @@ extern int(*sceKernelStopUnloadModule)(int handle, size_t args, const void *argp
 
 //notifications
 extern int(*sceSysUtilSendSystemNotificationWithText)(int messageType, const char* message);
+extern int(*sceSysUtilSendNotificationRequest)(const char* message, int unk);
 
 //libc
 extern void *(*malloc)(size_t size);

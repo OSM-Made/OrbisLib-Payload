@@ -14,6 +14,7 @@
 #include "Util/Network.hpp"
 #include "Util/DebugLogger.hpp"
 #include "Util/ELFLoader.hpp"
+#include "OrbisLib/OrbisDef.hpp"
 #include "OrbisLib/OrbisLib.hpp"
 #include "Util/Helpers/HelperManager.hpp"
 
@@ -49,3 +50,4 @@ extern "C"
 }
 
 extern OrbisLib* orbisLib;
+extern HelperManager* pHelperManager;

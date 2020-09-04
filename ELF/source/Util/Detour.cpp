@@ -8,9 +8,9 @@ void WriteJump(void* Address, void* Destination)
     };
 
     //Write the address of our hook to the instruction.
-    //*(uint64_t*)(JumpInstructions + 6) = Destination;
-    uint64_t* jumpBufferAddress = (uint64_t*)(JumpInstructions + 6);
-    *jumpBufferAddress = (uint64_t)Address;
+    *(uint64_t*)(JumpInstructions + 6) = (uint64_t)Address;
+    //uint64_t* jumpBufferAddress = (uint64_t*)(JumpInstructions + 6);
+    //*jumpBufferAddress = (uint64_t)Address;
 
     EnterCriticalSection();
     uint64_t CR0 = __readcr0();
@@ -36,15 +36,11 @@ void* Detour::DetourFunction(void* FunctionPtr, void* HookPtr, int32_t Instructi
         return (void*)0;
     }
 
-    DebugLog(LOGTYPE_INFO, "Here");
-
     //Save Pointers for later
     this->FunctionPtr = FunctionPtr;
     this->HookPtr = HookPtr;
 
-    DebugLog(LOGTYPE_INFO, "Here");
-
-    this->RestoreInstructionsSize = InstructionSize;
+    /*this->RestoreInstructionsSize = InstructionSize;
     this->RestoreInstructions = (uint8_t*)_malloc(InstructionSize);
     if(this->RestoreInstructions == NULL)
     {
@@ -62,9 +58,7 @@ void* Detour::DetourFunction(void* FunctionPtr, void* HookPtr, int32_t Instructi
     this->StubSize = (InstructionSize + 14);
 	this->StubPtr = (void*)kmmap(0, this->StubSize, 1 | 2 | 4, 0x1000 | 0x2, -1, 0);
     memcpy(StubPtr, (void*)FunctionPtr, InstructionSize);
-    WriteJump((void*)(this->StubPtr + InstructionSize), HookPtr + InstructionSize);
-
-    DebugLog(LOGTYPE_INFO, "Here");
+    WriteJump((void*)(this->StubPtr + InstructionSize), HookPtr + InstructionSize);*/
     
     //Write jump from function to hook.
     WriteJump(FunctionPtr, HookPtr);

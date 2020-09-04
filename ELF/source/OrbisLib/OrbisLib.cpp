@@ -1,17 +1,19 @@
 #include "../main.hpp"
 #include "OrbisProc.hpp"
+#include "OrbisTarget.hpp"
+#include "OrbisDebugger.hpp"
 #include "OrbisLib.hpp"
+#include "OrbisDef.hpp"
 
 #include "../Util/Kernel.hpp"
 #include "../Util/FileIO.hpp"
 
 void OrbisLib::ClientThread(void* arg)
 {
-    //DebugLog(LOGTYPE_INFO, "Hello from Client Thread :)");
-
     ClientThreadArgs* clientThreadArgs = (ClientThreadArgs*)arg;
     OrbisLib* orbisLib = clientThreadArgs->orbisLib;
     OrbisProc* orbisProc = orbisLib->orbisProc;
+    OrbisTarget* orbisTarget = orbisLib->orbisTarget;
     int Socket = clientThreadArgs->Socket;
     int Status = 0;
 
@@ -62,28 +64,6 @@ void OrbisLib::ClientThread(void* arg)
         case API_PROC_KILL:
             orbisProc->Proc_Kill(Socket, Packet->ProcName);
             break;
-        
-
-        /* Breakpoint functions */
-        case API_BREAKPOINT_SET:
-            
-            break;
-        
-        case API_BREAKPOINT_UPDATE:
-
-            break;
-
-        case API_BREAKPOINT_REMOVE:
-
-            break;
-
-        case API_BREAKPOINT_GETINFO:
-
-            break;
-
-        case API_BREAKPOINT_LIST:
-
-            break;
 
         /* Remote Library functions */
         case API_PROC_LOAD_SPRX:
@@ -105,6 +85,14 @@ void OrbisLib::ClientThread(void* arg)
         case  API_PROC_MODULE_LIST:
             orbisProc->Proc_GetModuleList(Socket);
             break;
+
+        case API_DBG_START ... API_DBG_WATCHPOINT_LIST:
+
+            break;
+
+        case API_TARGET_INFO ... API_TARGET_DUMP_PROC:
+            orbisTarget->APIHandle(Socket, Packet);
+            break;
         }
     }
 
@@ -113,34 +101,9 @@ void OrbisLib::ClientThread(void* arg)
     kthread_exit();
 }
 
-extern uint8_t OrbisFTP[];
-extern int32_t OrbisFTPSize;
-
-int MountNullFS(char* where, char* what, int flags)
-{
-    auto mount_argf = (struct mntarg*(*)(struct mntarg *ma, const char *name, const char *fmt, ...))resolve(0x001E1780);
-    auto kernel_mount = (int(*)(struct mntarg	*ma, int flags))resolve(0x001E1920);
-
-    struct mntarg* ma = NULL;
-
-    ma = mount_argf(ma, "fstype", "%s", "nullfs");
-    ma = mount_argf(ma, "fspath", "%s", where);
-    ma = mount_argf(ma, "target", "%s", what);
-
-    if (ma == NULL) {
-    	DebugLog(LOGTYPE_ERR, "Something is wrong, ma value is null after argument");
-    	return 50;
-    }
-
-    return kernel_mount(ma, flags);
-}
-
-
 void OrbisLib::ProcThread(void *arg) 
 {
     OrbisLib* orbisLib = (OrbisLib*)arg;
-
-    DebugLog(LOGTYPE_INFO, "Hello from kproc :)");
 
     auto vmspace_alloc = (struct vmspace* (*)(vm_offset_t min, vm_offset_t max))resolve(0x0019EB20);
 	auto pmap_activate = (void(*)(struct thread *td))resolve(0x002EAFD0);
@@ -151,8 +114,6 @@ void OrbisLib::ProcThread(void *arg)
 	// Root and escape our thread
 	if (CurrentThread->td_ucred)
 	{
-		DebugLog(LOGTYPE_INFO, "escaping thread");
-
 		CurrentThread->td_ucred->cr_rgid = 0;
 		CurrentThread->td_ucred->cr_svgid = 0;
 
@@ -171,123 +132,6 @@ void OrbisLib::ProcThread(void *arg)
 		// make system credentials
 		CurrentThread->td_ucred->cr_sceCaps[0] = 0xFFFFFFFFFFFFFFFFULL;
 		CurrentThread->td_ucred->cr_sceCaps[1] = 0xFFFFFFFFFFFFFFFFULL;
-
-		DebugLog(LOGTYPE_INFO, "credentials rooted for new proc");
-	}
-
-	vmspace* vmspace = vmspace_alloc(0, 4096 * 2048); // Allocate 8MiB
-
-	Log("%s", CurrentThread->td_proc->p_comm);
-
-	CurrentThread->td_proc->p_vmspace = vmspace;
-	pmap_activate(CurrentThread);
-
-	DebugLog(LOGTYPE_INFO, "Creating initial 3 file descriptors (0, 1, 2).");
-	int descriptor = sys_fopen("/dev/console", 1, 0);
-	DebugLog(LOGTYPE_INFO, "/dev/console descriptor: %d", descriptor);
-	DebugLog(LOGTYPE_INFO, "dup2(desc, 1) result: %d", kdup2(descriptor, 1, CurrentThread));
-	DebugLog(LOGTYPE_INFO, "dup2(1, 2) result: %d", kdup2(1, 2, CurrentThread));
-
-    auto kernel_sysctlbyname = (int(*)(thread *td, char *name, void *old, size_t *oldlenp, void *pnew, size_t newlen, size_t *retval, int flags))resolve(0x262770);
-    
-    size_t retval = 0;
-    int32_t oldp = 0;
-	size_t oldlenp = 4;
-	int ret = kernel_sysctlbyname(curthread(), "kern.sdk_version", (char*)&oldp, &oldlenp, NULL, NULL, NULL, 0);
-	Log("ret = %llX", ret);
-	Log("SDK = %llX", oldp);
-
-    uint64_t CR0 = __readcr0();
- 	__writecr0(CR0 & ~CR0_WP);
-
-    retval = 0;
-	int32_t newp = 0x7510001;
-	size_t newlenp = 4;
-	ret = kernel_sysctlbyname(curthread(), "kern.sdk_version", NULL, NULL, (char*)&newp, newlenp, NULL, 0);
-	Log("ret = %llX", ret);
-
-    __writecr0(CR0);
-
-    retval = 0;
-	oldp = 0;
-	oldlenp = 4;
-	ret = kernel_sysctlbyname(curthread(), "kern.sdk_version", (char*)&oldp, &oldlenp, NULL, NULL, NULL, 0);
-	Log("ret = %llX", ret);
-
-	Log("NEW SDK = %llX", oldp);
-
-
-	//Start up the FTP Server.
-	proc* proc = proc_find_by_name("SceRemotePlay");//SceRemotePlay
-	if(proc) 
-	{
-        //Give Root FS Perms
-		ucred* cred = proc->p_ucred;
-		filedesc* fd = proc->p_fd;
-
-		prison* cr_prisonBackUp = cred->cr_prison;
-		vnode* fd_jdirBackUp = fd->fd_jdir;
-		vnode* fd_rdirBackUp = fd->fd_rdir;
-
-		uint32_t r_cr_uid = cred->cr_uid;
-		uint32_t r_cr_ruid = cred->cr_ruid;
-		uint32_t r_cr_rgid = cred->cr_rgid;
-		uint32_t r_cr_groups = cred->cr_groups[0];
-		
-
-		//mount new file System /Orbis/
-		auto vn_fullpath = (int(*)(struct thread *td, struct vnode *vp, char **retbuf, char **freebuf))resolve(0xA11A0);
-
-		char* SandboxPath = nullptr;
-		char* FreePath = nullptr;
-		vn_fullpath(curthread(), fd->fd_jdir, &SandboxPath, &FreePath);
-
-		cred->cr_prison =*(prison**)resolve(addr_prison0);
-		fd->fd_jdir = *(vnode**)resolve(addr_rootvnode);
-		fd->fd_rdir = *(vnode**)resolve(addr_rootvnode);
-
-		cred->cr_uid = 0;
-		cred->cr_ruid = 0;
-		cred->cr_rgid = 0;
-		cred->cr_groups[0] = 0;
-
-		Log("Sandbox Dir = %s\nFreePath Dir = %s", SandboxPath, FreePath);
-
-		char AlternatePath[PATH_MAX];
-		char MountPath[PATH_MAX];
-		snprintf(AlternatePath, PATH_MAX, "%s/Orbis", SandboxPath);
-		strcpy(MountPath, "/mnt");
-
-		Log("AlternatePath = %s", AlternatePath);
-
-		auto DirHandle = sys_fopen("/mnt", O_RDONLY | O_DIRECTORY, 0777);
-		if(DirHandle < 0)
-		{
-			DebugLog(LOGTYPE_ERR, "Failed to open path %d", DirHandle);
-		}
-
-		int ret = sys_mkdir("/mnt/usb0/Orbis", 0511);
-		if (ret < 0) {
-			DebugLog(LOGTYPE_ERR, "Failed to make Alt Dir %d", ret);
-		}	
-
-		ret = MountNullFS(AlternatePath, MountPath, MNT_RDONLY);
-		if (ret < 0) {
-			DebugLog(LOGTYPE_ERR, "Failed to mount folder! %d", ret);
-		}
-
-		sys_fclose(DirHandle);
-
-		cred->cr_prison = cr_prisonBackUp;
-		//fd->fd_jdir = fd_jdirBackUp;
-		//fd->fd_rdir = fd_rdirBackUp;
-
-		cred->cr_uid = r_cr_uid;
-		cred->cr_ruid = r_cr_ruid;
-		cred->cr_rgid = r_cr_rgid;
-		cred->cr_groups[0] = r_cr_groups;
-
-		sys_proc_elf_handle(proc, (char*)OrbisFTP);
 	}
 
     //TODO: Start watcher thread to manage proc changes and handle intercepts
@@ -362,6 +206,14 @@ OrbisLib::OrbisLib()
     if(orbisProc == NULL)
     {
         DebugLog(LOGTYPE_ERR, "Failed to allocate orbisProc class!!");
+        IsRunning = false;
+        return;
+    }
+
+    orbisTarget = new OrbisTarget();
+    if(orbisTarget == NULL)
+    {
+        DebugLog(LOGTYPE_ERR, "Failed to allocate orbisTarget class!!");
         IsRunning = false;
         return;
     }

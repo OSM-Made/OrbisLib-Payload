@@ -74,3 +74,4 @@ void resolveImports();
 
 extern int(*sceKernelLoadStartModule)(const char *name, size_t argc, const void *argv, unsigned int flags, int pOpt, int pRes);
 extern int(*sceSysUtilSendSystemNotificationWithText)(int messageType, const char* message);
+extern int(*sceSysUtilSendNotificationRequest)(const char* message, int unk);

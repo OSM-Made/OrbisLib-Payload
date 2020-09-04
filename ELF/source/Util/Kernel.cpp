@@ -78,7 +78,7 @@ int kern_reboot(int opt)
     auto sv = (sysentvec*)resolve(addr_sysvec);
     sysent* sysents = sv->sv_table;
 
-    auto sys_reboot = (int(*)(thread * td, reboot_args* uap))sysents[SYS_reboot].sy_call;
+    auto sys_reboot = (int(*)(thread * td, reboot_args* uap))sysents[37].sy_call;
 
 	thread *td = curthread();
 

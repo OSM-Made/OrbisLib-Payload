@@ -83,9 +83,13 @@ void (*EnterCriticalSection)();
 void (*ExitCriticalSection)();
 
 /* Event Handling */
-eventhandler_tag (*eventhandler_register)(eventhandler_list *list, const char *name, void *func, void *arg, int priority) override;
+eventhandler_tag (*eventhandler_register)(eventhandler_list *list, const char *name, void *func, void *arg, int priority);
 void (*eventhandler_deregister)(eventhandler_list* a, eventhandler_entry* b);
 eventhandler_list* (*eventhandler_find_list)(const char *name);
+
+/* FileIO */
+int (*kern_open)(thread* td, char *path, int pathseg, int flags, int mode);
+int (*kern_mkdir)(thread* td, char *path, int pathseg, int mode);
 
 void ResolveFunctions()
 {
@@ -174,4 +178,8 @@ void ResolveFunctions()
     eventhandler_register = (eventhandler_tag(*)(eventhandler_list *list, const char *name, void *func, void *arg, int priority))resolve(addr_eventhandler_register);
     eventhandler_deregister = (void(*)(struct eventhandler_list* a, struct eventhandler_entry* b))resolve(addr_eventhandler_deregister);
     eventhandler_find_list = (eventhandler_list * (*)(const char *name))resolve(addr_eventhandler_find_list);
+
+    /* FileIO */
+    kern_open = (int(*)(thread* td, char *path, int pathseg, int flags, int mode))resolve(0x33B9B0);
+    kern_mkdir = (int(*)(thread* td, char *path, int pathseg, int mode))resolve(0x340B70);
 }

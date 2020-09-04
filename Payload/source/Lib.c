@@ -22,6 +22,7 @@ int sys_dynlib_load_prx(const char *name, int *idDestination) {
 
 int(*sceKernelLoadStartModule)(const char *name, size_t argc, const void *argv, unsigned int flags, int pOpt, int pRes);
 int(*sceSysUtilSendSystemNotificationWithText)(int messageType, const char* message);
+int(*sceSysUtilSendNotificationRequest)(const char* message, int unk);
 
 void resolveImports() {
     int library = 0;
@@ -33,4 +34,5 @@ void resolveImports() {
 
 	int sysUtilHandle = sceKernelLoadStartModule("/system/common/lib/libSceSysUtil.sprx", 0, NULL, 0, 0, 0);
 	sys_dynlib_dlsym(sysUtilHandle, "sceSysUtilSendSystemNotificationWithText", &sceSysUtilSendSystemNotificationWithText);
+	sys_dynlib_dlsym(sysUtilHandle, "sceSysUtilSendNotificationRequest", &sceSysUtilSendNotificationRequest);
 }

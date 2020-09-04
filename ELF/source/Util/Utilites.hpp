@@ -7,7 +7,7 @@ void HookFunctionCall(uint8_t* p_HookTrampoline, void* p_Function, void* p_Addre
 
 char* strrchr(const char *cp, int ch);
 char* strchr(const char *s, int c);
-struct tm *gmtime_s(const time_t *timep, struct tm *result);
+void SendStatus(int Socket, int Status);
 char* basename(const char *filename);
 int Get_Module_Handle_For_Name(struct proc* proc, const char* Name);
 const char* Get_Module_Path(struct proc* proc, int hModule);

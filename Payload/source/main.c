@@ -87,8 +87,6 @@ int install_orbis(struct thread *td, struct payloadArgs *args) {
   	*(uint32_t*)(kernbase + 0x6A2700) = 0x90C3C031; //flatz disable pfs signature check 5.05
   	*(uint32_t*)(kernbase + 0x64B2B0) = 0x90C301B0; //flatz enable debug RIFs 5.05
   	*(uint32_t*)(kernbase + 0x64B2D0) = 0x90C301B0; //flatz enable debug RIFs 5.05
-  	//*(uint32_t*)(kernbase + 0x14A63F1) = 0x7510001; //enable vr 5.05
-	//*(uint32_t *)(kernbase + 0x14A63F0) = 0x07510001;
 
 	*(uint8_t*)(kernbase + 0x1EA53D) = 0xEB; //patch memcpy first
 	*(uint16_t*)(kernbase + 0x194875) = 0x9090; //patch ASLR
@@ -105,7 +103,8 @@ int install_orbis(struct thread *td, struct payloadArgs *args) {
 	memcpy((void*)(kernbase + 0x30DE01), "\xE9\xD0\x00\x00\x00", 5); //remove all these bullshit checks from ptrace, by golden
 	*(uint8_t*)(kernbase + 0x30D9AA) = 0xEB; //patch ptrace
 
-	memcpy((void*)(kernbase + 0x262591), "\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90", 11); //sysctl write only patch
+	//memcpy((void*)(kernbase + 0x262591), "\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90", 11); //sysctl write only patch
+	//memcpy((void*)(kernbase + 0x2626DE), "\xf1\x89\xd8", 3);
 
 	__writecr0(CR0);
 
@@ -119,8 +118,8 @@ int _main(void)
 {
 	syscall(11, install_orbis, OrbisLibElf, OrbisLibElfSize);
 
-	resolveImports();
+	//resolveImports();
 	
-	sceSysUtilSendSystemNotificationWithText(222, "OrbisLib v2.0 Loaded!\nMade by OSM");
+	//sceSysUtilSendNotificationRequest("OrbisLib v2.0 Loaded!\nMade by OSM", 1);
 	return 0;
 }

@@ -15,6 +15,7 @@ struct LogBuffer_s
 	char Buffer[0x400];
 };
 
+void printf(char* fmt, ...) ;
 void WriteBuffer(char* fmt, ...);
 void LogInternal(enum LogType_e LogType, const char* FunctionName, int32_t LineNumber, const char* fmt, ...);
 #define DebugLog(LogType, fmt, ...) LogInternal(LogType, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)

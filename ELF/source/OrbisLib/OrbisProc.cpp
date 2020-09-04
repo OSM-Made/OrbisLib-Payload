@@ -1,10 +1,21 @@
 #include "../main.hpp"
 #include "OrbisProc.hpp"
 
-/*void OnTrapFatalHook(trapframe *frame)
+struct trapframe_s {
+	register_t	tf_rdi;
+	register_t	tf_rsi;
+	register_t	tf_rdx;
+	register_t	tf_rflags;
+	register_t	tf_rsp;
+	register_t	tf_ss;
+};
+
+void OnTrapFatalHook(trapframe_s *frame)
 {
 	DebugLog(LOGTYPE_INFO, "Trap Fatal Hit!");
-}*/
+
+    for(;;){}
+}
 
 OrbisProc::OrbisProc()
 {
@@ -17,8 +28,8 @@ OrbisProc::OrbisProc()
     for(int i = 0; i < BREAKPOINTS_MAX; i++)
         this->Breakpoints[i] = new OrbisBreakPoint();
 
-    //Detour* OnTrapFatalDetour = new Detour((void*)resolve(addr_trap_fatalHook), (void*)OnTrapFatalHook, 17);
-    ProcessExitEvent = EVENTHANDLER_REGISTER(process_exit,(void*)OnProcessExit, this, EVENTHANDLER_PRI_ANY);
+    Detour* OnTrapFatalDetour = new Detour((void*)resolve(addr_trap_fatalHook), (void*)OnTrapFatalHook, 17);
+    ProcessExitEvent = EVENTHANDLER_REGISTER(process_exit, (void*)OnProcessExit, this, EVENTHANDLER_PRI_ANY);
 
     IsRunning = true;
 }
@@ -129,54 +140,11 @@ void OrbisProc::WatcherThread(void* arg)
 
         if(Signal == SIGTRAP)
         {
-            //Clearout Register Structure.
-            memset(&Registers, 0, sizeof(struct reg));
-
-            //Get registers
-            if(kptrace(td, PT_GETREGS, proc->p_pid, (void*)&Registers, 0))
-                continue;
-
-            if(Registers.r_rip - 1 == 0xC5CAF0)
-            {
-                Log("Software Breakpoint Hit - 0x%llX (0x%X)", Registers.r_rip - 1, 0x55);
-
-                uint8_t tempop = 0x55;
-                uint64_t Address = 0xC5CAF0;
-
-                //restore original OP code
-                n = 0;
-                if(proc_rw_mem(proc, (void*)Address, (size_t)0x01, (void*)&tempop, &n, 1))
-                    continue;
-                
-                //Back step one byte
-                Registers.r_rip -= 1;
-                if(kptrace(td, PT_SETREGS, proc->p_pid, (void*)&Registers, 0))
-                    continue;
-
-                //Step to execute break instruction
-                if(kptrace(td, PT_STEP, proc->p_pid, (void *)1, 0))
-                    continue;
-
-                int status = 0;
-                int res = kwait4(proc->p_pid, &status, WUNTRACED, 0);
-                int Signal = WSTOPSIG(status);
-
-                DebugLog(LOGTYPE_INFO, "Res = %d, Status = %d, Signal = %d\n", res, status, WSTOPSIG(status));
-
-                if(kptrace(td, PT_CONTINUE, proc->p_pid, (void*)1, 0))
-                    continue;
-
-                Log("Software Breakpoint Handled!");
-            }
+            
         }
     }
 
     kproc_exit(0); 
-}
-
-void SendStatus(int Socket, int Status)
-{
-    Send(Socket, (char*)&Status, 0x4);
 }
 
 void OrbisProc::Proc_GetList(int Socket)
@@ -574,6 +542,8 @@ void OrbisProc::Proc_Kill(int Socket, char* ProcName)
     kpsignal(proc, SIGKILL);
     pause("Client Thread", 150);
 
+
+    //No need if proc death
     /*if(!IsAttachedProc)
     {
         //Clear any breakpoints or watchpoints set.
