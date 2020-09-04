@@ -1,8 +1,6 @@
 #pragma once
 
 #include "OrbisShellCode.hpp"
-#include "OrbisBreakPoint.hpp"
-#define BREAKPOINTS_MAX 10
 
 class OrbisProc
 {
@@ -12,7 +10,7 @@ private:
     bool CurrentlyAttached = false;
     int CurrentProcessID = -1;
     OrbisShellCode* orbisShellCode;
-    OrbisBreakPoint* Breakpoints[BREAKPOINTS_MAX];
+    
 
     eventhandler_entry* ProcessExitEvent;
 
@@ -48,6 +46,8 @@ public:
 
     static void OnProcessExit(void *arg, struct proc *p);
     static void WatcherThread(void* arg);
+
+    int API_CallSetup(int Socket, proc** proc);
 
     void Proc_GetList(int Socket);
     void Proc_Attach(int Socket, char* ProcName);

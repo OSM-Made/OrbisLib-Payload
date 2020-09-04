@@ -33,7 +33,7 @@
 #define addr_memcmp								0x207E40
 #define addr_kmem_alloc							0x250730
 
-#define addr_disable_console_output             
+#define addr_disable_console_output             0x1A6EB18
 #define addr_M_TEMP					        	0x1540EB0
 #define addr_kernel_map                         0x220DFC0
 #define addr_prison0                            0x113E518

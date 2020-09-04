@@ -2,14 +2,15 @@
 #include "OrbisDef.hpp"
 #include "OrbisTarget.hpp"
 
-OrbisTarget::OrbisTarget(/* args */)
+OrbisTarget::OrbisTarget()
 {
+	DebugLog(LOGTYPE_INFO, "Initialization!!");
 
 }
 
 OrbisTarget::~OrbisTarget()
 {
-
+	DebugLog(LOGTYPE_INFO, "Destruction!!");
 }
 
 int GetConsoleType(int byte)
@@ -169,11 +170,13 @@ void OrbisTarget::Info(int Socket)
 void OrbisTarget::Shutdown(int Socket)
 {
    DebugLog(LOGTYPE_WARN, "Not Implimented!");
+   SendStatus(Socket, API_ERROR_FAIL);
 }
 
 void OrbisTarget::Reboot(int Socket)
 {
     DebugLog(LOGTYPE_WARN, "Not Implimented!");
+	SendStatus(Socket, API_ERROR_FAIL);
 }
 
 void OrbisTarget::Notify(int Socket, int Type, const char* Message)
@@ -183,7 +186,7 @@ void OrbisTarget::Notify(int Socket, int Type, const char* Message)
     else
         pHelperManager->pUserlandHelper->sceSysUtilSendSystemNotificationWithText(Type, Message);
     
-    SendStatus(Socket, true);
+    SendStatus(Socket, API_OK);
 }
 
 void OrbisTarget::Beep(int Socket, int Count)
@@ -192,7 +195,7 @@ void OrbisTarget::Beep(int Socket, int Count)
     {
         DebugLog(LOGTYPE_WARN, "Beep count cant be over 4.");
 
-        SendStatus(Socket, false);
+        SendStatus(Socket, API_ERROR_FAIL);
 
         return;
     }
@@ -200,12 +203,14 @@ void OrbisTarget::Beep(int Socket, int Count)
     auto icc_indicator_set_buzzer = (void(*)(char))resolve(0x1042E0);
 	icc_indicator_set_buzzer(Count);
 
-    SendStatus(Socket, true);
+    SendStatus(Socket, API_OK);
 }
 
 void OrbisTarget::SetLED(int Socket)
 {
     DebugLog(LOGTYPE_WARN, "Not Implimented!");
+	SendStatus(Socket, API_ERROR_FAIL);
+
     /*struct
 	{
 		uint8_t unk; //0x00
@@ -258,6 +263,8 @@ void OrbisTarget::SetLED(int Socket)
 void OrbisTarget::GetLED(int Socket)
 {
     DebugLog(LOGTYPE_WARN, "Not Implimented!");
+
+	SendStatus(Socket, API_ERROR_FAIL);
 }
 
 void OrbisTarget::DumpProcess(int Socket, const char* ProcessName)
@@ -271,7 +278,7 @@ void OrbisTarget::DumpProcess(int Socket, const char* ProcessName)
 	{
 		DebugLog(LOGTYPE_ERR, "Failed to get process \"%s\".", ProcessName);
 
-		SendStatus(Socket, false);
+		SendStatus(Socket, API_ERROR_FAIL);
 
 		return;
 	}
@@ -283,7 +290,7 @@ void OrbisTarget::DumpProcess(int Socket, const char* ProcessName)
 	{
 		DebugLog(LOGTYPE_ERR, "Failed to allocate space for Dump.");
 		
-		SendStatus(Socket, false);
+		SendStatus(Socket, API_ERROR_FAIL);
 
 		goto Cleanup;
 	}
@@ -293,7 +300,7 @@ void OrbisTarget::DumpProcess(int Socket, const char* ProcessName)
     {
         DebugLog(LOGTYPE_ERR, "Failed to read Text Segment Data: %d(%d).", err, n);
 
-		SendStatus(Socket, false);
+		SendStatus(Socket, API_ERROR_FAIL);
 
 		goto Cleanup;
 
@@ -305,12 +312,12 @@ void OrbisTarget::DumpProcess(int Socket, const char* ProcessName)
     {
         DebugLog(LOGTYPE_ERR, "Failed to read Data Segment Data: %d(%d).", err, n);
 
-		SendStatus(Socket, false);
+		SendStatus(Socket, API_ERROR_FAIL);
 
 		goto Cleanup;
 	}
 
-	SendStatus(Socket, true);
+	SendStatus(Socket, API_OK);
 
 	Send(Socket, (char*)&Size, 0x8);
 	Send(Socket, DumpedData, Size);

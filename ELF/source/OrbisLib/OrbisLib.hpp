@@ -11,6 +11,7 @@ private:
     bool IsRunning = false;
     OrbisProc* orbisProc;
     OrbisTarget* orbisTarget;
+    OrbisDebugger* orbisDebugger;
     int LastHostIPAddr;
 
     struct ClientThreadArgs

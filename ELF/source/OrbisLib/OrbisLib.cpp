@@ -218,6 +218,14 @@ OrbisLib::OrbisLib()
         return;
     }
 
+    orbisDebugger = new OrbisDebugger(orbisProc);
+    if(orbisDebugger == NULL)
+    {
+        DebugLog(LOGTYPE_ERR, "Failed to allocate orbisDebugger class!!");
+        IsRunning = false;
+        return;
+    }
+
     //Create Proc used to run the API and debugging.
     kproc_create(ProcThread, this, &kOrbisProc, 0, 0, "OrbisLib.elf");
 

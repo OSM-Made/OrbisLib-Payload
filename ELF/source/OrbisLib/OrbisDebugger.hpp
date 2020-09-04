@@ -1,10 +1,19 @@
 #pragma once
 
+#include "OrbisBreakPoint.hpp"
+#include "OrbisWatchPoint.hpp"
+
+#define BREAKPOINTS_MAX 10
+#define WATCHPOINTS_MAX 4
+
 class OrbisDebugger
 {
 private:
-    /* data */
+    OrbisProc* orbisProc;
+    OrbisBreakPoint* Breakpoints[BREAKPOINTS_MAX];
+    OrbisWatchPoint* Watchpoints[WATCHPOINTS_MAX];
+
 public:
-    OrbisDebugger(/* args */);
+    OrbisDebugger(OrbisProc* orbisProc);
     ~OrbisDebugger();
 };

@@ -26,7 +26,8 @@ struct RESP_TargetInfo
 class OrbisTarget
 {
 private:
-    /* data */
+
+
 public:
     OrbisTarget();
     ~OrbisTarget();

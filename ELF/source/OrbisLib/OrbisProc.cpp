@@ -1,21 +1,7 @@
 #include "../main.hpp"
 #include "OrbisProc.hpp"
 
-struct trapframe_s {
-	register_t	tf_rdi;
-	register_t	tf_rsi;
-	register_t	tf_rdx;
-	register_t	tf_rflags;
-	register_t	tf_rsp;
-	register_t	tf_ss;
-};
 
-void OnTrapFatalHook(trapframe_s *frame)
-{
-	DebugLog(LOGTYPE_INFO, "Trap Fatal Hit!");
-
-    for(;;){}
-}
 
 OrbisProc::OrbisProc()
 {
@@ -24,11 +10,6 @@ OrbisProc::OrbisProc()
     //Initialize shellcode Class
     orbisShellCode = new OrbisShellCode();
 
-    //Initialize Breakpoints
-    for(int i = 0; i < BREAKPOINTS_MAX; i++)
-        this->Breakpoints[i] = new OrbisBreakPoint();
-
-    Detour* OnTrapFatalDetour = new Detour((void*)resolve(addr_trap_fatalHook), (void*)OnTrapFatalHook, 17);
     ProcessExitEvent = EVENTHANDLER_REGISTER(process_exit, (void*)OnProcessExit, this, EVENTHANDLER_PRI_ANY);
 
     IsRunning = true;
@@ -39,10 +20,6 @@ OrbisProc::~OrbisProc()
     DebugLog(LOGTYPE_INFO, "Destruction!!");
 
     EVENTHANDLER_DEREGISTER(process_exit, ProcessExitEvent);
-
-    //Free the Breakpoint Classes
-    for(int i = 0; i < BREAKPOINTS_MAX; i++)
-        delete this->Breakpoints[i];
 
     delete orbisShellCode;
 
@@ -170,6 +147,35 @@ void OrbisProc::Proc_GetList(int Socket)
     Send(Socket, (char*)&ProcList[0], proc_count * sizeof(RESP_ProcList));
 }
 
+int OrbisProc::API_CallSetup(int Socket, proc** proc)
+{
+    //Make sure were are attached to a process.
+    if(!CurrentlyAttached)
+    {
+        DebugLog(LOGTYPE_INFO, "Not currently attached to any process.");
+
+        SendStatus(Socket, API_ERROR_NOT_ATTACHED);
+        return API_ERROR_NOT_ATTACHED;
+    }
+    
+    //Make sure the process were attached to still exists.
+    *proc = proc_find_by_name(CurrentProcName);
+    if(!*proc)
+    {
+        DebugLog(LOGTYPE_ERR, "Could not find Proc \"%s\".", CurrentProcName);
+
+        //Reset Data Values
+        CurrentProcessID = -1;
+        memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
+        CurrentlyAttached = false;
+
+        SendStatus(Socket, API_ERROR_LOST_PROC);
+        return API_ERROR_LOST_PROC;
+    }
+
+    return API_OK;
+}
+
 void OrbisProc::Proc_Attach(int Socket, char* ProcName)
 {
     proc* proc = proc_find_by_name(ProcName);
@@ -180,7 +186,7 @@ void OrbisProc::Proc_Attach(int Socket, char* ProcName)
     {
         DebugLog(LOGTYPE_ERR, "Could not find Proc \"%s\".", ProcName);
 
-        SendStatus(Socket, false);
+        SendStatus(Socket, API_ERROR_LOST_PROC);
         return;
     }
 
@@ -189,7 +195,7 @@ void OrbisProc::Proc_Attach(int Socket, char* ProcName)
     {
         DebugLog(LOGTYPE_INFO, "Already attached to process %s.", ProcName);
 
-        SendStatus(Socket, true);
+        SendStatus(Socket, API_OK);
         return;
     }
 
@@ -223,7 +229,7 @@ void OrbisProc::Proc_Attach(int Socket, char* ProcName)
     {
         DebugLog(LOGTYPE_ERR, "ptrace PT_ATTACH failed %d.", err);
 
-        SendStatus(Socket, false);
+        SendStatus(Socket, API_ERROR_FAIL);
         return;
     }
 
@@ -235,7 +241,7 @@ void OrbisProc::Proc_Attach(int Socket, char* ProcName)
     {
         DebugLog(LOGTYPE_ERR, "ptrace PT_CONTINUE failed %d.", err);
 
-        SendStatus(Socket, false);
+        SendStatus(Socket, API_ERROR_FAIL);
         return;
     }
 
@@ -254,7 +260,7 @@ void OrbisProc::Proc_Attach(int Socket, char* ProcName)
 
     DebugLog(LOGTYPE_INFO, "Attached to process \"%s\".", ProcName);
 
-    SendStatus(Socket, true);
+    SendStatus(Socket, API_OK);
 }
 
 void OrbisProc::Proc_Detach(int Socket)
@@ -268,7 +274,7 @@ void OrbisProc::Proc_Detach(int Socket)
     {
         DebugLog(LOGTYPE_INFO, "Not currently attached to any process.");
 
-        SendStatus(Socket, false);
+        SendStatus(Socket, API_ERROR_NOT_ATTACHED);
         return;
     }
 
@@ -283,7 +289,7 @@ void OrbisProc::Proc_Detach(int Socket)
         memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
         CurrentlyAttached = false;
 
-        SendStatus(Socket, false);
+        SendStatus(Socket, API_ERROR_LOST_PROC);
         return;
     }
 
@@ -300,7 +306,7 @@ void OrbisProc::Proc_Detach(int Socket)
     {
         DebugLog(LOGTYPE_ERR, "ptrace PT_DETACH failed %d.", err);
 
-        SendStatus(Socket, false);
+        SendStatus(Socket, API_ERROR_FAIL);
         return;
     }
 
@@ -311,46 +317,28 @@ void OrbisProc::Proc_Detach(int Socket)
 
     DebugLog(LOGTYPE_INFO, "Detached from process \"%s\".", ProcName);
 
-    SendStatus(Socket, true);
+    SendStatus(Socket, API_OK);
 }
 
 void OrbisProc::Proc_GetCurrent(int Socket)
 {
     RESP_CurrentProc CurrentProc;
-    proc* proc = proc_find_by_name(CurrentProcName);
+    proc* proc = 0;
     thread* td = curthread();
     int err = 0;
 
-    //Make sure were are attached to a process.
-    if(!CurrentlyAttached)
-    {
-        DebugLog(LOGTYPE_INFO, "Not currently attached to any process.");
-
-        SendStatus(Socket, false);
+    //Get our Process and make sure were attached.
+    if(API_CallSetup(Socket, &proc))
         return;
-    }
-
-    //Make sure the process were attached to still exists.
-    if(!proc)
-    {
-        DebugLog(LOGTYPE_ERR, "Could not find Proc \"%s\".", CurrentProcName);
-
-        //Reset Data Values
-        CurrentProcessID = -1;
-        memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
-        CurrentlyAttached = false;
-
-        SendStatus(Socket, false);
-        return;
-    }
 
     //Populate the response packet.
     CurrentProc.ProcessID = CurrentProcessID;
     strcpy(CurrentProc.ProcName, CurrentProcName);
     strcpy(CurrentProc.TitleID, proc->titleId);
+    //TODO: Add vm info text base data base and sizes
 
     //Signal we are attached and we have the data.
-    SendStatus(Socket, true);
+    SendStatus(Socket, API_OK);
 
     //Send the response Packet
     Send(Socket, (char*)&CurrentProc, sizeof(RESP_CurrentProc));
@@ -358,31 +346,22 @@ void OrbisProc::Proc_GetCurrent(int Socket)
 
 void OrbisProc::Proc_Read(int Socket, uint64_t Address, size_t len)
 {
-    proc* proc = proc_find_by_name(CurrentProcName);
+    proc* proc = 0;
     thread* td = curthread();
     int err = 0;
     char* Buffer = 0;
     
-    //Make sure were are attached to a process.
-    if(!CurrentlyAttached)
-    {
-        DebugLog(LOGTYPE_INFO, "Not currently attached to any process.");
-
-        SendStatus(Socket, false);
+    //Get our Process and make sure were attached.
+    if(API_CallSetup(Socket, &proc))
         return;
-    }
-    
-    //Make sure the process were attached to still exists.
-    if(!proc)
+
+    //make sure we are peeking the process memory space
+    if(Address > (uint64_t)(proc->p_vmspace->vm_taddr + ((proc->p_vmspace->vm_tsize + proc->p_vmspace->vm_dsize) * PAGE_SIZE)) || Address < (uint64_t)proc->p_vmspace->vm_taddr)
     {
-        DebugLog(LOGTYPE_ERR, "Could not find Proc \"%s\".", CurrentProcName);
+        DebugLog(LOGTYPE_ERR, "Address 0x%llX is out side the memory space of %s 0x%llX -> 0x%llX.", Address, CurrentProcName, proc->p_vmspace->vm_taddr, (proc->p_vmspace->vm_taddr + ((proc->p_vmspace->vm_tsize + proc->p_vmspace->vm_dsize) * PAGE_SIZE)));
 
-        //Reset Data Values
-        CurrentProcessID = -1;
-        memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
-        CurrentlyAttached = false;
+        SendStatus(Socket, API_ERROR_INVALID_ADDRESS);
 
-        SendStatus(Socket, false);
         return;
     }
 
@@ -392,7 +371,7 @@ void OrbisProc::Proc_Read(int Socket, uint64_t Address, size_t len)
     {
         DebugLog(LOGTYPE_ERR, "malloc failed to allocate %d bytes.\n", len);
 
-        SendStatus(Socket, false);
+        SendStatus(Socket, API_ERROR_FAIL);
         return;
     }
 
@@ -404,14 +383,14 @@ void OrbisProc::Proc_Read(int Socket, uint64_t Address, size_t len)
     {
         DebugLog(LOGTYPE_ERR, "proc_rw_mem couldnt read memory at Address(0x%llX) Size(%d) Error:%d n:%d.\n", Address, len, err, n);
 
-        SendStatus(Socket, false);
+        SendStatus(Socket, API_ERROR_FAIL);
 
         _free(Buffer);
         return;
     }
     
     //Send a Success Response.
-    SendStatus(Socket, true);
+    SendStatus(Socket, API_OK);
     
     //Send Data Read.
     Send(Socket, Buffer, len);
@@ -422,31 +401,22 @@ void OrbisProc::Proc_Read(int Socket, uint64_t Address, size_t len)
 
 void OrbisProc::Proc_Write(int Socket, uint64_t Address, size_t len)
 {
-    proc* proc = proc_find_by_name(CurrentProcName);
+    proc* proc = 0;
     thread* td = curthread();
     int err = 0;
     char* Buffer = 0;
     
-    //Make sure were are attached to a process.
-    if(!CurrentlyAttached)
-    {
-        DebugLog(LOGTYPE_INFO, "Not currently attached to any process.");
-
-        SendStatus(Socket, false);
+    //Get our Process and make sure were attached.
+    if(API_CallSetup(Socket, &proc))
         return;
-    }
-    
-    //Make sure the process were attached to still exists.
-    if(!proc)
+
+    //make sure we are writing the process memory space
+    if(Address > (uint64_t)(proc->p_vmspace->vm_taddr + ((proc->p_vmspace->vm_tsize + proc->p_vmspace->vm_dsize) * PAGE_SIZE)) || Address < (uint64_t)proc->p_vmspace->vm_taddr)
     {
-        DebugLog(LOGTYPE_ERR, "Could not find Proc \"%s\".", CurrentProcName);
+        DebugLog(LOGTYPE_ERR, "Address 0x%llX is out side the memory space of %s 0x%llX -> 0x%llX.", Address, CurrentProcName, proc->p_vmspace->vm_taddr, (proc->p_vmspace->vm_taddr + ((proc->p_vmspace->vm_tsize + proc->p_vmspace->vm_dsize) * PAGE_SIZE)));
 
-        //Reset Data Values
-        CurrentProcessID = -1;
-        memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
-        CurrentlyAttached = false;
+        SendStatus(Socket, API_ERROR_INVALID_ADDRESS);
 
-        SendStatus(Socket, false);
         return;
     }
 
@@ -456,7 +426,7 @@ void OrbisProc::Proc_Write(int Socket, uint64_t Address, size_t len)
     {
         DebugLog(LOGTYPE_ERR, "malloc failed to allocate %d bytes.\n", len);
 
-        SendStatus(Socket, false);
+        SendStatus(Socket, API_ERROR_FAIL);
         return;
     }
 
@@ -469,7 +439,7 @@ void OrbisProc::Proc_Write(int Socket, uint64_t Address, size_t len)
     {
         DebugLog(LOGTYPE_ERR, "Receive failed to retrieve the memory to write.\n");
 
-        SendStatus(Socket, false);
+        SendStatus(Socket, API_ERROR_FAIL);
     }
     
     //Call proc_rw_mem with the write param as 1 to write our data.
@@ -479,14 +449,14 @@ void OrbisProc::Proc_Write(int Socket, uint64_t Address, size_t len)
     {
         DebugLog(LOGTYPE_ERR, "proc_read_mem couldnt write memory at Address(0x%llX) Size(%d) Error:%d n:%d.\n", Address, len, err, n);
 
-        SendStatus(Socket, false);
+        SendStatus(Socket, API_ERROR_FAIL);
 
         _free(Buffer);
         return;
     }
 
     //Send Successfully written data.
-    SendStatus(Socket, true);
+    SendStatus(Socket, API_OK);
 
     //Clean up.
     _free(Buffer);
@@ -510,7 +480,7 @@ void OrbisProc::Proc_Kill(int Socket, char* ProcName)
         {
             DebugLog(LOGTYPE_INFO, "Not currently attached to any process.");
 
-            SendStatus(Socket, false);
+            SendStatus(Socket, API_ERROR_NOT_ATTACHED);
             return;
         }
     }
@@ -533,7 +503,7 @@ void OrbisProc::Proc_Kill(int Socket, char* ProcName)
         memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
         CurrentlyAttached = false;
 
-        SendStatus(Socket, false);
+        SendStatus(Socket, API_ERROR_LOST_PROC);
         return;
     }
 
@@ -542,65 +512,21 @@ void OrbisProc::Proc_Kill(int Socket, char* ProcName)
     kpsignal(proc, SIGKILL);
     pause("Client Thread", 150);
 
-
-    //No need if proc death
-    /*if(!IsAttachedProc)
-    {
-        //Clear any breakpoints or watchpoints set.
-        //TODO: Implement
-
-        //clear shell code from last process.
-        orbisShellCode->DestroyShellCode(); //Probably dont need to do this since were not gracefully shutting down the process
-
-        //Detach from last process.
-        err = kptrace(td, PT_DETACH, CurrentProcessID, (void*)SIGCONT, 0);
-        if(err)
-        {
-            DebugLog(LOGTYPE_ERR, "ptrace PT_DETACH failed %d.", err);
-        }
-
-        //Reset Data Values
-        CurrentProcessID = -1;
-        memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
-        CurrentlyAttached = false;
-    }*/
-
-    SendStatus(Socket, true);
+    SendStatus(Socket, API_OK);
 }
 
 void OrbisProc::Proc_LoadSPRX(int Socket, const char *name, unsigned int flags)
 {
-    proc* proc = proc_find_by_name(CurrentProcName);
+    proc* proc = 0;
     thread* td = curthread();
     int Handle = 0;
     vnode* fd_rdir = 0, *fd_jdir = 0;
 
-     //Make sure were are attached to a process.
-    if(!CurrentlyAttached)
-    {
-        DebugLog(LOGTYPE_INFO, "Not currently attached to any process.");
-
-        SendStatus(Socket, false);
+    //Get our Process and make sure were attached.
+    if(API_CallSetup(Socket, &proc))
         return;
-    }
-    
-    //Make sure the process were attached to still exists.
-    if(!proc)
-    {
-        DebugLog(LOGTYPE_ERR, "Could not find Proc \"%s\".", CurrentProcName);
 
-        //Reset Data Values
-        CurrentProcessID = -1;
-        memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
-        CurrentlyAttached = false;
-
-        SendStatus(Socket, false);
-        return;
-    }
-
-    DebugLog(LOGTYPE_INFO, "Loading SPRX \"%s\"", name);
-
-    SendStatus(Socket, true);
+    SendStatus(Socket, API_OK);
 
     filedesc* fd = proc->p_fd;
     fd_rdir = fd->fd_rdir;
@@ -619,34 +545,15 @@ void OrbisProc::Proc_LoadSPRX(int Socket, const char *name, unsigned int flags)
 
 void OrbisProc::Proc_UnloadSPRX(int Socket, int handle, uint32_t flags)
 {
-    proc* proc = proc_find_by_name(CurrentProcName);
+    proc* proc = 0;
     thread* td = curthread();
     int Result = 0;
 
-     //Make sure were are attached to a process.
-    if(!CurrentlyAttached)
-    {
-        DebugLog(LOGTYPE_INFO, "Not currently attached to any process.");
-
-        SendStatus(Socket, false);
+    //Get our Process and make sure were attached.
+    if(API_CallSetup(Socket, &proc))
         return;
-    }
-    
-    //Make sure the process were attached to still exists.
-    if(!proc)
-    {
-        DebugLog(LOGTYPE_ERR, "Could not find Proc \"%s\".", CurrentProcName);
 
-        //Reset Data Values
-        CurrentProcessID = -1;
-        memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
-        CurrentlyAttached = false;
-
-        SendStatus(Socket, false);
-        return;
-    }
-
-    SendStatus(Socket, true);
+    SendStatus(Socket, API_OK);
 
     Result = this->orbisShellCode->sceKernelStopUnloadModule(handle, 0, 0, flags, 0, 0);
 
@@ -655,35 +562,16 @@ void OrbisProc::Proc_UnloadSPRX(int Socket, int handle, uint32_t flags)
 
 void OrbisProc::Proc_ReloadSPRX(int Socket, const char *name)
 {
-    proc* proc = proc_find_by_name(CurrentProcName);
+    proc* proc = 0;
     thread* td = curthread();
     int Handle = -1;
     int Result = 0;
     char Path[0x100] = { 0 };
     vnode* fd_rdir = 0, *fd_jdir = 0;
 
-     //Make sure were are attached to a process.
-    if(!CurrentlyAttached)
-    {
-        DebugLog(LOGTYPE_INFO, "Not currently attached to any process.");
-
-        SendStatus(Socket, false);
+    //Get our Process and make sure were attached.
+    if(API_CallSetup(Socket, &proc))
         return;
-    }
-    
-    //Make sure the process were attached to still exists.
-    if(!proc)
-    {
-        DebugLog(LOGTYPE_ERR, "Could not find Proc \"%s\".", CurrentProcName);
-
-        //Reset Data Values
-        CurrentProcessID = -1;
-        memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
-        CurrentlyAttached = false;
-
-        SendStatus(Socket, false);
-        return;
-    }
 
     //Find the module handle and path from the name.
     dynlib* m_library = proc->p_dynlibptr->p_dynlib;
@@ -702,7 +590,7 @@ void OrbisProc::Proc_ReloadSPRX(int Socket, const char *name)
     //Make sure we found the module handle.
     if(Handle == -1)
     {
-        SendStatus(Socket, false);
+        SendStatus(Socket, API_ERROR_FAIL);
         return;
     }
 
@@ -711,7 +599,7 @@ void OrbisProc::Proc_ReloadSPRX(int Socket, const char *name)
     //Make Sure we unloaded the module.
     if(Result)
     {
-        SendStatus(Socket, false);
+        SendStatus(Socket, API_ERROR_FAIL);
         return;
     }
 
@@ -733,46 +621,27 @@ void OrbisProc::Proc_ReloadSPRX(int Socket, const char *name)
     //Make sure we loaded the module.
     if(Handle == 0)
     {
-        SendStatus(Socket, false);
+        SendStatus(Socket, API_ERROR_FAIL);
         return;
     }
 
     //Send the success status and the module handle
-    SendStatus(Socket, true);
+    SendStatus(Socket, API_OK);
 
     Send(Socket, (char*)&Handle, sizeof(int));
 }
 
 void OrbisProc::Proc_ReloadSPRX(int Socket, int Handle)
 {
-    proc* proc = proc_find_by_name(CurrentProcName);
+    proc* proc = 0;
     thread* td = curthread();
     int Result = 0;
     char Path[0x100] = { 0 };
     vnode* fd_rdir = 0, *fd_jdir = 0;
 
-     //Make sure were are attached to a process.
-    if(!CurrentlyAttached)
-    {
-        DebugLog(LOGTYPE_INFO, "Not currently attached to any process.");
-
-        SendStatus(Socket, false);
+    //Get our Process and make sure were attached.
+    if(API_CallSetup(Socket, &proc))
         return;
-    }
-    
-    //Make sure the process were attached to still exists.
-    if(!proc)
-    {
-        DebugLog(LOGTYPE_ERR, "Could not find Proc \"%s\".", CurrentProcName);
-
-        //Reset Data Values
-        CurrentProcessID = -1;
-        memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
-        CurrentlyAttached = false;
-
-        SendStatus(Socket, false);
-        return;
-    }
 
     //Find the module handle and path from the name.
     dynlib* m_library = proc->p_dynlibptr->p_dynlib;
@@ -790,7 +659,7 @@ void OrbisProc::Proc_ReloadSPRX(int Socket, int Handle)
     //Make sure we found the module Path.
     if(!strcmp(Path, ""))
     {
-        SendStatus(Socket, false);
+        SendStatus(Socket, API_ERROR_FAIL);
         return;
     }
 
@@ -799,7 +668,7 @@ void OrbisProc::Proc_ReloadSPRX(int Socket, int Handle)
     //Make Sure we unloaded the module.
     if(Result)
     {
-        SendStatus(Socket, false);
+        SendStatus(Socket, API_ERROR_FAIL);
         return;
     }
 
@@ -821,12 +690,12 @@ void OrbisProc::Proc_ReloadSPRX(int Socket, int Handle)
     //Make sure we loaded the module.
     if(Handle == 0)
     {
-        SendStatus(Socket, false);
+        SendStatus(Socket, API_ERROR_FAIL);
         return;
     }
 
     //Send the success status and the module handle
-    SendStatus(Socket, true);
+    SendStatus(Socket, API_OK);
 
     Send(Socket, (char*)&Handle, sizeof(int));
 }
@@ -839,28 +708,9 @@ void OrbisProc::Proc_GetModuleList(int Socket)
     RESP_ModuleList* ModuleList = 0;
     dynlib* m_library = 0;
 
-    //Make sure were are attached to a process.
-    if(!CurrentlyAttached)
-    {
-        DebugLog(LOGTYPE_INFO, "Not currently attached to any process.");
-
-        SendStatus(Socket, false);
+    //Get our Process and make sure were attached.
+    if(API_CallSetup(Socket, &proc))
         return;
-    }
-    
-    //Make sure the process were attached to still exists.
-    if(!proc)
-    {
-        DebugLog(LOGTYPE_ERR, "Could not find Proc \"%s\".", CurrentProcName);
-
-        //Reset Data Values
-        CurrentProcessID = -1;
-        memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
-        CurrentlyAttached = false;
-
-        SendStatus(Socket, false);
-        return;
-    }
 
     //Get the number of modules loaded in our attached process.
     m_library = proc->p_dynlibptr->p_dynlib;
@@ -889,7 +739,7 @@ void OrbisProc::Proc_GetModuleList(int Socket)
         m_library = m_library->dynlib_next;
     }
 
-    SendStatus(Socket, true);
+    SendStatus(Socket, API_OK);
 
     Send(Socket, (char*)&ModuleCount, sizeof(int));
 
