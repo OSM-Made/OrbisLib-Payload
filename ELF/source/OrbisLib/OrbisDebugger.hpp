@@ -16,4 +16,7 @@ private:
 public:
     OrbisDebugger(OrbisProc* orbisProc);
     ~OrbisDebugger();
+
+
+    void APIHandle(int Socket, API_Packet_s* Packet);
 };

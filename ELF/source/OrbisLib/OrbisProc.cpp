@@ -745,3 +745,75 @@ void OrbisProc::Proc_GetModuleList(int Socket)
 
     Send(Socket, (char*)&ModuleList[0], sizeof(RESP_ModuleList) * ModuleCount);
 }
+
+void OrbisProc::APIHandle(int Socket, API_Packet_s* Packet)
+{
+	switch(Packet->cmd)
+	{
+        case API_PROC_GET_LIST:
+            Proc_GetList(Socket);
+            break;
+
+        case API_PROC_ATTACH:
+            Proc_Attach(Socket, Packet->ProcName);
+            break;
+
+        case API_PROC_DETACH:
+            Proc_Detach(Socket);
+            break;
+
+        case API_PROC_GET_CURRENT:
+            Proc_GetCurrent(Socket);
+            break;
+
+        case API_PROC_READ:
+            Proc_Read(Socket, Packet->PROC_RW.Address, Packet->PROC_RW.len);
+            break;
+
+        case API_PROC_WRITE:
+            Proc_Write(Socket, Packet->PROC_RW.Address, Packet->PROC_RW.len);
+            break;
+
+        case API_PROC_KILL:
+            Proc_Kill(Socket, Packet->ProcName);
+            break;
+
+        case API_PROC_GET_INFO:
+
+            break;
+
+        case API_PROC_LOAD_ELF:
+
+            break;
+
+        case API_PROC_SIGNAL:
+
+            break;
+
+        case API_PROC_CALL:
+
+            break;
+
+
+        /* Remote Library functions */
+        case API_PROC_LOAD_SPRX:
+            Proc_LoadSPRX(Socket, Packet->PROC_SPRX.ModuleDir, Packet->PROC_SPRX.Flags);
+            break;
+
+        case API_PROC_UNLOAD_SPRX:
+            Proc_UnloadSPRX(Socket, Packet->PROC_SPRX.hModule, Packet->PROC_SPRX.Flags);
+            break;
+
+        case API_PROC_RELOAD_SPRX_NAME:
+            Proc_ReloadSPRX(Socket, Packet->PROC_SPRX.ModuleDir);
+            break;
+
+        case API_PROC_RELOAD_SPRX_HANDLE:
+            Proc_ReloadSPRX(Socket, Packet->PROC_SPRX.hModule);
+            break;
+
+        case  API_PROC_MODULE_LIST:
+            Proc_GetModuleList(Socket);
+            break;
+    }
+}

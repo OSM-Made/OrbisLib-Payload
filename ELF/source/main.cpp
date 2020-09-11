@@ -26,5 +26,5 @@ extern "C" void _main(uint64_t* p)
     StartDebugLogger();
 
 	pHelperManager->pUserlandHelper->sceSysUtilSendNotificationRequest("OrbisLib v2.0 Loaded!\nMade by OSM");
-	
+
 }

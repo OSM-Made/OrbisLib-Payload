@@ -9,6 +9,7 @@ struct proc_vm_map_entry {
 };
 
 uint64_t proc_alloc_size(uint64_t p);
+proc* GetCurrentGame();
 int get_proc_count();
 proc *proc_find_by_name(const char *name);
 proc *proc_find_by_pid(int pid);

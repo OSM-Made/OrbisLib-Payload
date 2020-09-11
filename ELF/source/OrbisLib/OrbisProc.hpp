@@ -11,34 +11,8 @@ private:
     int CurrentProcessID = -1;
     OrbisShellCode* orbisShellCode;
     
-
+    //Event Handlers
     eventhandler_entry* ProcessExitEvent;
-
-    struct RESP_ProcList
-    {
-        unsigned int ProcessID; //0x00
-        unsigned int Attached; //0x04
-        char ProcName[32]; //0x08
-        char TitleID[10]; //0x28
-    };
-
-    struct RESP_CurrentProc
-    {
-        unsigned int ProcessID; //0x00
-        char ProcName[32]; //0x04
-        char TitleID[10]; //0x24
-    };
-
-    struct RESP_ModuleList
-    {
-        char mName[0x24]; //0x00
-        char mPath[0x100]; //0x24
-        int mHandle; //0x124
-        uint64_t mTextSegmentBase; //0x128
-        uint64_t mTextSegmentLen; //0x130
-        uint64_t mDataSegmentBase; //0x138
-        uint64_t mDataSegmentLen; //0x140
-    };
 
 public:
     OrbisProc();
@@ -62,4 +36,6 @@ public:
     void Proc_ReloadSPRX(int Socket, const char *name);
     void Proc_ReloadSPRX(int Socket, int Handle);
     void Proc_GetModuleList(int Socket);
+
+    void APIHandle(int Socket, API_Packet_s* Packet);
 };

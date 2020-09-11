@@ -5,6 +5,7 @@
 
 void HookFunctionCall(uint8_t* p_HookTrampoline, void* p_Function, void* p_Address);
 
+int GetConsoleType(int byte);
 char* strrchr(const char *cp, int ch);
 char* strchr(const char *s, int c);
 void SendStatus(int Socket, int Status);

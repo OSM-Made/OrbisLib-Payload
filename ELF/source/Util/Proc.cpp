@@ -1,6 +1,33 @@
 #include "../Main.hpp"
 #include "Proc.hpp"
 
+proc* GetCurrentGame()
+{
+    proc *allproc = *(proc**)resolve(addr_allproc);
+    char TitleID[10];
+    strcpy(TitleID, "N/A");
+
+    while (allproc != NULL)
+    {
+		Log("%s", allproc->titleId);
+		if(!strcmp(allproc->p_comm, "eboot.bin") || !strcmp(allproc->p_comm, "default.elf") ||!strcmp(allproc->p_comm, "default_mp.elf"))
+		{
+			char TitlePart[4];
+			memcpy(TitlePart, allproc->titleId, 4);
+
+			if(!strcmp(allproc->titleId, "NPSX"))
+				continue;
+
+			Log("%s", allproc->titleId);
+			break;
+		}
+
+        allproc = allproc->p_list.le_next;
+    }
+
+    return allproc;
+}
+
 int get_proc_count() {
 	int count = 0;
 	proc *p = *(proc **)resolve(addr_allproc);

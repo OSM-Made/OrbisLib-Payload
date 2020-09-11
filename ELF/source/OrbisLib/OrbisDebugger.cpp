@@ -46,3 +46,11 @@ OrbisDebugger::~OrbisDebugger()
     for(int i = 0; i < WATCHPOINTS_MAX; i++)
         delete this->Watchpoints[i];
 }
+
+void OrbisDebugger::APIHandle(int Socket, API_Packet_s* Packet)
+{
+	switch(Packet->cmd)
+	{
+
+    }
+}

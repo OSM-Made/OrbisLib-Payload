@@ -3,12 +3,10 @@
 
 OrbisWatchPoint::OrbisWatchPoint(/* args */)
 {
-    DebugLog(LOGTYPE_INFO, "Initialization!!");
 
 }
 
 OrbisWatchPoint::~OrbisWatchPoint()
 {
-    DebugLog(LOGTYPE_INFO, "Destruction!!");
     
 }

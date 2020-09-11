@@ -1,6 +1,34 @@
 #include "../Main.hpp"
 #include "Utilites.hpp"
 
+int GetConsoleType(int byte)
+{
+	int ConsoleType = 0;
+	switch(byte)
+	{
+		case 0x80:
+			ConsoleType = DIAG;
+			break;
+		
+		case 0x81:
+			ConsoleType = DEVKIT;
+			break;
+
+		case 0x82:
+			ConsoleType = TESTKIT;
+			break;
+
+		case 0x83 ... 0x8F:
+			ConsoleType = RETAIL;
+			break;
+
+		case 0xA0:
+			ConsoleType = KRATOS;
+			break;
+	}
+	return ConsoleType;
+}
+
 char* strrchr(const char *cp, int ch)
 {
     char *save;
@@ -27,6 +55,7 @@ char* strchr(const char *s, int c)
 
 void SendStatus(int Socket, int Status)
 {
+	DebugLog(LOGTYPE_INFO, "API Status: %s", API_ERRORS_STR[Status]);
     Send(Socket, (char*)&Status, 0x4);
 }
 

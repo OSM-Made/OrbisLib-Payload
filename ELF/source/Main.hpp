@@ -5,6 +5,7 @@
 
 #include "Util/Types.hpp"
 #include "Util/Settings.hpp"
+#include "OrbisLib/OrbisDef.hpp"
 #include "Util/Utilites.hpp"
 #include "Util/Heap.hpp"
 #include "Util/Kernel.hpp"
@@ -14,7 +15,6 @@
 #include "Util/Network.hpp"
 #include "Util/DebugLogger.hpp"
 #include "Util/ELFLoader.hpp"
-#include "OrbisLib/OrbisDef.hpp"
 #include "OrbisLib/OrbisLib.hpp"
 #include "Util/Helpers/HelperManager.hpp"
 

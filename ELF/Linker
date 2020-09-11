@@ -15,7 +15,15 @@ PHDRS
 SECTIONS
 {
   .text 0x500: { *(.text) } :code
-  .data : { *(.data) }
+  .rodata : {
+		*(.rodata)
+		*(.rodata.*)
+		*(.data) 
+	  	*(.data.*)
+	} :text
+  .data : { 
+	  *(.data)
+	  } :data
   .bss : { *(.bss) }
   /DISCARD/ : { *(.eh_frame) }
 }

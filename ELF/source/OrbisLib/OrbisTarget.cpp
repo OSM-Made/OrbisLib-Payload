@@ -13,61 +13,6 @@ OrbisTarget::~OrbisTarget()
 	DebugLog(LOGTYPE_INFO, "Destruction!!");
 }
 
-int GetConsoleType(int byte)
-{
-	int ConsoleType = 0;
-	switch(byte)
-	{
-		case 0x80:
-			ConsoleType = DIAG;
-			break;
-		
-		case 0x81:
-			ConsoleType = DEVKIT;
-			break;
-
-		case 0x82:
-			ConsoleType = TESTKIT;
-			break;
-
-		case 0x83 ... 0x8F:
-			ConsoleType = RETAIL;
-			break;
-
-		case 0xA0:
-			ConsoleType = KRATOS;
-			break;
-	}
-	return ConsoleType;
-}
-
-proc* GetCurrentGame()
-{
-    proc *allproc = *(proc**)resolve(addr_allproc);
-    char TitleID[10];
-    strcpy(TitleID, "N/A");
-
-    while (allproc != NULL)
-    {
-		Log("%s", allproc->titleId);
-		if(!strcmp(allproc->p_comm, "eboot.bin") || !strcmp(allproc->p_comm, "default.elf") ||!strcmp(allproc->p_comm, "default_mp.elf"))
-		{
-			char TitlePart[4];
-			memcpy(TitlePart, allproc->titleId, 4);
-
-			if(!strcmp(allproc->titleId, "NPSX"))
-				continue;
-
-			Log("%s", allproc->titleId);
-			break;
-		}
-
-        allproc = allproc->p_list.le_next;
-    }
-
-    return allproc;
-}
-
 void OrbisTarget::Info(int Socket)
 {
     RESP_TargetInfo TargetInfo;
@@ -124,10 +69,6 @@ void OrbisTarget::Info(int Socket)
 					 (IDPS[15] & 0xffU));
 
 	int ConsoleType = GetConsoleType(IDPS[5] & 0xffU);
-	if(ConsoleType == 4)
-	{
-		Log("ConsoleType: RETAIL(0x%02X)", IDPS[5] & 0xffU);
-	}
 
 	int sdk_version;
 	size_t sdk_versionlen = 4;
@@ -141,12 +82,12 @@ void OrbisTarget::Info(int Socket)
 
 	Log("upd_version: %01X.%02X", (sdk_version >> 24) & 0xFF, (sdk_version >> 16) & 0xFF);
 
-	char cputemp[100] = { 0 };
+	/*char cputemp[100] = { 0 };
 	size_t testlen = 100;
 	ret = kernel_sysctlbyname(curthread(), "dev.amdtemp.1.core0.sensor0", (char*)&cputemp, &testlen, NULL, NULL, NULL, 0);
 	Log("%d", ret);
 	Log("%d", testlen);
-	Log("%s", cputemp);
+	Log("%s", cputemp);*/
 
     proc* proc = GetCurrentGame();
 	if(proc)
@@ -159,12 +100,15 @@ void OrbisTarget::Info(int Socket)
     //Fill Response packet.
     TargetInfo.SDKVersion = sdk_version;
     TargetInfo.SoftwareVersion = upd_version;
-    //CPU TEMPS
-
+    //CPU TEMPS 
+	//Console Name
     memcpy(TargetInfo.IDPS, IDPS, 16);
     memcpy(TargetInfo.PSID, PSID, 16);
     TargetInfo.ConsoleType = ConsoleType;
 
+	SendStatus(Socket, API_OK);
+
+	Send(Socket, (char*)&TargetInfo, sizeof(RESP_TargetInfo));
 }
 
 void OrbisTarget::Shutdown(int Socket)

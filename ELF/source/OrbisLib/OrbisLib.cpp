@@ -13,16 +13,16 @@ void OrbisLib::ClientThread(void* arg)
     ClientThreadArgs* clientThreadArgs = (ClientThreadArgs*)arg;
     OrbisLib* orbisLib = clientThreadArgs->orbisLib;
     OrbisProc* orbisProc = orbisLib->orbisProc;
+    OrbisDebugger* orbisDebugger = orbisLib->orbisDebugger;
     OrbisTarget* orbisTarget = orbisLib->orbisTarget;
     int Socket = clientThreadArgs->Socket;
-    int Status = 0;
 
     API_Packet_s* Packet = (API_Packet_s*)_malloc(sizeof(API_Packet_s));
 	memset(Packet, 0, sizeof(API_Packet_s));
 
     if (Receive(Socket, (char*)Packet, sizeof(API_Packet_s)))
 	{
-        DebugLog(LOGTYPE_INFO, "API Recieved Command %d", Packet->cmd);
+        DebugLog(LOGTYPE_INFO, "API Recieved Command %s(%d)", API_COMMANDS_STR[Packet->cmd], Packet->cmd);
 
         switch(Packet->cmd)
         {
@@ -31,63 +31,20 @@ void OrbisLib::ClientThread(void* arg)
             break;
 
         case API_TEST_COMMS:
-            Status = 1;
-            Send(Socket, (char*)&Status, sizeof(int));
+            SendStatus(Socket, API_OK);
             break;
 
-        /* Proc functions */
-
-        case API_PROC_GET_LIST:
-            orbisProc->Proc_GetList(Socket);
-            break;
-
-        case API_PROC_ATTACH:
-            orbisProc->Proc_Attach(Socket, Packet->ProcName);
-            break;
-
-        case API_PROC_DETACH:
-            orbisProc->Proc_Detach(Socket);
-            break;
-
-        case API_PROC_GET_CURRENT:
-            orbisProc->Proc_GetCurrent(Socket);
-            break;
-
-        case API_PROC_READ:
-            orbisProc->Proc_Read(Socket, Packet->PROC_RW.Address, Packet->PROC_RW.len);
-            break;
-
-        case API_PROC_WRITE:
-            orbisProc->Proc_Write(Socket, Packet->PROC_RW.Address, Packet->PROC_RW.len);
-            break;
-
-        case API_PROC_KILL:
-            orbisProc->Proc_Kill(Socket, Packet->ProcName);
-            break;
-
-        /* Remote Library functions */
-        case API_PROC_LOAD_SPRX:
-            orbisProc->Proc_LoadSPRX(Socket, Packet->PROC_SPRX.ModuleDir, Packet->PROC_SPRX.Flags);
-            break;
-
-        case API_PROC_UNLOAD_SPRX:
-            orbisProc->Proc_UnloadSPRX(Socket, Packet->PROC_SPRX.hModule, Packet->PROC_SPRX.Flags);
-            break;
-
-        case API_PROC_RELOAD_SPRX_NAME:
-            orbisProc->Proc_ReloadSPRX(Socket, Packet->PROC_SPRX.ModuleDir);
-            break;
-
-        case API_PROC_RELOAD_SPRX_HANDLE:
-            orbisProc->Proc_ReloadSPRX(Socket, Packet->PROC_SPRX.hModule);
-            break;
-
-        case  API_PROC_MODULE_LIST:
-            orbisProc->Proc_GetModuleList(Socket);
+        case API_PROC_GET_LIST ... API_PROC_MODULE_LIST:
+            orbisProc->APIHandle(Socket, Packet);
             break;
 
         case API_DBG_START ... API_DBG_WATCHPOINT_LIST:
+            orbisDebugger->APIHandle(Socket, Packet);
+            break;
 
+        case API_KERN_BASE ... API_KERN_WRITE:
+            DebugLog(LOGTYPE_WARN, "Not Implimented!");
+	        SendStatus(Socket, API_ERROR_FAIL);
             break;
 
         case API_TARGET_INFO ... API_TARGET_DUMP_PROC:
@@ -104,9 +61,6 @@ void OrbisLib::ClientThread(void* arg)
 void OrbisLib::ProcThread(void *arg) 
 {
     OrbisLib* orbisLib = (OrbisLib*)arg;
-
-    auto vmspace_alloc = (struct vmspace* (*)(vm_offset_t min, vm_offset_t max))resolve(0x0019EB20);
-	auto pmap_activate = (void(*)(struct thread *td))resolve(0x002EAFD0);
 
 	thread* CurrentThread = curthread();
 	ksetuid(0, CurrentThread);
