@@ -1,3 +1,4 @@
 #ignore compiled files
 *.o
 *.bin
+*.elf
