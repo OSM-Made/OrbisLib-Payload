@@ -1,27 +1,13 @@
 #include "../Main.hpp"
 #include "OrbisDebugger.hpp"
 
-<<<<<<< HEAD
 void OrbisDebugger::OnTrapFatalHook(trapframe_s *frame)
-=======
-struct trapframe_s {
-	register_t	tf_rdi;
-	register_t	tf_rsi;
-	register_t	tf_rdx;
-	register_t	tf_rflags;
-	register_t	tf_rsp;
-	register_t	tf_ss;
-};
-
-void OnTrapFatalHook(trapframe_s *frame)
->>>>>>> eb836106f5511afd9275113850f373a6d0bf0a03
 {
 	DebugLog(LOGTYPE_INFO, "Trap Fatal Hit!");
 
     for(;;){}
 }
 
-<<<<<<< HEAD
 void OrbisDebugger::WatcherThread(void* arg)
 {
     OrbisLib* orbisLib = (OrbisLib*)arg;
@@ -69,17 +55,12 @@ void OrbisDebugger::WatcherThread(void* arg)
     kproc_exit(0); 
 }
 
-=======
->>>>>>> eb836106f5511afd9275113850f373a6d0bf0a03
 OrbisDebugger::OrbisDebugger(OrbisProc* orbisProc)
 {
     DebugLog(LOGTYPE_INFO, "Initialization!!");
 
     this->orbisProc = orbisProc;
-<<<<<<< HEAD
     this->IsRunning = true;
-=======
->>>>>>> eb836106f5511afd9275113850f373a6d0bf0a03
 
     //Initialize Breakpoints
     for(int i = 0; i < BREAKPOINTS_MAX; i++)
@@ -96,11 +77,8 @@ OrbisDebugger::~OrbisDebugger()
 {
     DebugLog(LOGTYPE_INFO, "Destruction!!");
 
-<<<<<<< HEAD
     this->IsRunning = false;
 
-=======
->>>>>>> eb836106f5511afd9275113850f373a6d0bf0a03
     //Free the Breakpoint Classes
     for(int i = 0; i < BREAKPOINTS_MAX; i++)
         delete this->Breakpoints[i];
@@ -108,7 +86,6 @@ OrbisDebugger::~OrbisDebugger()
     //Free the Watchpoint Classes
     for(int i = 0; i < WATCHPOINTS_MAX; i++)
         delete this->Watchpoints[i];
-<<<<<<< HEAD
 
     //Remove Hook??
 
@@ -256,15 +233,12 @@ void OrbisDebugger::Dbg_GetCallStack(int Socket)
         return;
     
 
-=======
->>>>>>> eb836106f5511afd9275113850f373a6d0bf0a03
 }
 
 void OrbisDebugger::APIHandle(int Socket, API_Packet_s* Packet)
 {
 	switch(Packet->cmd)
 	{
-<<<<<<< HEAD
         case API_DBG_START:
             Dbg_Start(Socket, orbisLib->HostIPAddr);
             break;
@@ -321,8 +295,4 @@ void OrbisDebugger::APIHandle(int Socket, API_Packet_s* Packet)
 
             break;
     }   
-=======
-        
-    }
->>>>>>> eb836106f5511afd9275113850f373a6d0bf0a03
 }

@@ -82,51 +82,6 @@ void OrbisProc::OnProcessExit(void *arg, struct proc *p)
     DebugLog(LOGTYPE_INFO, "Detached from process \"%s\".", ProcName);
 }
 
-<<<<<<< HEAD
-=======
-void OrbisProc::WatcherThread(void* arg)
-{
-    OrbisProc* orbisProc = (OrbisProc*)arg;
-    size_t n = 0;
-	uint8_t int3 = 0xCC;
-	reg Registers;
-    proc* proc = 0;
-    thread* td = 0;
-    static uint64_t PreviousBreakAddress = 0;
-
-    while(orbisProc->IsRunning)
-    {
-        kthread_suspend_check();
-
-        pause("", 10);
-
-        if(!orbisProc->CurrentlyAttached)
-            continue;
-
-        proc = proc_find_by_name(orbisProc->CurrentProcName);
-        if(!proc)
-            continue;
-
-        td = curthread();
-        if(!td)
-            continue;
-        
-        int status = 0;
-        int res = kwait4(proc->p_pid, &status, WUNTRACED, 0);
-        int Signal = WSTOPSIG(status);
-
-        DebugLog(LOGTYPE_INFO, "Res = %d, Status = %d, Signal = %d\n", res, status, WSTOPSIG(status));
-
-        if(Signal == SIGTRAP)
-        {
-            
-        }
-    }
-
-    kproc_exit(0); 
-}
-
->>>>>>> eb836106f5511afd9275113850f373a6d0bf0a03
 void OrbisProc::Proc_GetList(int Socket)
 {
     RESP_ProcList ProcList[100];
@@ -227,11 +182,7 @@ void OrbisProc::Proc_Attach(int Socket, char* ProcName)
     DebugLog(LOGTYPE_INFO, "Attaching to process \"%s\".", ProcName);
 
     //Connect to our new process.
-<<<<<<< HEAD
     err = kptrace(td, PT_ATTACH, proc->p_pid, (void*)SIGCONT, 0);
-=======
-    err = kptrace(td, PT_ATTACH, proc->p_pid, 0, 0);
->>>>>>> eb836106f5511afd9275113850f373a6d0bf0a03
     if(err)
     {
         DebugLog(LOGTYPE_ERR, "ptrace PT_ATTACH failed %d.", err);

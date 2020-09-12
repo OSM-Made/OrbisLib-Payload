@@ -22,7 +22,6 @@ void OrbisLib::ClientThread(void* arg)
 
     if (Receive(Socket, (char*)Packet, sizeof(API_Packet_s)))
 	{
-<<<<<<< HEAD
         //Make sure we got a valid command index.
         if(Packet->cmd <= NULL_PACKET || Packet->cmd > TARGET_END)
         {
@@ -34,10 +33,6 @@ void OrbisLib::ClientThread(void* arg)
         DebugLog(LOGTYPE_INFO, "API Recieved Command %s(%d)", API_COMMANDS_STR[Packet->cmd], Packet->cmd);
 
         //Direct our API call to our specified class.
-=======
-        DebugLog(LOGTYPE_INFO, "API Recieved Command %s(%d)", API_COMMANDS_STR[Packet->cmd], Packet->cmd);
-
->>>>>>> eb836106f5511afd9275113850f373a6d0bf0a03
         switch(Packet->cmd)
         {
         default:
@@ -48,7 +43,6 @@ void OrbisLib::ClientThread(void* arg)
             SendStatus(Socket, API_OK);
             break;
 
-<<<<<<< HEAD
         case PROC_START ... PROC_END:
             orbisProc->APIHandle(Socket, Packet);
             break;
@@ -58,35 +52,17 @@ void OrbisLib::ClientThread(void* arg)
             break;
 
         case KERN_START ... KERN_END:
-=======
-        case API_PROC_GET_LIST ... API_PROC_MODULE_LIST:
-            orbisProc->APIHandle(Socket, Packet);
-            break;
-
-        case API_DBG_START ... API_DBG_WATCHPOINT_LIST:
-            orbisDebugger->APIHandle(Socket, Packet);
-            break;
-
-        case API_KERN_BASE ... API_KERN_WRITE:
->>>>>>> eb836106f5511afd9275113850f373a6d0bf0a03
             DebugLog(LOGTYPE_WARN, "Not Implimented!");
 	        SendStatus(Socket, API_ERROR_FAIL);
             break;
 
-<<<<<<< HEAD
         case TARGET_START ... TARGET_END:
-=======
-        case API_TARGET_INFO ... API_TARGET_DUMP_PROC:
->>>>>>> eb836106f5511afd9275113850f373a6d0bf0a03
             orbisTarget->APIHandle(Socket, Packet);
             break;
         }
     }
 
-<<<<<<< HEAD
 ClientThreadEnd:
-=======
->>>>>>> eb836106f5511afd9275113850f373a6d0bf0a03
     _free(Packet);
     sys_close(Socket);
     kthread_exit();
@@ -125,11 +101,7 @@ void OrbisLib::ProcThread(void *arg)
     //TODO: Start watcher thread to manage proc changes and handle intercepts
     //      Possibly maybe change this to call backs if we can and maybe hook the trap function
 
-<<<<<<< HEAD
     kproc_kthread_add(orbisLib->orbisDebugger->WatcherThread, orbisLib, &orbisLib->kOrbisProc, NULL, NULL, 0, "OrbisLib.elf", "Proc Watcher Thread");
-=======
-    kproc_kthread_add(orbisLib->orbisProc->WatcherThread, orbisLib->orbisProc, &orbisLib->kOrbisProc, NULL, NULL, 0, "OrbisLib.elf", "Proc Watcher Thread");
->>>>>>> eb836106f5511afd9275113850f373a6d0bf0a03
 
     //Create a new socket for our listener.
 	int ClientSocket = -1;
