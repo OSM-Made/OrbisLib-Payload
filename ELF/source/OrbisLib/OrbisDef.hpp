@@ -6,7 +6,10 @@ enum API_COMMANDS
     API_TEST_COMMS,
     
     /* ####### Proc functions ####### */
+<<<<<<< HEAD
     PROC_START,
+=======
+>>>>>>> eb836106f5511afd9275113850f373a6d0bf0a03
     API_PROC_GET_LIST,
     API_PROC_ATTACH,
     API_PROC_DETACH,
@@ -25,12 +28,18 @@ enum API_COMMANDS
     API_PROC_RELOAD_SPRX_NAME,
     API_PROC_RELOAD_SPRX_HANDLE,
     API_PROC_MODULE_LIST,
+<<<<<<< HEAD
     PROC_END,
+=======
+>>>>>>> eb836106f5511afd9275113850f373a6d0bf0a03
     /* ############################## */
     
 
     /* ##### Debugger functions ##### */
+<<<<<<< HEAD
     DBG_START,
+=======
+>>>>>>> eb836106f5511afd9275113850f373a6d0bf0a03
     API_DBG_START, /* Debugger attach to target */
     API_DBG_STOP, /* Debugger detach from target */
     API_DBG_BREAK,
@@ -38,7 +47,10 @@ enum API_COMMANDS
     API_DBG_STEP,
     API_DBG_STEP_OVER,
     API_DBG_STEP_OUT,
+<<<<<<< HEAD
     API_DBG_GET_CALLSTACK,
+=======
+>>>>>>> eb836106f5511afd9275113850f373a6d0bf0a03
     API_DBG_GET_REG,
     API_DBG_SET_REG,
     API_DBG_GET_FREG,
@@ -65,6 +77,7 @@ enum API_COMMANDS
     API_DBG_WATCHPOINT_REMOVE,
     API_DBG_WATCHPOINT_GETINFO,
     API_DBG_WATCHPOINT_LIST,
+<<<<<<< HEAD
     DBG_END,
     /* ############################## */
 
@@ -78,6 +91,16 @@ enum API_COMMANDS
     
     /* ###### Target functions ###### */
     TARGET_START,
+=======
+    /* ############################## */
+
+    /* Kernel functions */
+    API_KERN_BASE,
+    API_KERN_READ,
+    API_KERN_WRITE,
+    
+    /* Target functions */
+>>>>>>> eb836106f5511afd9275113850f373a6d0bf0a03
     API_TARGET_INFO,
     API_TARGET_SHUTDOWN,
     API_TARGET_REBOOT,
@@ -87,8 +110,11 @@ enum API_COMMANDS
     API_TARGET_GET_LED,
     API_TARGET_DUMP_PROC,
     //API_TARGET_LOAD_VSH_MODULE
+<<<<<<< HEAD
     TARGET_END,
     /* ############################## */
+=======
+>>>>>>> eb836106f5511afd9275113850f373a6d0bf0a03
 };
 
 static char API_COMMANDS_STR[][32] =
@@ -181,10 +207,13 @@ enum API_ERRORS
 
 	API_ERROR_FAIL,
 	API_ERROR_INVALID_ADDRESS,
+<<<<<<< HEAD
 
     //Debugger
     API_ERROR_PROC_RUNNING,
     API_ERROR_DEBUGGER_NOT_ATTACHED,
+=======
+>>>>>>> eb836106f5511afd9275113850f373a6d0bf0a03
 };
 
 static char API_ERRORS_STR[][32] =
@@ -197,9 +226,12 @@ static char API_ERRORS_STR[][32] =
 
 	"API_ERROR_FAIL",
 	"API_ERROR_INVALID_ADDRESS",
+<<<<<<< HEAD
 
     "API_ERROR_PROC_RUNNING",
     "API_ERROR_DEBUGGER_NOT_ATTACHED"
+=======
+>>>>>>> eb836106f5511afd9275113850f373a6d0bf0a03
 };
 
 struct API_Packet_s

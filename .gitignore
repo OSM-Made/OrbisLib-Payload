@@ -1,4 +1,8 @@
 #ignore compiled files
 *.o
+<<<<<<< HEAD
 *.bin
 *.elf
+=======
+*.bin
+>>>>>>> eb836106f5511afd9275113850f373a6d0bf0a03

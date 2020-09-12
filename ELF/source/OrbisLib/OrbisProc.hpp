@@ -6,6 +6,11 @@ class OrbisProc
 {
 private:
     bool IsRunning = false;
+<<<<<<< HEAD
+=======
+    char CurrentProcName[0x20] = { };
+    bool CurrentlyAttached = false;
+>>>>>>> eb836106f5511afd9275113850f373a6d0bf0a03
     int CurrentProcessID = -1;
     OrbisShellCode* orbisShellCode;
     
@@ -13,6 +18,7 @@ private:
     eventhandler_entry* ProcessExitEvent;
 
 public:
+<<<<<<< HEAD
     char CurrentProcName[0x20] = { };
     bool CurrentlyAttached = false;
 
@@ -20,6 +26,13 @@ public:
     ~OrbisProc();
     
     static void OnProcessExit(void *arg, struct proc *p);
+=======
+    OrbisProc();
+    ~OrbisProc();
+
+    static void OnProcessExit(void *arg, struct proc *p);
+    static void WatcherThread(void* arg);
+>>>>>>> eb836106f5511afd9275113850f373a6d0bf0a03
 
     int API_CallSetup(int Socket, proc** proc);
 

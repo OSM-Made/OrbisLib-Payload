@@ -6,6 +6,7 @@
 #define BREAKPOINTS_MAX 10
 #define WATCHPOINTS_MAX 4
 
+<<<<<<< HEAD
 struct trapframe_s {
 	register_t	tf_rdi;
 	register_t	tf_rsi;
@@ -15,6 +16,8 @@ struct trapframe_s {
 	register_t	tf_ss;
 };
 
+=======
+>>>>>>> eb836106f5511afd9275113850f373a6d0bf0a03
 class OrbisDebugger
 {
 private:
@@ -22,6 +25,7 @@ private:
     OrbisBreakPoint* Breakpoints[BREAKPOINTS_MAX];
     OrbisWatchPoint* Watchpoints[WATCHPOINTS_MAX];
 
+<<<<<<< HEAD
     char CurrentProcName[0x20] = { };
     bool IsDebuggerAttached = false;
     int DebuggerHostIPAddr = 0;
@@ -44,6 +48,12 @@ public:
     void Dbg_StepOver(int Socket);
     void Dbg_StepOut(int Socket);
     void Dbg_GetCallStack(int Socket);
+=======
+public:
+    OrbisDebugger(OrbisProc* orbisProc);
+    ~OrbisDebugger();
+
+>>>>>>> eb836106f5511afd9275113850f373a6d0bf0a03
 
     void APIHandle(int Socket, API_Packet_s* Packet);
 };
