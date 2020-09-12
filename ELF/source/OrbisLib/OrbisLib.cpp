@@ -22,8 +22,17 @@ void OrbisLib::ClientThread(void* arg)
 
     if (Receive(Socket, (char*)Packet, sizeof(API_Packet_s)))
 	{
+        //Make sure we got a valid command index.
+        if(Packet->cmd <= NULL_PACKET || Packet->cmd > TARGET_END)
+        {
+            DebugLog(LOGTYPE_WARN, "Invalid Packet!!!");
+
+            goto ClientThreadEnd;
+        }
+
         DebugLog(LOGTYPE_INFO, "API Recieved Command %s(%d)", API_COMMANDS_STR[Packet->cmd], Packet->cmd);
 
+        //Direct our API call to our specified class.
         switch(Packet->cmd)
         {
         default:
@@ -34,25 +43,26 @@ void OrbisLib::ClientThread(void* arg)
             SendStatus(Socket, API_OK);
             break;
 
-        case API_PROC_GET_LIST ... API_PROC_MODULE_LIST:
+        case PROC_START ... PROC_END:
             orbisProc->APIHandle(Socket, Packet);
             break;
 
-        case API_DBG_START ... API_DBG_WATCHPOINT_LIST:
+        case DBG_START ... DBG_END:
             orbisDebugger->APIHandle(Socket, Packet);
             break;
 
-        case API_KERN_BASE ... API_KERN_WRITE:
+        case KERN_START ... KERN_END:
             DebugLog(LOGTYPE_WARN, "Not Implimented!");
 	        SendStatus(Socket, API_ERROR_FAIL);
             break;
 
-        case API_TARGET_INFO ... API_TARGET_DUMP_PROC:
+        case TARGET_START ... TARGET_END:
             orbisTarget->APIHandle(Socket, Packet);
             break;
         }
     }
 
+ClientThreadEnd:
     _free(Packet);
     sys_close(Socket);
     kthread_exit();
@@ -91,7 +101,7 @@ void OrbisLib::ProcThread(void *arg)
     //TODO: Start watcher thread to manage proc changes and handle intercepts
     //      Possibly maybe change this to call backs if we can and maybe hook the trap function
 
-    kproc_kthread_add(orbisLib->orbisProc->WatcherThread, orbisLib->orbisProc, &orbisLib->kOrbisProc, NULL, NULL, 0, "OrbisLib.elf", "Proc Watcher Thread");
+    kproc_kthread_add(orbisLib->orbisDebugger->WatcherThread, orbisLib, &orbisLib->kOrbisProc, NULL, NULL, 0, "OrbisLib.elf", "Proc Watcher Thread");
 
     //Create a new socket for our listener.
 	int ClientSocket = -1;

@@ -9,9 +9,6 @@ class OrbisLib
 {
 private:
     bool IsRunning = false;
-    OrbisProc* orbisProc;
-    OrbisTarget* orbisTarget;
-    OrbisDebugger* orbisDebugger;
     int LastHostIPAddr;
 
     struct ClientThreadArgs
@@ -24,6 +21,10 @@ private:
     static void ProcThread(void *arg);
 
 public:
+    OrbisProc* orbisProc;
+    OrbisTarget* orbisTarget;
+    OrbisDebugger* orbisDebugger;
+
     proc* kOrbisProc = 0;
     int HostIPAddr;
 
