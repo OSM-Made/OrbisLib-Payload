@@ -1,15 +1,12 @@
-TEXT	:=	0x926200000
-DATA	:=	0x926300000
-
 CC		:=	gcc
 AS		:=	gcc
 OBJCOPY	:=	objcopy
 ODIR	:=	build
 SDIR	:=	source
 IDIRS	:= -Iinclude
-CFLAGS	:=	$(IDIRS) -O2 -std=c11 -fno-builtin -nostartfiles -nostdlib -Wall -masm=intel -march=btver2 -mtune=btver2 -m64 -mabi=sysv -mcmodel=large -DTEXT_ADDRESS=$(TEXT) -DDATA_ADDRESS=$(DATA)
+CFLAGS	:=	$(IDIRS) -Os -std=gnu11 -ffunction-sections -fdata-sections -fno-builtin -nostartfiles -nostdlib -Wall -masm=intel -march=btver2 -mtune=btver2 -m64 -mabi=sysv -mcmodel=small -fpie
 SFLAGS	:=	-nostartfiles -nostdlib -march=btver2 -mtune=btver2
-LFLAGS	:=	-Xlinker -T ./Linkfile -Wl,--build-id=none -Ttext=$(TEXT) -Tdata=$(DATA)
+LFLAGS	:=	-Xlinker -T linkfile -Wl,--build-id=none -Wl,--gc-sections
 CFILES	:=	$(wildcard $(SDIR)/*.c)
 SFILES	:=	$(wildcard $(SDIR)/*.s)
 OBJS	:=	$(patsubst $(SDIR)/%.c, $(ODIR)/%.o, $(CFILES)) $(patsubst $(SDIR)/%.s, $(ODIR)/%.o, $(SFILES))

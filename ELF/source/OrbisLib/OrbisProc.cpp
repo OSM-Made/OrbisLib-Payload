@@ -10,7 +10,7 @@ OrbisProc::OrbisProc()
     //Initialize shellcode Class
     orbisShellCode = new OrbisShellCode();
 
-    ProcessExitEvent = EVENTHANDLER_REGISTER(process_exit, (void*)OnProcessExit, this, EVENTHANDLER_PRI_ANY);
+    //ProcessExitEvent = EVENTHANDLER_REGISTER(process_exit, (void*)OnProcessExit, this, EVENTHANDLER_PRI_ANY);
 
     IsRunning = true;
 }

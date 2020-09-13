@@ -12,11 +12,14 @@
 #define addr_copyout							0x1EA630
 
 /* Patches */
-#define addr_copyin1                            0x1EA758
-#define addr_copyin2                            0x1EA767
-#define addr_copyout1                           0x1EA66B
-#define addr_copyout2                           0x1EA673
-#define addr_copyout3                           0x1EA682
+#define patch_copyin1                           0x1EA758
+#define patch_copyin2                           0x1EA767
+#define patch_copyout1                          0x1EA66B
+#define patch_copyout2                          0x1EA673
+#define patch_copyout3                          0x1EA682
+#define patch_swword_lwpid_0                    0x1EA9D2
+#define patch_swword_lwpid_1                    0x1EA9E1
+#define patch_mount                             0x1DEBFE
 
 /* STD Lib */
 #define addr_M_TEMP                             0x14B4110

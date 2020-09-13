@@ -97,6 +97,7 @@ static char API_COMMANDS_STR[][32] =
 	"API_TEST_COMMS",
 
 	/* ####### Proc functions ####### */
+    "PROC_START",
 	"API_PROC_GET_LIST",
 	"API_PROC_ATTACH",
 	"API_PROC_DETACH",
@@ -115,10 +116,12 @@ static char API_COMMANDS_STR[][32] =
 	"API_PROC_RELOAD_SPRX_NAME",
 	"API_PROC_RELOAD_SPRX_HANDLE",
 	"API_PROC_MODULE_LIST",
+    "PROC_END",
 	/* ############################## */
 
 
 	/* ##### Debugger functions ##### */
+    "DBG_START",
 	"API_DBG_START", /* Debugger attach to target */
 	"API_DBG_STOP", /* Debugger detach from target */
 	"API_DBG_BREAK",
@@ -152,14 +155,18 @@ static char API_COMMANDS_STR[][32] =
 	"API_DBG_WATCHPOINT_REMOVE",
 	"API_DBG_WATCHPOINT_GETINFO",
 	"API_DBG_WATCHPOINT_LIST",
+    "DBG_END",
 	/* ############################## */
 
 	/* Kernel functions */
+    "KERN_START",
 	"API_KERN_BASE",
 	"API_KERN_READ",
 	"API_KERN_WRITE",
+    "KERN_END",
 
 	/* Target functions */
+    "TARGET_START",
 	"API_TARGET_INFO",
 	"API_TARGET_SHUTDOWN",
 	"API_TARGET_REBOOT",
@@ -169,12 +176,14 @@ static char API_COMMANDS_STR[][32] =
 	"API_TARGET_GET_LED",
 	"API_TARGET_DUMP_PROC",
 	//"API_TARGET_LOAD_VSH_MODULE",
+    "TARGET_END",
 };
 
 enum API_ERRORS
 {
 	API_OK = 0,
 	API_ERROR_NOT_CONNECTED,
+    API_ERROR_FAILED_TO_CONNNECT,
 	API_ERROR_NOT_REACHABLE,
 	API_ERROR_NOT_ATTACHED,
 	API_ERROR_LOST_PROC,

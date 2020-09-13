@@ -174,7 +174,7 @@ OrbisLib::OrbisLib()
         return;
     }
 
-    orbisTarget = new OrbisTarget();
+    /*orbisTarget = new OrbisTarget();
     if(orbisTarget == NULL)
     {
         DebugLog(LOGTYPE_ERR, "Failed to allocate orbisTarget class!!");
@@ -202,7 +202,7 @@ OrbisLib::OrbisLib()
     }
 
     //Set our proc titleID doesnt really do anything is just cool :)
-    strcpy(kOrbisProc->titleId, "OSML10000");
+    strcpy(kOrbisProc->titleId, "OSML10000");*/
 }
 
 OrbisLib::~OrbisLib()
