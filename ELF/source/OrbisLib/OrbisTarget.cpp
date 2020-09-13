@@ -144,7 +144,7 @@ void OrbisTarget::Beep(int Socket, int Count)
         return;
     }
 
-    auto icc_indicator_set_buzzer = (void(*)(char))resolve(0x1042E0);
+    auto icc_indicator_set_buzzer = (void(*)(char))resolve(addr_icc_indicator_set_buzzer);
 	icc_indicator_set_buzzer(Count);
 
     SendStatus(Socket, API_OK);

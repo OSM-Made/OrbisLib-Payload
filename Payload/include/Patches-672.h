@@ -18,7 +18,7 @@ void DoPatches(uint64_t kernbase)
   	*(char*)(kernbase + patch_dbg_Settings_2) |= 1;
   	*(char*)(kernbase + patch_dbg_Settings_3) |= 1;
 
-	//debug menu error patches 5.05
+	//debug menu error patches
   	*(uint32_t*)(kernbase + patch_dbg_err_0) = 0;
   	*(uint32_t*)(kernbase + patch_dbg_err_1) = 0;
 
@@ -32,6 +32,11 @@ void DoPatches(uint64_t kernbase)
 	memcpy((void*)(kernbase + patch_MmapSelfCapability), "\x48\xC7\xC0\x01\x00\x00\x00\xC3", 8); //patch sceSblACMgrHasMmapSelfCapability
 	memcpy((void*)(kernbase + patch_AllowedToMmapSelf), "\x48\xC7\xC0\x01\x00\x00\x00\xC3", 8); //patch sceSblACMgrIsAllowedToMmapSelf
 	memcpy((void*)(kernbase + patch_vm_map_protect), "\x90\x90\x90\x90\x90\x90", 6); //patch vm_map_protect check
+
+	memcpy((void*)(kernbase + 0x41A2D0), "\x31\xC0\xC3", 3);
+	memcpy((void*)(kernbase + 0x10BED0), "\xB8\x00\x00\x00\x00", 5);// call    priv_check_cred; overwrite with mov eax, 0
+	*(uint8_t*)(kernbase + 0xAB57A) = 0x37;// Patch sys_mmap
+	*(uint8_t*)(kernbase + 0xAB57A + 3) = 0x37;
 
 	memcpy((void*)(kernbase + patch_ptrace_0), "\xE9\xE2\x02\x00\x00", 5); //remove all these bullshit checks from ptrace, by golden
 	*(uint8_t*)(kernbase + patch_ptrace_1) = 0xEB; //patch ptrace

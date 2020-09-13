@@ -74,6 +74,6 @@ int install_orbis(struct thread *td, struct payloadArgs *args) {
 int _main(void) 
 {
 	syscall(11, install_orbis, OrbisLibElf, OrbisLibElfSize);
-
+	
 	return 0;
 }

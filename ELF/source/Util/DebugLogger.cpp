@@ -8,7 +8,7 @@ mtx mLock;
 
 void printf(char* fmt, ...) 
 {	
-	char buffer[0x400] = { 0 };
+	char buffer[0x400] = { "TEST" };
 	va_list args;
 	va_start(args, fmt);
 	vsprintf(buffer, fmt, args);
@@ -104,9 +104,9 @@ void LogInternal(enum LogType_e LogType, const char* FunctionName, int32_t LineN
 	vsprintf(buffer, fmt, args);
 
 	if(LogType == LOGTYPE_NONE)
-		WriteBuffer("%s\n", buffer);
+		printf("%s\n", buffer); //WriteBuffer
 	else
-		WriteBuffer("[%s][%s:%d] %s\n", Prefix, FunctionName, LineNumber, buffer);
+		printf("[%s][%s:%d] %s\n", Prefix, FunctionName, LineNumber, buffer);
 
 	va_end(args);
 }

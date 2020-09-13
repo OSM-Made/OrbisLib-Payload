@@ -124,5 +124,12 @@
 
 /* Kernel Misc */
 #define addr_kernel_sysctlbyname                0x2782E0
+#define addr_icc_indicator_set_buzzer           0x0
+
+/* Module Offsets */
+#define addr_thr_initial_libkernel              0x435420
+#define addr_thr_initial_libkernel_web          0x435420
+#define addr_thr_initial_libkernel_sys          0x435830
+#define addr_thr_initial_minisyscore            0
 
 #endif

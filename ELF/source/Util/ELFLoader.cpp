@@ -80,16 +80,17 @@ int proc_create_thread(proc *proc, uint64_t address)
     while(m_library != 0)
 	{
         if(!strcmp(basename(m_library->ModulePath), "libkernel.sprx"))
-			thr_initial = (uint64_t)m_library->codeBase + 0x84C20;
+			thr_initial = (uint64_t)m_library->codeBase + addr_thr_initial_libkernel;
 
         if(!strcmp(basename(m_library->ModulePath), "libkernel_web.sprx"))
-			thr_initial = (uint64_t)m_library->codeBase + 0x84C20;
+			thr_initial = (uint64_t)m_library->codeBase + addr_thr_initial_libkernel_web;
 
         if(!strcmp(basename(m_library->ModulePath), "libkernel_sys.sprx"))
-			thr_initial = (uint64_t)m_library->codeBase + 0x89030;
+			thr_initial = (uint64_t)m_library->codeBase + addr_thr_initial_libkernel_sys;
 
-        if(!strcmp(basename(m_library->ModulePath), "mini-syscore.elf"))
-			thr_initial = (uint64_t)m_library->codeBase + 0xA7558;
+        //TODO: Remove or update to 6.72 if required...
+        //if(!strcmp(basename(m_library->ModulePath), "mini-syscore.elf"))
+		//	thr_initial = (uint64_t)m_library->codeBase + addr_thr_initial_minisyscore;
 
         m_library = m_library->dynlib_next;
     }
