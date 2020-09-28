@@ -29,7 +29,6 @@ extern "C"
     #include <sys/syscall.h>
     #include <sys/ptrace.h>
     #include <sys/uio.h>
-	#include <sys/mount.h>
     #include <sys/mman.h>
     #include <sys/pcpu.h>
     #include <vm/vm.h>
@@ -47,6 +46,7 @@ extern "C"
     #include <dirent.h>
 
     #include <sys/stat.h>
+    #include "sys/mount.h"
 }
 
 extern OrbisLib* orbisLib;

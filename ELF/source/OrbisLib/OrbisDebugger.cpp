@@ -254,6 +254,11 @@ void OrbisDebugger::APIHandle(int Socket, API_Packet_s* Packet)
         case API_DBG_RESUME:
             Dbg_Resume(Socket);
             break;
+
+        case API_DBG_SIGNAL:
+            DebugLog(LOGTYPE_WARN, "Not Implimented!");
+	        SendStatus(Socket, API_ERROR_FAIL);
+            break;
         
         case API_DBG_STEP:
             Dbg_Step(Socket);
@@ -266,33 +271,59 @@ void OrbisDebugger::APIHandle(int Socket, API_Packet_s* Packet)
         case API_DBG_STEP_OUT:
             Dbg_StepOut(Socket);
             break;
+
+        case API_DBG_GET_CALLSTACK:
+            Dbg_GetCallStack(Socket);
+            break;
                     
         case API_DBG_GET_REG:
-
+            DebugLog(LOGTYPE_WARN, "Not Implimented!");
+	        SendStatus(Socket, API_ERROR_FAIL);
             break;
                     
         case API_DBG_SET_REG:
-
+            DebugLog(LOGTYPE_WARN, "Not Implimented!");
+	        SendStatus(Socket, API_ERROR_FAIL);
             break;
                     
         case API_DBG_GET_FREG:
-
+            DebugLog(LOGTYPE_WARN, "Not Implimented!");
+	        SendStatus(Socket, API_ERROR_FAIL);
             break;
                     
         case API_DBG_SET_FREG:
-
+            DebugLog(LOGTYPE_WARN, "Not Implimented!");
+	        SendStatus(Socket, API_ERROR_FAIL);
             break;
                     
         case API_DBG_GET_DBGREG:
-
+            DebugLog(LOGTYPE_WARN, "Not Implimented!");
+	        SendStatus(Socket, API_ERROR_FAIL);
             break;
                     
         case API_DBG_SET_DBGREG:
-
+            DebugLog(LOGTYPE_WARN, "Not Implimented!");
+	        SendStatus(Socket, API_ERROR_FAIL);
             break;
 
-        case API_DBG_GET_CALLSTACK:
-
+        
+        /* Thread Management */
+        case API_DBG_THREAD_LIST:
+            DebugLog(LOGTYPE_WARN, "Not Implimented!");
+	        SendStatus(Socket, API_ERROR_FAIL);
             break;
+
+        case API_DBG_THREAD_STOP:
+            DebugLog(LOGTYPE_WARN, "Not Implimented!");
+	        SendStatus(Socket, API_ERROR_FAIL);
+            break;
+
+        case API_DBG_THREAD_RESUME:
+            DebugLog(LOGTYPE_WARN, "Not Implimented!");
+	        SendStatus(Socket, API_ERROR_FAIL);
+            break;
+
+
+        /* Breakpoint functions */
     }   
 }

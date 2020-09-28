@@ -101,7 +101,12 @@ extern void (*EnterCriticalSection)();
 extern void (*ExitCriticalSection)();
 
 /* Event Resolving */
+#ifdef SOFTWARE_VERSION_505
 extern eventhandler_tag (*eventhandler_register)(eventhandler_list *list, const char *name, void *func, void *arg, int priority);
+#endif
+#ifdef SOFTWARE_VERSION_672
+extern eventhandler_tag (*eventhandler_register)(eventhandler_list *list, const char *name, void *func, const char* unk, void *arg, int priority);
+#endif
 extern void (*eventhandler_deregister)(eventhandler_list* a, eventhandler_entry* b);
 extern eventhandler_list* (*eventhandler_find_list)(const char *name);
 
@@ -113,9 +118,15 @@ extern eventhandler_list* (*eventhandler_find_list)(const char *name);
 	system_resume_phase1
 	shutdown_pre_sync
 */
-
+#ifdef SOFTWARE_VERSION_505
 #define EVENTHANDLER_REGISTER(name, func, arg, priority)		\
 	eventhandler_register(NULL, #name, func, arg, priority)
+#endif
+#ifdef SOFTWARE_VERSION_672
+#define EVENTHANDLER_REGISTER(name, func, arg, priority)		\
+	eventhandler_register(NULL, #name, func, "", arg, priority)
+#endif
+
 
 #define EVENTHANDLER_DEREGISTER(name, tag) 				\
 do {									\

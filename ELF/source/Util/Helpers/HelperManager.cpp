@@ -7,10 +7,10 @@ HelperManager::HelperManager(/* args */)
 
     this->pFakeSelfHelper = new FakeSelfHelper();
 
-    //LoadFTP("SceRemotePlay");
+    LoadFTP("SceRemotePlay");
 
     this->pUserlandHelper = new UserlandHelper();
-    this->pUserlandHelper->InstallShellCode("SceRemotePlay");
+    this->pUserlandHelper->InstallShellCode("SceShellCore");
 
 }
 

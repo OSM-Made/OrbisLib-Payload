@@ -14,9 +14,7 @@ enum API_COMMANDS
     API_PROC_READ,
     API_PROC_WRITE,
     API_PROC_KILL,
-    API_PROC_GET_INFO,
     API_PROC_LOAD_ELF,
-    API_PROC_SIGNAL,
     API_PROC_CALL,
 
     /* Remote Library functions */
@@ -35,6 +33,7 @@ enum API_COMMANDS
     API_DBG_STOP, /* Debugger detach from target */
     API_DBG_BREAK,
     API_DBG_RESUME,
+    API_DBG_SIGNAL,
     API_DBG_STEP,
     API_DBG_STEP_OVER,
     API_DBG_STEP_OUT,
@@ -105,9 +104,7 @@ static char API_COMMANDS_STR[][32] =
 	"API_PROC_READ",
 	"API_PROC_WRITE",
 	"API_PROC_KILL",
-	"API_PROC_GET_INFO",
 	"API_PROC_LOAD_ELF",
-	"API_PROC_SIGNAL",
 	"API_PROC_CALL",
 
 	/* Remote Library functions */
@@ -126,6 +123,7 @@ static char API_COMMANDS_STR[][32] =
 	"API_DBG_STOP", /* Debugger detach from target */
 	"API_DBG_BREAK",
 	"API_DBG_RESUME",
+    "API_DBG_SIGNAL",
 	"API_DBG_STEP",
 	"API_DBG_STEP_OVER",
 	"API_DBG_STEP_OUT",
@@ -263,6 +261,10 @@ struct RESP_CurrentProc
     unsigned int ProcessID; //0x00
     char ProcName[32]; //0x04
     char TitleID[10]; //0x24
+    uint64_t TextSegmentBase;
+    uint64_t TextSegmentLen;
+    uint64_t DataSegmentBase;
+    uint64_t DataSegmentLen;
 };
 
 struct RESP_ModuleList

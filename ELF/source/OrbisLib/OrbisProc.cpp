@@ -1,8 +1,6 @@
 #include "../main.hpp"
 #include "OrbisProc.hpp"
 
-
-
 OrbisProc::OrbisProc()
 {
     DebugLog(LOGTYPE_INFO, "Initialization!!");
@@ -10,7 +8,7 @@ OrbisProc::OrbisProc()
     //Initialize shellcode Class
     orbisShellCode = new OrbisShellCode();
 
-    //ProcessExitEvent = EVENTHANDLER_REGISTER(process_exit, (void*)OnProcessExit, this, EVENTHANDLER_PRI_ANY);
+    ProcessExitEvent = EVENTHANDLER_REGISTER(process_exit, (void*)OnProcessExit, this, EVENTHANDLER_PRI_ANY);
 
     IsRunning = true;
 }
@@ -293,7 +291,10 @@ void OrbisProc::Proc_GetCurrent(int Socket)
     CurrentProc.ProcessID = CurrentProcessID;
     strcpy(CurrentProc.ProcName, CurrentProcName);
     strcpy(CurrentProc.TitleID, proc->titleId);
-    //TODO: Add vm info text base data base and sizes
+    CurrentProc.TextSegmentBase = (uint64_t)proc->p_vmspace->vm_taddr;
+    CurrentProc.TextSegmentLen = (uint64_t)(proc->p_vmspace->vm_tsize * PAGE_SIZE);
+    CurrentProc.DataSegmentBase = (uint64_t)proc->p_vmspace->vm_daddr;
+    CurrentProc.DataSegmentLen = (uint64_t)(proc->p_vmspace->vm_dsize * PAGE_SIZE);
 
     //Signal we are attached and we have the data.
     SendStatus(Socket, API_OK);
@@ -473,6 +474,11 @@ void OrbisProc::Proc_Kill(int Socket, char* ProcName)
     SendStatus(Socket, API_OK);
 }
 
+//API_PROC_GET_INFO redundent?
+//API_PROC_LOAD_ELF
+//API_PROC_SIGNAL
+//API_PROC_CALL requires me to write rpc part into shellcode.
+
 void OrbisProc::Proc_LoadSPRX(int Socket, const char *name, unsigned int flags)
 {
     proc* proc = 0;
@@ -486,15 +492,18 @@ void OrbisProc::Proc_LoadSPRX(int Socket, const char *name, unsigned int flags)
 
     SendStatus(Socket, API_OK);
 
+    //back up old file perms
     filedesc* fd = proc->p_fd;
     fd_rdir = fd->fd_rdir;
     fd_jdir = fd->fd_jdir;
 
+    //Give us root file perms temporarily.
     fd->fd_rdir = *(vnode**)resolve(addr_rootvnode); //rootvnode
     fd->fd_jdir = *(vnode**)resolve(addr_rootvnode); //rootvnode
 
     Handle = this->orbisShellCode->sceKernelLoadStartModule(name, 0, 0, flags, 0, 0);
 
+    //retstore old file perms.
     fd->fd_rdir = fd_rdir;
     fd->fd_jdir = fd_jdir;
 
@@ -736,20 +745,14 @@ void OrbisProc::APIHandle(int Socket, API_Packet_s* Packet)
             Proc_Kill(Socket, Packet->ProcName);
             break;
 
-        case API_PROC_GET_INFO:
-
-            break;
-
         case API_PROC_LOAD_ELF:
-
-            break;
-
-        case API_PROC_SIGNAL:
-
+            DebugLog(LOGTYPE_WARN, "Not Implimented!");
+	        SendStatus(Socket, API_ERROR_FAIL);
             break;
 
         case API_PROC_CALL:
-
+            DebugLog(LOGTYPE_WARN, "Not Implimented!");
+	        SendStatus(Socket, API_ERROR_FAIL);
             break;
 
 

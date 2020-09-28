@@ -101,7 +101,7 @@ void OrbisLib::ProcThread(void *arg)
     //TODO: Start watcher thread to manage proc changes and handle intercepts
     //      Possibly maybe change this to call backs if we can and maybe hook the trap function
 
-    //kproc_kthread_add(orbisLib->orbisDebugger->WatcherThread, orbisLib, &orbisLib->kOrbisProc, NULL, NULL, 0, "OrbisLib.elf", "Proc Watcher Thread");
+    kproc_kthread_add(orbisLib->orbisDebugger->WatcherThread, orbisLib, &orbisLib->kOrbisProc, NULL, NULL, 0, "OrbisLib.elf", "Proc Watcher Thread");
 
     //Create a new socket for our listener.
 	int ClientSocket = -1;
@@ -202,7 +202,7 @@ OrbisLib::OrbisLib()
     }
 
     //Set our proc titleID doesnt really do anything is just cool :)
-    //strcpy(kOrbisProc->titleId, "OSML10000");
+    strcpy(kOrbisProc->titleId, "OSML10000");
 }
 
 OrbisLib::~OrbisLib()

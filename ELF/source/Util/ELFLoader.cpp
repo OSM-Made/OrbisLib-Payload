@@ -336,22 +336,7 @@ int sys_proc_elf_handle(proc *p, char* elf) {
     if(proc_load_elf(p, elf, NULL, &entry)) {
         return 1;
     }
-
-    if(proc_get_vm_map(p, &entries, &num_entries)) {
-        return 1;
-    }
-
-    for (int i = 0; i < num_entries; i++) {
-        if (entries[i].prot != (PROT_READ | PROT_EXEC)) {
-            continue;
-        }
-
-        if (!memcmp(entries[i].name, "executable", 10)) {
-            proc_mprotect(p, (void *)entries[i].start, (void*)(uint64_t)(entries[i].end - entries[i].start), VM_PROT_ALL);
-            break;
-        }
-    }
-
+    
     //Set Text Segments as writeable.
     dynlib* m_library = p->p_dynlibptr->p_dynlib;
     while(m_library != 0)

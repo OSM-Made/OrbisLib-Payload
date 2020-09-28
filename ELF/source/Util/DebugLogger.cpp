@@ -104,9 +104,9 @@ void LogInternal(enum LogType_e LogType, const char* FunctionName, int32_t LineN
 	vsprintf(buffer, fmt, args);
 
 	if(LogType == LOGTYPE_NONE)
-		printf("%s\n", buffer); //WriteBuffer
+		WriteBuffer("%s\n", buffer);
 	else
-		printf("[%s][%s:%d] %s\n", Prefix, FunctionName, LineNumber, buffer);
+		WriteBuffer("[%s][%s:%d] %s\n", Prefix, FunctionName, LineNumber, buffer);
 
 	va_end(args);
 }

@@ -135,9 +135,9 @@ void OrbisTarget::Notify(int Socket, int Type, const char* Message)
 
 void OrbisTarget::Beep(int Socket, int Count)
 {
-    if(Count > 4)
+    if(Count > 5)
     {
-        DebugLog(LOGTYPE_WARN, "Beep count cant be over 4.");
+        DebugLog(LOGTYPE_WARN, "Beep count cant be over 5.");
 
         SendStatus(Socket, API_ERROR_FAIL);
 

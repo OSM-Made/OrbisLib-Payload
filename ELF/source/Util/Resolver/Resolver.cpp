@@ -83,7 +83,12 @@ void (*EnterCriticalSection)();
 void (*ExitCriticalSection)();
 
 /* Event Handling */
+#ifdef SOFTWARE_VERSION_505
 eventhandler_tag (*eventhandler_register)(eventhandler_list *list, const char *name, void *func, void *arg, int priority);
+#endif
+#ifdef SOFTWARE_VERSION_672 //5.5X -> 6.72
+eventhandler_tag (*eventhandler_register)(eventhandler_list *list, const char *name, void *func, const char* unk, void *arg, int priority); //6.72
+#endif
 void (*eventhandler_deregister)(eventhandler_list* a, eventhandler_entry* b);
 eventhandler_list* (*eventhandler_find_list)(const char *name);
 
@@ -178,7 +183,12 @@ void ResolveFunctions()
     ExitCriticalSection = (void(*)())resolve(addr_ExitCriticalSection);
 
     /* Event Handling */
+    #ifdef SOFTWARE_VERSION_505
     eventhandler_register = (eventhandler_tag(*)(eventhandler_list *list, const char *name, void *func, void *arg, int priority))resolve(addr_eventhandler_register);
+    #endif
+    #ifdef SOFTWARE_VERSION_672
+    eventhandler_register = (eventhandler_tag(*)(eventhandler_list *list, const char *name, void *func, const char* unk, void *arg, int priority))resolve(addr_eventhandler_register);
+    #endif
     eventhandler_deregister = (void(*)(struct eventhandler_list* a, struct eventhandler_entry* b))resolve(addr_eventhandler_deregister);
     eventhandler_find_list = (eventhandler_list * (*)(const char *name))resolve(addr_eventhandler_find_list);
 
