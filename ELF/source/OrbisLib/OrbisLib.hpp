@@ -11,6 +11,11 @@ private:
     bool IsRunning = false;
     int LastHostIPAddr;
 
+    //Event Handlers
+    eventhandler_entry* SystemSuspend;
+    eventhandler_entry* SystemResume;
+    eventhandler_entry* SystemShutdown;
+
     struct ClientThreadArgs
     {
         int Socket;
@@ -19,6 +24,10 @@ private:
 
     static void ClientThread(void* arg);
     static void ProcThread(void *arg);
+
+    static void OnSystemSuspend(void *arg);
+    static void OnSystemResume(void *arg);
+    static void OnSystemShutdown(void *arg);
 
 public:
     OrbisProc* orbisProc;

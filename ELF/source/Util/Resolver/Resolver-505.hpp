@@ -124,6 +124,7 @@
 
 /* Kernel Misc */
 #define addr_kernel_sysctlbyname                0x262770
+#define addr_kernel_ioctl                       0x153990
 #define addr_icc_indicator_set_buzzer           0x1042E0
 
 /* Module Offsets */

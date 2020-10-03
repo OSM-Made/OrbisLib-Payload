@@ -13,6 +13,7 @@
 #include "Util/Resolver/Patches.hpp"
 #include "Util/Proc.hpp"
 #include "Util/Network.hpp"
+#include "Util/TargetComms.hpp"
 #include "Util/DebugLogger.hpp"
 #include "Util/ELFLoader.hpp"
 #include "OrbisLib/OrbisLib.hpp"

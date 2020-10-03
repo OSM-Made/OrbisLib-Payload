@@ -96,8 +96,9 @@ eventhandler_list* (*eventhandler_find_list)(const char *name);
 int (*kern_open)(thread* td, char *path, int pathseg, int flags, int mode);
 int (*kern_mkdir)(thread* td, char *path, int pathseg, int mode);
 
-/* Kernel Misc */
+/* Kernel Misc */ 
 int (*kernel_sysctlbyname)(thread *td, char *name, void *old, size_t *oldlenp, void *pnew, size_t newlen, size_t *retval, int flags);
+int (*kernel_ioctl)(thread *td, int fd, unsigned long request, ...);
 
 void ResolveFunctions()
 {
@@ -198,4 +199,5 @@ void ResolveFunctions()
 
     /* Kernel Misc */
     kernel_sysctlbyname = (int(*)(thread *td, char *name, void *old, size_t *oldlenp, void *pnew, size_t newlen, size_t *retval, int flags))resolve(addr_kernel_sysctlbyname);
+    kernel_ioctl = (int(*)(thread *td, int fd, unsigned long request, ...))resolve(addr_kernel_ioctl);
 }

@@ -28,8 +28,12 @@ void OrbisProc::OnProcessExit(void *arg, struct proc *p)
 {
     OrbisProc* orbisProc = (OrbisProc*)arg;
 
+    //If were connected to a target detach from the process
     if(strcmp(p->p_comm, orbisProc->CurrentProcName))
         return;
+
+    //Let the host know the process has died.
+    SendTargetCommand(CMD_PROC_DIE);
     
     char ProcName[0x20];
     proc* proc = NULL;
@@ -212,7 +216,7 @@ void OrbisProc::Proc_Attach(int Socket, char* ProcName)
     strcpy(CurrentProcName, ProcName);
 
     //Notify all current Host instances we have attached to a new proc
-    //TODO: Implement... 
+    SendProcChange(ProcName);
 
     DebugLog(LOGTYPE_INFO, "Attached to process \"%s\".", ProcName);
 
@@ -270,6 +274,9 @@ void OrbisProc::Proc_Detach(int Socket)
     CurrentProcessID = -1;
     memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
     CurrentlyAttached = false;
+
+    //Notify the host instances that we have detached from the current process.
+    SendTargetCommand(CMD_PROC_DETACH);
 
     DebugLog(LOGTYPE_INFO, "Detached from process \"%s\".", ProcName);
 

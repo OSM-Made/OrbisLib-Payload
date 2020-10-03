@@ -1,5 +1,6 @@
 #include "../main.hpp"
 #include "Kernel.hpp"
+#include "FileIO.hpp"
 
 extern "C"
 {
@@ -166,4 +167,16 @@ int kdup2(int oldd, int newd, struct thread* td)
 
 	// success
 	return td->td_retval[0];
+}
+
+uint64_t GetCPUTemp()
+{
+	uint64_t temp = 0;
+	int fd = sys_fopen("/dev/sbi", 0, 0);
+
+	kernel_ioctl(curthread(), fd, 0x4004A501, &temp);
+
+	sys_close(fd);
+
+	return temp;
 }

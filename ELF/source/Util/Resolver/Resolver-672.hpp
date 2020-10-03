@@ -124,7 +124,8 @@
 
 /* Kernel Misc */
 #define addr_kernel_sysctlbyname                0x2782E0
-#define addr_icc_indicator_set_buzzer           0x0
+#define addr_kernel_ioctl                       0
+#define addr_icc_indicator_set_buzzer           0
 
 /* Module Offsets */
 #define addr_thr_initial_libkernel              0x435420

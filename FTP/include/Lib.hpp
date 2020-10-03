@@ -287,6 +287,7 @@ int sys_dynlib_load_prx(const char *name, int *idDestination);
 void LoadImports();
 void Sleep(unsigned int milliseconds);
 void printf(const char *fmt, ...);
+void printf2(const char *fmt, ...);
 
 inline void* operator new(long unsigned int size) { return malloc(size); }
 inline void* operator new[](long unsigned int size) { return malloc(size); }

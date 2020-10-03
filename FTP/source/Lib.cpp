@@ -197,7 +197,6 @@ void LoadImports()
 	int sysUtilHandle = sceKernelLoadStartModule("libSceSysUtil.sprx", 0, NULL, 0, 0, 0);
 	sys_dynlib_dlsym(sysUtilHandle, "sceSysUtilSendSystemNotificationWithText", &sceSysUtilSendSystemNotificationWithText);
 	sys_dynlib_dlsym(sysUtilHandle, "sceSysUtilSendNotificationRequest", &sceSysUtilSendNotificationRequest);
-	
 }
 
 void Sleep(unsigned int milliseconds) {

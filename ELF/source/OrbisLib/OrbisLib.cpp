@@ -158,6 +158,22 @@ void OrbisLib::ProcThread(void *arg)
     kproc_exit(0);
 }
 
+void OrbisLib::OnSystemSuspend(void *arg)
+{
+    SendTargetCommand(CMD_TARGET_SUSPEND);
+
+}
+
+void OrbisLib::OnSystemResume(void *arg)
+{
+    SendTargetCommand(CMD_TARGET_RESUME);
+}
+
+void OrbisLib::OnSystemShutdown(void *arg)
+{
+    SendTargetCommand(CMD_TARGET_SHUTDOWN);
+}
+
 OrbisLib::OrbisLib()
 {
     DebugLog(LOGTYPE_INFO, "Initialization!!");
@@ -203,6 +219,11 @@ OrbisLib::OrbisLib()
 
     //Set our proc titleID doesnt really do anything is just cool :)
     strcpy(kOrbisProc->titleId, "OSML10000");
+
+    //Register Callbacks.
+    SystemSuspend = EVENTHANDLER_REGISTER(system_suspend_phase1, (void*)OnSystemSuspend, this, EVENTHANDLER_PRI_FIRST);
+    SystemResume = EVENTHANDLER_REGISTER(system_resume_phase1, (void*)OnSystemResume, this, EVENTHANDLER_PRI_LAST);
+    SystemShutdown = EVENTHANDLER_REGISTER(shutdown_pre_sync, (void*)OnSystemShutdown, this, EVENTHANDLER_PRI_FIRST);
 }
 
 OrbisLib::~OrbisLib()
@@ -217,4 +238,9 @@ OrbisLib::~OrbisLib()
 
     //Free the OrbisProc Class
     delete orbisProc;
+
+    //Unregister Callbacks.
+    EVENTHANDLER_DEREGISTER(system_suspend_phase1, SystemSuspend);
+    EVENTHANDLER_DEREGISTER(system_resume_phase1, SystemResume);
+    EVENTHANDLER_DEREGISTER(shutdown_pre_sync, SystemShutdown);    
 }

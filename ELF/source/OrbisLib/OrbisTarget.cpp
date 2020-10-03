@@ -16,12 +16,6 @@ OrbisTarget::~OrbisTarget()
 void OrbisTarget::Info(int Socket)
 {
     RESP_TargetInfo TargetInfo;
-
-    //kern.sdk_version
-    //machdep.upd_version
-    //machdep.idps
-    //machdep.openpsid
-    //machdep.openpsid_for_sys
 	
 	Log("[CONSOLE INFO]");
 
@@ -82,12 +76,8 @@ void OrbisTarget::Info(int Socket)
 
 	Log("upd_version: %01X.%02X", (sdk_version >> 24) & 0xFF, (sdk_version >> 16) & 0xFF);
 
-	/*char cputemp[100] = { 0 };
-	size_t testlen = 100;
-	ret = kernel_sysctlbyname(curthread(), "dev.amdtemp.1.core0.sensor0", (char*)&cputemp, &testlen, NULL, NULL, NULL, 0);
-	Log("%d", ret);
-	Log("%d", testlen);
-	Log("%s", cputemp);*/
+	int32_t CPUTemp = GetCPUTemp();
+	Log("CPU Temp: %d C");
 
     proc* proc = GetCurrentGame();
 	if(proc)
@@ -100,7 +90,7 @@ void OrbisTarget::Info(int Socket)
     //Fill Response packet.
     TargetInfo.SDKVersion = sdk_version;
     TargetInfo.SoftwareVersion = upd_version;
-    //CPU TEMPS 
+	TargetInfo.CPUTemp = CPUTemp;
 	//Console Name
     memcpy(TargetInfo.IDPS, IDPS, 16);
     memcpy(TargetInfo.PSID, PSID, 16);
