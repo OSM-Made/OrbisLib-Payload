@@ -127,6 +127,14 @@
 #define addr_kernel_ioctl                       0
 #define addr_icc_indicator_set_buzzer           0
 
+/* Registry */
+#define addr_sceRegMgrGetStr                    0
+#define addr_sceRegMgrSetStr                    0
+#define addr_sceRegMgrGetInt                    0
+#define addr_sceRegMgrSetInt                    0
+#define addr_sceRegMgrGetBin                    0
+#define addr_sceRegMgrSetBin                    0
+
 /* Module Offsets */
 #define addr_thr_initial_libkernel              0x435420
 #define addr_thr_initial_libkernel_web          0x435420

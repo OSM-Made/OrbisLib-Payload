@@ -77,7 +77,8 @@ void OrbisTarget::Info(int Socket)
 	Log("upd_version: %01X.%02X", (sdk_version >> 24) & 0xFF, (sdk_version >> 16) & 0xFF);
 
 	int32_t CPUTemp = GetCPUTemp();
-	Log("CPU Temp: %d C");
+	int32_t SOCTemp = GetSOCTemp();
+	Log("CPU Temp: %d C\nSOC Temp: %d C", CPUTemp, SOCTemp);
 
     proc* proc = GetCurrentGame();
 	if(proc)
@@ -91,7 +92,8 @@ void OrbisTarget::Info(int Socket)
     TargetInfo.SDKVersion = sdk_version;
     TargetInfo.SoftwareVersion = upd_version;
 	TargetInfo.CPUTemp = CPUTemp;
-	//Console Name
+	TargetInfo.SOCTemp = SOCTemp;
+	sceRegMgrGetStr(0x02050000, (char*)&TargetInfo.ConsoleName, sizeof(TargetInfo.ConsoleName)); // /SYSYEM/nickname
     memcpy(TargetInfo.IDPS, IDPS, 16);
     memcpy(TargetInfo.PSID, PSID, 16);
     TargetInfo.ConsoleType = ConsoleType;

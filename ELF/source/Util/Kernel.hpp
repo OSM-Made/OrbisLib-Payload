@@ -154,3 +154,4 @@ int kwait4(int pid, int *status, int options, struct rusage *rusage);
 int ksetuid(uid_t uid, thread* td);
 int kdup2(int oldd, int newd, struct thread* td);
 uint64_t GetCPUTemp();
+uint64_t GetSOCTemp();

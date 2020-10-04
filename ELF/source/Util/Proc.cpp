@@ -9,7 +9,6 @@ proc* GetCurrentGame()
 
     while (allproc != NULL)
     {
-		Log("%s", allproc->titleId);
 		if(!strcmp(allproc->p_comm, "eboot.bin") || !strcmp(allproc->p_comm, "default.elf") ||!strcmp(allproc->p_comm, "default_mp.elf"))
 		{
 			char TitlePart[4];
@@ -18,7 +17,6 @@ proc* GetCurrentGame()
 			if(!strcmp(allproc->titleId, "NPSX"))
 				continue;
 
-			Log("%s", allproc->titleId);
 			break;
 		}
 

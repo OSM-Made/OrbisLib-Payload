@@ -144,4 +144,12 @@ extern int (*kern_mkdir)(thread* td, char *path, int pathseg, int mode);
 extern int (*kernel_sysctlbyname)(thread *td, char *name, void *old, size_t *oldlenp, void *pnew, size_t newlen, size_t *retval, int flags);
 extern int (*kernel_ioctl)(thread *td, int fd, unsigned long request, ...);
 
+/* Registry */
+extern int (*sceRegMgrGetStr)(uint64_t RegID, char* Value, int len);
+extern int (*sceRegMgrSetStr)(uint64_t RegID, char* Value, int len);
+extern int (*sceRegMgrGetInt)(uint64_t RegID, int32_t* Value);
+extern int (*sceRegMgrSetInt)(uint64_t RegID, int32_t Value);
+extern int (*sceRegMgrGetBin)(uint64_t RegID, char* Value, int size);
+extern int (*sceRegMgrSetBin)(uint64_t RegID, char* Value, int size);
+
 void ResolveFunctions();

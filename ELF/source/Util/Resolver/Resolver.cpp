@@ -100,6 +100,14 @@ int (*kern_mkdir)(thread* td, char *path, int pathseg, int mode);
 int (*kernel_sysctlbyname)(thread *td, char *name, void *old, size_t *oldlenp, void *pnew, size_t newlen, size_t *retval, int flags);
 int (*kernel_ioctl)(thread *td, int fd, unsigned long request, ...);
 
+/* Registry */
+int (*sceRegMgrGetStr)(uint64_t RegID, char* Value, int len);
+int (*sceRegMgrSetStr)(uint64_t RegID, char* Value, int len);
+int (*sceRegMgrGetInt)(uint64_t RegID, int32_t* Value);
+int (*sceRegMgrSetInt)(uint64_t RegID, int32_t Value);
+int (*sceRegMgrGetBin)(uint64_t RegID, char* Value, int size);
+int (*sceRegMgrSetBin)(uint64_t RegID, char* Value, int size);
+
 void ResolveFunctions()
 {
     //something = ()resolve();
@@ -200,4 +208,12 @@ void ResolveFunctions()
     /* Kernel Misc */
     kernel_sysctlbyname = (int(*)(thread *td, char *name, void *old, size_t *oldlenp, void *pnew, size_t newlen, size_t *retval, int flags))resolve(addr_kernel_sysctlbyname);
     kernel_ioctl = (int(*)(thread *td, int fd, unsigned long request, ...))resolve(addr_kernel_ioctl);
+
+    /* Registry */
+    sceRegMgrGetStr = (int(*)(uint64_t RegID, char* Value, int len))resolve(addr_sceRegMgrGetStr);
+    sceRegMgrSetStr = (int(*)(uint64_t RegID, char* Value, int len))resolve(addr_sceRegMgrSetStr);
+    sceRegMgrGetInt = (int(*)(uint64_t RegID, int32_t* Value))resolve(addr_sceRegMgrGetInt);
+    sceRegMgrSetInt = (int(*)(uint64_t RegID, int32_t Value))resolve(addr_sceRegMgrSetInt);
+    sceRegMgrGetBin = (int(*)(uint64_t RegID, char* Value, int size))resolve(addr_sceRegMgrGetBin);
+    sceRegMgrSetBin = (int(*)(uint64_t RegID, char* Value, int size))resolve(addr_sceRegMgrSetBin);
 }
