@@ -33,6 +33,7 @@
 #define addr_strcpy								0x8F250
 #define addr_strncpy                            0x3C0B0
 #define addr_strcmp                             0x1D0FD0 
+#define addr_strstr                             0x17DFB0
 #define addr_sprintf                            0x436280
 #define addr_snprintf                           0x436350
 #define addr_vsprintf                           0x436310 

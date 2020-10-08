@@ -53,6 +53,19 @@ void SendProcChange(char* ProcName)
     sys_close(sock);
 }
 
+void SendNewTitle(char* TitleID)
+{
+    //Prepare our packet.
+    TargetCommandPacket_s TargetCommandPacket;
+    strcpy(TargetCommandPacket.TitleChange.TitleID, TitleID);
+
+    //send the command packet.
+    int sock = SendTargetCommand(CMD_TARGET_NEWTITLE, &TargetCommandPacket);
+
+    //Close the socket.
+    sys_close(sock);
+}
+
 void SendPrint(char* Data, int len)
 {
     //Prepare our packet.

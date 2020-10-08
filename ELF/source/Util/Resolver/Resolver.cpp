@@ -15,6 +15,7 @@ size_t (*strlen)(const char *str);
 int (*strcpy)(char * str1, char * str2);
 char* (*strncpy)(char *destination, const char *source, size_t num);
 int (*strcmp)(const char * str1, const char * str2);
+char* (*strstr)(const char * str1, const char * str2);
 int (*sprintf)(char* dst, const char *fmt, ...);
 int (*snprintf)(char *str, size_t size, const char *format, ...);
 int (*vsprintf)(char* dst, const char* fmt, va_list ap);
@@ -124,6 +125,7 @@ void ResolveFunctions()
     strcpy = (int(*)(char * str1, char * str2))resolve(addr_strcpy);
     strncpy = (char*(*)(char *destination, const char *source, size_t num))resolve(addr_strncpy);
     strcmp = (int(*)(const char * str1, const char * str2))resolve(addr_strcmp);
+    strstr = (char*(*)(const char * str1, const char * str2))resolve(addr_strstr);
     sprintf = (int(*)(char* dst, const char *fmt, ...))resolve(addr_sprintf);
     snprintf = (int(*)(char *str, size_t size, const char *format, ...))resolve(addr_snprintf);
     vsprintf = (int(*)(char* dst, const char* fmt, va_list ap))resolve(addr_vsprintf);

@@ -10,6 +10,7 @@ private:
     OrbisShellCode* orbisShellCode;
     
     //Event Handlers
+    eventhandler_entry* ProcessStartEvent;
     eventhandler_entry* ProcessExitEvent;
 
 public:
@@ -19,6 +20,7 @@ public:
     OrbisProc();
     ~OrbisProc();
     
+    static void OnProcessStart(void *arg, struct proc *p);
     static void OnProcessExit(void *arg, struct proc *p);
 
     int API_CallSetup(int Socket, proc** proc);

@@ -55,7 +55,7 @@ char* strchr(const char *s, int c)
 
 void SendStatus(int Socket, int Status)
 {
-	DebugLog(LOGTYPE_INFO, "API Status: %s", API_ERRORS_STR[Status]);
+	//DebugLog(LOGTYPE_INFO, "API Status: %s", API_ERRORS_STR[Status]);
     Send(Socket, (char*)&Status, 0x4);
 }
 

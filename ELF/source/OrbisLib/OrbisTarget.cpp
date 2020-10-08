@@ -16,51 +16,13 @@ OrbisTarget::~OrbisTarget()
 void OrbisTarget::Info(int Socket)
 {
     RESP_TargetInfo TargetInfo;
-	
-	Log("[CONSOLE INFO]");
 
 	char PSID[16] = { 0 };
 	size_t PSIDlen = 16;
 	int ret = kernel_sysctlbyname(curthread(), "machdep.openpsid", (char*)&PSID, &PSIDlen, NULL, NULL, NULL, 0);
 
-	Log("PSID: %02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X", 
-					 (PSID[0] & 0xffU), 
-					 (PSID[1] & 0xffU), 
-					 (PSID[2] & 0xffU), 
-					 (PSID[3] & 0xffU), 
-					 (PSID[4] & 0xffU), 
-					 (PSID[5] & 0xffU), 
-					 (PSID[6] & 0xffU), 
-					 (PSID[7] & 0xffU), 
-					 (PSID[8] & 0xffU), 
-					 (PSID[9] & 0xffU), 
-					 (PSID[10] & 0xffU), 
-					 (PSID[11] & 0xffU), 
-					 (PSID[12] & 0xffU), 
-					 (PSID[13] & 0xffU), 
-					 (PSID[14] & 0xffU), 
-					 (PSID[15] & 0xffU));
-
 	char IDPS[16] = { 0 };
 	memcpy(IDPS, resolve(0x1CD0688), 16);
-
-	Log("IDPS: %02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X", 
-					 (IDPS[0] & 0xffU), 
-					 (IDPS[1] & 0xffU), 
-					 (IDPS[2] & 0xffU), 
-					 (IDPS[3] & 0xffU), 
-					 (IDPS[4] & 0xffU), 
-					 (IDPS[5] & 0xffU), 
-					 (IDPS[6] & 0xffU), 
-					 (IDPS[7] & 0xffU), 
-					 (IDPS[8] & 0xffU), 
-					 (IDPS[9] & 0xffU), 
-					 (IDPS[10] & 0xffU), 
-					 (IDPS[11] & 0xffU), 
-					 (IDPS[12] & 0xffU), 
-					 (IDPS[13] & 0xffU), 
-					 (IDPS[14] & 0xffU), 
-					 (IDPS[15] & 0xffU));
 
 	int ConsoleType = GetConsoleType(IDPS[5] & 0xffU);
 
@@ -68,25 +30,18 @@ void OrbisTarget::Info(int Socket)
 	size_t sdk_versionlen = 4;
 	ret = kernel_sysctlbyname(curthread(), "kern.sdk_version", (char*)&sdk_version, &sdk_versionlen, NULL, NULL, NULL, 0);
 
-	Log("sdk_version: %01X.%03X.%03X", (sdk_version >> 24) & 0xFF, (sdk_version >> 12) & 0xFFF, sdk_version & 0xFFF);
-
 	int upd_version;
 	size_t upd_versionlen = 4;
 	ret = kernel_sysctlbyname(curthread(), "machdep.upd_version", (char*)&upd_version, &upd_versionlen, NULL, NULL, NULL, 0);
 
-	Log("upd_version: %01X.%02X", (sdk_version >> 24) & 0xFF, (sdk_version >> 16) & 0xFF);
-
 	int32_t CPUTemp = GetCPUTemp();
 	int32_t SOCTemp = GetSOCTemp();
-	Log("CPU Temp: %d C\nSOC Temp: %d C", CPUTemp, SOCTemp);
 
     proc* proc = GetCurrentGame();
 	if(proc)
 		strcpy(TargetInfo.CurrentTitleID, proc->titleId);
 	else
 	    strcpy(TargetInfo.CurrentTitleID, "XMB");
-
-    Log("TitleID: %s", TargetInfo.CurrentTitleID);
 
     //Fill Response packet.
     TargetInfo.SDKVersion = sdk_version;

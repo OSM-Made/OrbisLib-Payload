@@ -8,6 +8,8 @@ OrbisProc::OrbisProc()
     //Initialize shellcode Class
     orbisShellCode = new OrbisShellCode();
 
+    //Register Events
+    ProcessStartEvent = EVENTHANDLER_REGISTER(process_exec, (void*)OnProcessStart, this, EVENTHANDLER_PRI_ANY);
     ProcessExitEvent = EVENTHANDLER_REGISTER(process_exit, (void*)OnProcessExit, this, EVENTHANDLER_PRI_ANY);
 
     IsRunning = true;
@@ -24,9 +26,28 @@ OrbisProc::~OrbisProc()
     IsRunning = false;
 }
 
+void OrbisProc::OnProcessStart(void *arg, struct proc *p)
+{
+    OrbisProc* orbisProc = (OrbisProc*)arg;
+
+    if(strstr(p->titleId, "CUSA"))
+    {
+        SendNewTitle(p->titleId);
+
+        Log("New Title started! (%s)", p->titleId);
+    }
+}
+
 void OrbisProc::OnProcessExit(void *arg, struct proc *p)
 {
     OrbisProc* orbisProc = (OrbisProc*)arg;
+
+    if(strstr(p->titleId, "CUSA"))
+    {
+        SendNewTitle("XMB");
+
+        Log("Returning to XMB!");
+    }
 
     //If were connected to a target detach from the process
     if(strcmp(p->p_comm, orbisProc->CurrentProcName))

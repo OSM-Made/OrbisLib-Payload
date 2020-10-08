@@ -195,3 +195,116 @@ uint64_t GetSOCTemp()
 
 	return temp >> 32;
 }
+
+int32_t sys_evf_open(const char* evf)
+{
+	struct sys_evf_open_args {
+		uint64_t evf;
+	};
+
+	auto sv = (sysentvec*)resolve(addr_sysvec);
+ 	sysent* sysents = sv->sv_table;
+	auto sys_evf_open = (int(*)(thread *, sys_evf_open_args *))sysents[540].sy_call;
+
+	struct sys_evf_open_args uap;
+
+	thread *td = curthread();
+
+	// clear errors
+	td->td_retval[0] = 0;
+
+	// call syscall
+	uap.evf = (uint64_t)evf;
+
+	kern_errorno = sys_evf_open(td, &uap);
+	if(kern_errorno)
+		return -kern_errorno;
+
+	// success
+	return td->td_retval[0];
+}
+
+int32_t sys_evf_cancel(int32_t evf, int64_t unk, int64_t unk2)
+{
+	struct sys_evf_cancel_args {
+		uint64_t evf;
+		uint64_t unk;
+		uint64_t unk2;
+	};
+
+	auto sv = (sysentvec*)resolve(addr_sysvec);
+ 	sysent* sysents = sv->sv_table;
+	auto sys_evf_cancel = (int(*)(thread *, sys_evf_cancel_args *))sysents[546].sy_call;
+
+	thread *td = curthread();
+
+	struct sys_evf_cancel_args uap;
+
+	// clear errors
+	td->td_retval[0] = 0;
+
+	// call syscall
+	uap.evf = evf;
+	uap.unk = unk;
+	uap.unk2 = unk2;
+
+	kern_errorno = sys_evf_cancel(td, &uap);
+	if(kern_errorno)
+		return -kern_errorno;
+
+	// success
+	return td->td_retval[0];
+}
+
+int32_t sys_evf_close(int32_t evf)
+{
+	struct sys_evf_close_args {
+		uint64_t evf;
+	};
+
+	auto sv = (sysentvec*)resolve(addr_sysvec);
+ 	sysent* sysents = sv->sv_table;
+	auto sys_evf_close = (int(*)(thread *, sys_evf_close_args *))sysents[540].sy_call;
+
+	thread *td = curthread();
+
+	struct sys_evf_close_args uap;
+
+	// clear errors
+	td->td_retval[0] = 0;
+
+	// call syscall
+	uap.evf = evf;
+
+	kern_errorno = sys_evf_close(td, &uap);
+	if(kern_errorno)
+		return -kern_errorno;
+
+	// success
+	return td->td_retval[0];
+}
+
+int32_t sys_kill(int32_t pid, int sig)
+{
+	auto sv = (sysentvec*)resolve(addr_sysvec);
+ 	sysent* sysents = sv->sv_table;
+	auto sys_kill = (int(*)(thread *, kill_args *))sysents[37].sy_call;
+
+	thread *td = curthread();
+
+	struct kill_args uap;
+
+	// clear errors
+	td->td_retval[0] = 0;
+
+	// call syscall
+	uap.pid = pid;
+	uap.signum = sig;
+
+	kern_errorno = sys_kill(td, &uap);
+	if(kern_errorno)
+		return -kern_errorno;
+
+	// success
+	return td->td_retval[0];
+}

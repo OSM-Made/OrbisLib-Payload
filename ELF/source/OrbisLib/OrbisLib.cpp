@@ -30,7 +30,8 @@ void OrbisLib::ClientThread(void* arg)
             goto ClientThreadEnd;
         }
 
-        DebugLog(LOGTYPE_INFO, "API Recieved Command %s(%d)", API_COMMANDS_STR[Packet->cmd], Packet->cmd);
+        if(Packet->cmd != API_TEST_COMMS && Packet->cmd != API_TARGET_INFO)
+            DebugLog(LOGTYPE_INFO, "API Recieved Command %s(%d)", API_COMMANDS_STR[Packet->cmd], Packet->cmd);
 
         //Direct our API call to our specified class.
         switch(Packet->cmd)

@@ -9,16 +9,8 @@ proc* GetCurrentGame()
 
     while (allproc != NULL)
     {
-		if(!strcmp(allproc->p_comm, "eboot.bin") || !strcmp(allproc->p_comm, "default.elf") ||!strcmp(allproc->p_comm, "default_mp.elf"))
-		{
-			char TitlePart[4];
-			memcpy(TitlePart, allproc->titleId, 4);
-
-			if(!strcmp(allproc->titleId, "NPSX"))
-				continue;
-
+		if(strstr(allproc->titleId, "CUSA"))
 			break;
-		}
 
         allproc = allproc->p_list.le_next;
     }

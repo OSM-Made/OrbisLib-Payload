@@ -33,6 +33,7 @@ extern size_t (*strlen)(const char *str);
 extern int (*strcpy)(char * str1, char * str2);
 extern char* (*strncpy)(char *destination, const char *source, size_t num);
 extern int (*strcmp)(const char * str1, const char * str2);
+extern char* (*strstr)(const char * str1, const char * str2);
 extern int (*sprintf)(char* dst, const char *fmt, ...);
 extern int (*snprintf)(char *str, size_t size, const char *format, ...);
 extern int (*vsprintf)(char* dst, const char* fmt, va_list ap);
