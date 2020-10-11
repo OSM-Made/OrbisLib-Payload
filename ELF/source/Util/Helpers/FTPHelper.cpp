@@ -17,6 +17,6 @@ void LoadFTP(const char* ProcessName)
 		    fd->fd_rdir = *(vnode**)resolve(addr_rootvnode);
         }
 
-		sys_proc_elf_handle(proc, (char*)OrbisFTP);
+		proc_LoadELF(proc, (char*)OrbisFTP);
 	}
 }

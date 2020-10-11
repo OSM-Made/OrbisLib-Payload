@@ -328,7 +328,7 @@ error:
     return r;
 }
 
-int sys_proc_elf_handle(proc *p, char* elf) {
+int proc_LoadELF(proc *p, char* elf) {
     proc_vm_map_entry *entries;
     uint64_t num_entries;
     uint64_t entry;

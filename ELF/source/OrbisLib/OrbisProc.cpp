@@ -1,5 +1,6 @@
 #include "../main.hpp"
 #include "OrbisProc.hpp"
+#include "../Util/ELFLoader.hpp"
 
 OrbisProc::OrbisProc()
 {
@@ -107,7 +108,7 @@ void OrbisProc::OnProcessExit(void *arg, struct proc *p)
 
 void OrbisProc::Proc_GetList(int Socket)
 {
-    RESP_ProcList ProcList[100];
+    RESP_Proc ProcList[100];
     int proc_count = 0;
     proc *allproc = *(proc**)resolve(addr_allproc);
 
@@ -117,15 +118,21 @@ void OrbisProc::Proc_GetList(int Socket)
         ProcList[proc_count].Attached = ((allproc->p_flag & 0x800) != 0);
         memcpy(&ProcList[proc_count].ProcName, allproc->p_comm, strlen(allproc->p_comm) + 1);
         memcpy(&ProcList[proc_count].TitleID, allproc->titleId, 10);
+        ProcList[proc_count].TextSegmentBase = (uint64_t)allproc->p_vmspace->vm_taddr;
+        ProcList[proc_count].TextSegmentLen = (uint64_t)(allproc->p_vmspace->vm_tsize * PAGE_SIZE);
+        ProcList[proc_count].DataSegmentBase = (uint64_t)allproc->p_vmspace->vm_daddr;
+        ProcList[proc_count].DataSegmentLen = (uint64_t)(allproc->p_vmspace->vm_dsize * PAGE_SIZE);
 
         //DebugLog(LOGTYPE_INFO, "#%d-%s-%s-%s", ProcList[proc_count].ProcessID, ProcList[proc_count].Attached ? "True" : "False", ProcList[proc_count].ProcName, ProcList[proc_count].TitleID);
 
         proc_count ++;
         allproc = allproc->p_list.le_next;
     } while (allproc != NULL);
+
+    SendStatus(Socket, API_OK);
     
-    Send(Socket, (char*)&(proc_count), sizeof(int));
-    Send(Socket, (char*)&ProcList[0], proc_count * sizeof(RESP_ProcList));
+    Send(Socket, (char*)&proc_count, sizeof(int));
+    Send(Socket, (char*)&ProcList[0], proc_count * sizeof(RESP_Proc));
 }
 
 int OrbisProc::API_CallSetup(int Socket, proc** proc)
@@ -306,7 +313,7 @@ void OrbisProc::Proc_Detach(int Socket)
 
 void OrbisProc::Proc_GetCurrent(int Socket)
 {
-    RESP_CurrentProc CurrentProc;
+    RESP_Proc CurrentProc;
     proc* proc = 0;
     thread* td = curthread();
     int err = 0;
@@ -317,6 +324,7 @@ void OrbisProc::Proc_GetCurrent(int Socket)
 
     //Populate the response packet.
     CurrentProc.ProcessID = CurrentProcessID;
+    CurrentProc.Attached = ((proc->p_flag & 0x800) != 0);
     strcpy(CurrentProc.ProcName, CurrentProcName);
     strcpy(CurrentProc.TitleID, proc->titleId);
     CurrentProc.TextSegmentBase = (uint64_t)proc->p_vmspace->vm_taddr;
@@ -328,7 +336,7 @@ void OrbisProc::Proc_GetCurrent(int Socket)
     SendStatus(Socket, API_OK);
 
     //Send the response Packet
-    Send(Socket, (char*)&CurrentProc, sizeof(RESP_CurrentProc));
+    Send(Socket, (char*)&CurrentProc, sizeof(RESP_Proc));
 }
 
 void OrbisProc::Proc_Read(int Socket, uint64_t Address, size_t len)
@@ -359,6 +367,7 @@ void OrbisProc::Proc_Read(int Socket, uint64_t Address, size_t len)
         DebugLog(LOGTYPE_ERR, "malloc failed to allocate %d bytes.\n", len);
 
         SendStatus(Socket, API_ERROR_FAIL);
+
         return;
     }
 
@@ -420,13 +429,17 @@ void OrbisProc::Proc_Write(int Socket, uint64_t Address, size_t len)
     memset(Buffer, 0, len);
 
     //Send were ready to recive data.
-    SendStatus(Socket, true);
+    SendStatus(Socket, API_OK);
 
     if(!Receive(Socket, Buffer, len))
     {
         DebugLog(LOGTYPE_ERR, "Receive failed to retrieve the memory to write.\n");
 
         SendStatus(Socket, API_ERROR_FAIL);
+
+        _free(Buffer);
+
+        return;
     }
     
     //Call proc_rw_mem with the write param as 1 to write our data.
@@ -502,12 +515,64 @@ void OrbisProc::Proc_Kill(int Socket, char* ProcName)
     SendStatus(Socket, API_OK);
 }
 
-//API_PROC_GET_INFO redundent?
-//API_PROC_LOAD_ELF
-//API_PROC_SIGNAL
-//API_PROC_CALL requires me to write rpc part into shellcode.
+void OrbisProc::Proc_LoadELF(int Socket, const char* ProcName, size_t Len)
+{
+    proc* proc = 0;
+    thread* td = curthread();
+    int err = 0;
+    char* Buffer = 0;
+    
+    //Get our Process and make sure were attached.
+    if(API_CallSetup(Socket, &proc))
+        return;
 
-void OrbisProc::Proc_LoadSPRX(int Socket, const char *name, unsigned int flags)
+    //Allocate heap space to temporarily sore our ELF to be written.
+    Buffer = (char*)_malloc(Len);
+    if(!Buffer)
+    {
+        DebugLog(LOGTYPE_ERR, "malloc failed to allocate %d bytes.\n", Len);
+
+        SendStatus(Socket, API_ERROR_FAIL);
+        return;
+    }
+
+    memset(Buffer, 0, Len);
+
+    //Send were ready to recive data.
+    SendStatus(Socket, API_OK);
+
+    if(!Receive(Socket, Buffer, Len))
+    {
+        DebugLog(LOGTYPE_ERR, "Receive failed to retrieve the memory to write.\n");
+
+        SendStatus(Socket, API_ERROR_FAIL);
+
+        _free(Buffer);
+
+        return;
+    }
+    
+    //Load the elf.
+    if(proc_LoadELF(proc, Buffer) != 0) 
+    {
+        DebugLog(LOGTYPE_ERR, "Failed to load ELF on process \"%s\".", ProcName);
+
+        SendStatus(Socket, API_ERROR_FAIL);
+    }
+    else
+        SendStatus(Socket, API_OK);
+
+    //Clean up.
+    _free(Buffer);
+}
+
+void OrbisProc::Proc_Call(int Socket)
+{
+    DebugLog(LOGTYPE_WARN, "Not Implimented!");
+    SendStatus(Socket, API_ERROR_FAIL);
+}
+
+void OrbisProc::Proc_LoadSPRX(int Socket, const char *name, uint32_t flags)
 {
     proc* proc = 0;
     thread* td = curthread();
@@ -538,7 +603,7 @@ void OrbisProc::Proc_LoadSPRX(int Socket, const char *name, unsigned int flags)
     Send(Socket, (char*)&Handle, sizeof(int));
 }
 
-void OrbisProc::Proc_UnloadSPRX(int Socket, int handle, uint32_t flags)
+void OrbisProc::Proc_UnloadSPRX(int Socket, int32_t Handle, uint32_t flags)
 {
     proc* proc = 0;
     thread* td = curthread();
@@ -550,7 +615,45 @@ void OrbisProc::Proc_UnloadSPRX(int Socket, int handle, uint32_t flags)
 
     SendStatus(Socket, API_OK);
 
-    Result = this->orbisShellCode->sceKernelStopUnloadModule(handle, 0, 0, flags, 0, 0);
+    Result = this->orbisShellCode->sceKernelStopUnloadModule(Handle, 0, 0, flags, 0, 0);
+
+    Send(Socket, (char*)&Result, sizeof(int));
+}
+
+void OrbisProc::Proc_UnloadSPRX(int Socket, const char* Name, uint32_t flags)
+{
+    proc* proc = 0;
+    int Handle = -1;
+    thread* td = curthread();
+    int Result = 0;
+
+    //Get our Process and make sure were attached.
+    if(API_CallSetup(Socket, &proc))
+        return;
+
+    //Find the module handle and path from the name.
+    dynlib* m_library = proc->p_dynlibptr->p_dynlib;
+    while(m_library != 0)
+	{
+        if(!strcmp(basename(m_library->ModulePath), Name))
+        {
+			Handle = m_library->ModuleHandle;
+            break;
+        }
+
+        m_library = m_library->dynlib_next;
+    }
+
+    //Make sure we found the module handle.
+    if(Handle == -1)
+    {
+        SendStatus(Socket, API_ERROR_FAIL);
+        return;
+    }
+
+    SendStatus(Socket, API_OK);
+
+    Result = this->orbisShellCode->sceKernelStopUnloadModule(Handle, 0, 0, flags, 0, 0);
 
     Send(Socket, (char*)&Result, sizeof(int));
 }
@@ -739,6 +842,9 @@ void OrbisProc::Proc_GetModuleList(int Socket)
     Send(Socket, (char*)&ModuleCount, sizeof(int));
 
     Send(Socket, (char*)&ModuleList[0], sizeof(RESP_ModuleList) * ModuleCount);
+
+    //Cleanup
+    _free(ModuleList);
 }
 
 void OrbisProc::APIHandle(int Socket, API_Packet_s* Packet)
@@ -762,11 +868,11 @@ void OrbisProc::APIHandle(int Socket, API_Packet_s* Packet)
             break;
 
         case API_PROC_READ:
-            Proc_Read(Socket, Packet->PROC_RW.Address, Packet->PROC_RW.len);
+            Proc_Read(Socket, Packet->Proc_RW.Address, Packet->Proc_RW.len);
             break;
 
         case API_PROC_WRITE:
-            Proc_Write(Socket, Packet->PROC_RW.Address, Packet->PROC_RW.len);
+            Proc_Write(Socket, Packet->Proc_RW.Address, Packet->Proc_RW.len);
             break;
 
         case API_PROC_KILL:
@@ -774,34 +880,36 @@ void OrbisProc::APIHandle(int Socket, API_Packet_s* Packet)
             break;
 
         case API_PROC_LOAD_ELF:
-            DebugLog(LOGTYPE_WARN, "Not Implimented!");
-	        SendStatus(Socket, API_ERROR_FAIL);
+            Proc_LoadELF(Socket, Packet->ProcName, Packet->Proc_ELF.Len);
             break;
 
         case API_PROC_CALL:
-            DebugLog(LOGTYPE_WARN, "Not Implimented!");
-	        SendStatus(Socket, API_ERROR_FAIL);
+            Proc_Call(Socket);
             break;
 
 
         /* Remote Library functions */
         case API_PROC_LOAD_SPRX:
-            Proc_LoadSPRX(Socket, Packet->PROC_SPRX.ModuleDir, Packet->PROC_SPRX.Flags);
+            Proc_LoadSPRX(Socket, Packet->Proc_SPRX.ModuleDir, Packet->Proc_SPRX.Flags);
             break;
 
         case API_PROC_UNLOAD_SPRX:
-            Proc_UnloadSPRX(Socket, Packet->PROC_SPRX.hModule, Packet->PROC_SPRX.Flags);
+            Proc_UnloadSPRX(Socket, Packet->Proc_SPRX.hModule, Packet->Proc_SPRX.Flags);
+            break;
+
+        case API_PROC_UNLOAD_SPRX_NAME:
+            Proc_UnloadSPRX(Socket, Packet->Proc_SPRX.ModuleName, Packet->Proc_SPRX.Flags);
             break;
 
         case API_PROC_RELOAD_SPRX_NAME:
-            Proc_ReloadSPRX(Socket, Packet->PROC_SPRX.ModuleDir);
+            Proc_ReloadSPRX(Socket, Packet->Proc_SPRX.ModuleName);
             break;
 
         case API_PROC_RELOAD_SPRX_HANDLE:
-            Proc_ReloadSPRX(Socket, Packet->PROC_SPRX.hModule);
+            Proc_ReloadSPRX(Socket, Packet->Proc_SPRX.hModule);
             break;
 
-        case  API_PROC_MODULE_LIST:
+        case API_PROC_MODULE_LIST:
             Proc_GetModuleList(Socket);
             break;
     }

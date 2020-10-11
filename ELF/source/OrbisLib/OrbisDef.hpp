@@ -20,6 +20,7 @@ enum API_COMMANDS
     /* Remote Library functions */
     API_PROC_LOAD_SPRX,
     API_PROC_UNLOAD_SPRX,
+    API_PROC_UNLOAD_SPRX_NAME,
     API_PROC_RELOAD_SPRX_NAME,
     API_PROC_RELOAD_SPRX_HANDLE,
     API_PROC_MODULE_LIST,
@@ -110,6 +111,7 @@ static char API_COMMANDS_STR[][32] =
 	/* Remote Library functions */
 	"API_PROC_LOAD_SPRX",
 	"API_PROC_UNLOAD_SPRX",
+    "API_PROC_UNLOAD_SPRX_NAME",
 	"API_PROC_RELOAD_SPRX_NAME",
 	"API_PROC_RELOAD_SPRX_HANDLE",
 	"API_PROC_MODULE_LIST",
@@ -221,13 +223,21 @@ struct API_Packet_s
         {
             uint64_t Address;
             size_t len;
-        }PROC_RW;
+        }Proc_RW;
         struct
         {
-            char ModuleDir[0x100];
+            size_t Len;
+        }Proc_ELF;
+        struct
+        {
+            union 
+            {
+                char ModuleDir[0x100];
+                char ModuleName[0x100];
+            };
             int hModule;
             int Flags;
-        }PROC_SPRX;
+        }Proc_SPRX;
         struct
         {
             int32_t Index;
@@ -248,23 +258,16 @@ struct API_Packet_s
     };
 };
 
-struct RESP_ProcList
+struct RESP_Proc
 {
-    unsigned int ProcessID; //0x00
-    unsigned int Attached; //0x04
-    char ProcName[32]; //0x08
-    char TitleID[10]; //0x28
-};
-
-struct RESP_CurrentProc
-{
-    unsigned int ProcessID; //0x00
-    char ProcName[32]; //0x04
-    char TitleID[10]; //0x24
-    uint64_t TextSegmentBase;
-    uint64_t TextSegmentLen;
-    uint64_t DataSegmentBase;
-    uint64_t DataSegmentLen;
+	int32_t ProcessID; //0x00
+	int32_t Attached; //0x04
+	char ProcName[32]; //0x08
+	char TitleID[10]; //0x28
+	uint64_t TextSegmentBase;
+	uint64_t TextSegmentLen;
+	uint64_t DataSegmentBase;
+	uint64_t DataSegmentLen;
 };
 
 struct RESP_ModuleList
@@ -299,4 +302,6 @@ struct RESP_TargetInfo
     char IDPS[16];
     char PSID[16];
     int32_t ConsoleType;
+    int32_t Attached;
+    char CurrentProc[32];
 };

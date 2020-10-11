@@ -52,6 +52,8 @@ void OrbisTarget::Info(int Socket)
     memcpy(TargetInfo.IDPS, IDPS, 16);
     memcpy(TargetInfo.PSID, PSID, 16);
     TargetInfo.ConsoleType = ConsoleType;
+	TargetInfo.Attached = (int32_t)orbisLib->orbisProc->CurrentlyAttached;
+	strcpy(TargetInfo.CurrentProc, orbisLib->orbisProc->CurrentProcName);
 
 	SendStatus(Socket, API_OK);
 

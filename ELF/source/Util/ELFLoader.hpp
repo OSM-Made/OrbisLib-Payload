@@ -1,3 +1,3 @@
 #pragma once
 
-int sys_proc_elf_handle(struct proc *p, char* elf);
+int proc_LoadELF(struct proc *p, char* elf);
