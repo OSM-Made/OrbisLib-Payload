@@ -27,7 +27,7 @@ public:
 
     void Proc_GetList(int Socket);
     void Proc_Attach(int Socket, char* ProcName);
-    void Proc_Detach(int Socket);
+    void Proc_Detach(int Socket, char* ProcName);
     void Proc_GetCurrent(int Socket);
     void Proc_Read(int Socket, uint64_t Address, size_t len);
     void Proc_Write(int Socket, uint64_t Address, size_t len);

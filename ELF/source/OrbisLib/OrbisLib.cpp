@@ -219,7 +219,7 @@ OrbisLib::OrbisLib()
     }
 
     //Set our proc titleID doesnt really do anything is just cool :)
-    strcpy(kOrbisProc->titleId, "OSML10000");
+    strcpy(kOrbisProc->titleId, "ORBIS2000");
 
     //Register Callbacks.
     SystemSuspend = EVENTHANDLER_REGISTER(system_suspend_phase1, (void*)OnSystemSuspend, this, EVENTHANDLER_PRI_FIRST);

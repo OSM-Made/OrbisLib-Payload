@@ -184,6 +184,7 @@ void OrbisProc::Proc_Attach(int Socket, char* ProcName)
         DebugLog(LOGTYPE_INFO, "Already attached to process %s.", ProcName);
 
         SendStatus(Socket, API_OK);
+        
         return;
     }
 
@@ -251,14 +252,13 @@ void OrbisProc::Proc_Attach(int Socket, char* ProcName)
     SendStatus(Socket, API_OK);
 }
 
-void OrbisProc::Proc_Detach(int Socket)
+void OrbisProc::Proc_Detach(int Socket, char* ProcName)
 {
-    char ProcName[0x20];
     proc* proc = NULL;
     thread* td = curthread();
     int err = 0;
 
-    if(!CurrentlyAttached)
+    if(!strcmp(CurrentProcName, ProcName) && !CurrentlyAttached)
     {
         DebugLog(LOGTYPE_INFO, "Not currently attached to any process.");
 
@@ -266,7 +266,6 @@ void OrbisProc::Proc_Detach(int Socket)
         return;
     }
 
-    strcpy(ProcName, CurrentProcName);
     proc = proc_find_by_name(ProcName);
     if(!proc)
     {
@@ -283,11 +282,14 @@ void OrbisProc::Proc_Detach(int Socket)
 
     DebugLog(LOGTYPE_INFO, "Detaching from process \"%s\".", ProcName);
 
-    //Clear any breakpoints or watchpoints set.
-    //TODO: Implement
+    if(!strcmp(CurrentProcName, ProcName))
+    {
+        //Clear any breakpoints or watchpoints set.
+        //TODO: Implement
 
-    //clear shell code from last process.
-    orbisShellCode->DestroyShellCode();
+        //clear shell code from last process.
+        orbisShellCode->DestroyShellCode();
+    }
 
     err = kptrace(td, PT_DETACH, CurrentProcessID, (void*)SIGCONT, 0);
     if(err)
@@ -298,13 +300,17 @@ void OrbisProc::Proc_Detach(int Socket)
         return;
     }
 
-     //Reset Data Values
-    CurrentProcessID = -1;
-    memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
-    CurrentlyAttached = false;
+    if(!strcmp(CurrentProcName, ProcName))
+    {
 
-    //Notify the host instances that we have detached from the current process.
-    SendTargetCommand(CMD_PROC_DETACH);
+        //Reset Data Values
+        CurrentProcessID = -1;
+        memset(&CurrentProcName[0], 0, sizeof(CurrentProcName));
+        CurrentlyAttached = false;
+
+        //Notify the host instances that we have detached from the current process.
+        SendTargetCommand(CMD_PROC_DETACH);
+    }
 
     DebugLog(LOGTYPE_INFO, "Detached from process \"%s\".", ProcName);
 
@@ -860,7 +866,7 @@ void OrbisProc::APIHandle(int Socket, API_Packet_s* Packet)
             break;
 
         case API_PROC_DETACH:
-            Proc_Detach(Socket);
+            Proc_Detach(Socket, Packet->ProcName);
             break;
 
         case API_PROC_GET_CURRENT:
