@@ -32,7 +32,7 @@ public:
     void Proc_Read(int Socket, uint64_t Address, size_t len);
     void Proc_Write(int Socket, uint64_t Address, size_t len);
     void Proc_Kill(int Socket, char* ProcName);
-    void Proc_LoadELF(int Socket, const char* ProcName, size_t Len);
+    void Proc_LoadELF(int Socket, size_t Len);
     void Proc_Call(int Socket);
 
     void Proc_LoadSPRX(int Socket, const char *name, uint32_t flags);

@@ -50,60 +50,19 @@ void OrbisProc::OnProcessExit(void *arg, struct proc *p)
         Log("Returning to XMB!");
     }
 
+    Log("Process Exit (%s).", p->p_comm);
+
     //If were connected to a target detach from the process
     if(strcmp(p->p_comm, orbisProc->CurrentProcName))
         return;
 
     //Let the host know the process has died.
     SendTargetCommand(CMD_PROC_DIE);
-    
-    char ProcName[0x20];
-    proc* proc = NULL;
-    thread* td = curthread();
-    int err = 0;
-
-    if(!orbisProc->CurrentlyAttached)
-    {
-        DebugLog(LOGTYPE_INFO, "Not currently attached to any process.");
-        return;
-    }
-
-    strcpy(ProcName, orbisProc->CurrentProcName);
-    proc = proc_find_by_name(ProcName);
-    if(!proc)
-    {
-        DebugLog(LOGTYPE_ERR, "Could not find Proc \"%s\" it might have been killed.", ProcName);
-
-        //Reset Data Values
-        orbisProc->CurrentProcessID = -1;
-        memset(&orbisProc->CurrentProcName[0], 0, sizeof(CurrentProcName));
-        orbisProc->CurrentlyAttached = false;
-
-        return;
-    }
-
-    DebugLog(LOGTYPE_INFO, "Detaching from process \"%s\".", ProcName);
-
-    //Clear any breakpoints or watchpoints set.
-    //TODO: Implement
-
-    //clear shell code from last process.
-    orbisProc->orbisShellCode->DestroyShellCode();
-
-    err = kptrace(td, PT_DETACH, orbisProc->CurrentProcessID, (void*)SIGCONT, 0);
-    if(err)
-    {
-        DebugLog(LOGTYPE_ERR, "ptrace PT_DETACH failed %d.", err);
-
-        return;
-    }
 
      //Reset Data Values
     orbisProc->CurrentProcessID = -1;
     memset(&orbisProc->CurrentProcName[0], 0, sizeof(CurrentProcName));
     orbisProc->CurrentlyAttached = false;
-
-    DebugLog(LOGTYPE_INFO, "Detached from process \"%s\".", ProcName);
 }
 
 void OrbisProc::Proc_GetList(int Socket)
@@ -521,7 +480,7 @@ void OrbisProc::Proc_Kill(int Socket, char* ProcName)
     SendStatus(Socket, API_OK);
 }
 
-void OrbisProc::Proc_LoadELF(int Socket, const char* ProcName, size_t Len)
+void OrbisProc::Proc_LoadELF(int Socket, size_t Len)
 {
     proc* proc = 0;
     thread* td = curthread();
@@ -561,7 +520,7 @@ void OrbisProc::Proc_LoadELF(int Socket, const char* ProcName, size_t Len)
     //Load the elf.
     if(proc_LoadELF(proc, Buffer) != 0) 
     {
-        DebugLog(LOGTYPE_ERR, "Failed to load ELF on process \"%s\".", ProcName);
+        DebugLog(LOGTYPE_ERR, "Failed to load ELF on process \"%s\".", CurrentProcName);
 
         SendStatus(Socket, API_ERROR_FAIL);
     }
@@ -830,7 +789,7 @@ void OrbisProc::Proc_GetModuleList(int Socket)
     //Populate our buffer with data.
     m_library = proc->p_dynlibptr->p_dynlib;
     while(m_library != 0)
-	{
+    {
         strcpy(ModuleList[SetCount].mName, (char*)basename(m_library->ModulePath));
         strcpy(ModuleList[SetCount].mPath, (char*)m_library->ModulePath);
         ModuleList[SetCount].mHandle = m_library->ModuleHandle;
@@ -886,7 +845,7 @@ void OrbisProc::APIHandle(int Socket, API_Packet_s* Packet)
             break;
 
         case API_PROC_LOAD_ELF:
-            Proc_LoadELF(Socket, Packet->ProcName, Packet->Proc_ELF.Len);
+            Proc_LoadELF(Socket, Packet->Proc_ELF.Len);
             break;
 
         case API_PROC_CALL:
