@@ -763,6 +763,100 @@ void OrbisProc::Proc_ReloadSPRX(int Socket, int Handle)
     Send(Socket, (char*)&Handle, sizeof(int));
 }
 
+void OrbisProc::Proc_DumpModule(int Socket, const char* ModuleName)
+{
+    int32_t Size = 0;
+	char* DumpedData = 0;
+	size_t n = 0;
+	int err = 0;
+    proc* proc = 0;
+    thread* td = curthread();
+    uint64_t TextSegBase = 0, TextSegSize = 0, DataSegBase = 0, DataSegSize = 0;
+    bool FoundModule = false;
+
+    //Get our Process and make sure were attached.
+    if(API_CallSetup(Socket, &proc))
+        return;
+
+    //Find the module text and data segments.
+    dynlib* m_library = proc->p_dynlibptr->p_dynlib;
+    while(m_library != 0)
+	{
+        if(!strcmp(basename(m_library->ModulePath), ModuleName))
+        {   
+            TextSegBase = m_library->codeBase;
+            TextSegSize = m_library->codeSize;
+            DataSegBase = m_library->dataBase;
+            DataSegSize = m_library->dataSize;
+
+            FoundModule = true;
+
+            break;
+        }
+
+        m_library = m_library->dynlib_next;
+    }
+
+    //make sure we found the module.
+    if(!FoundModule)
+    {
+        DebugLog(LOGTYPE_ERR, "Failed to Find the module \"%s\" to dump.", ModuleName);
+
+        SendStatus(Socket, API_ERROR_FAIL);
+
+        return;
+    }
+
+    //allocate space to dump the module text and data segments.
+    Size = (TextSegSize + DataSegSize);
+    DumpedData = (char*)_malloc(Size);
+	if(!DumpedData)
+	{
+		DebugLog(LOGTYPE_ERR, "Failed to allocate space for Dump.");
+		
+		SendStatus(Socket, API_ERROR_FAIL);
+
+		goto Cleanup;
+	}
+
+    //Dump the text segment to the start of the buffer.
+	err = proc_rw_mem(proc, (void*)TextSegBase, TextSegSize, DumpedData, &n, 0);
+    if(err)
+    {
+        DebugLog(LOGTYPE_ERR, "Failed to read Text Segment Data: %d(%d).", err, n);
+
+		SendStatus(Socket, API_ERROR_FAIL);
+
+		goto Cleanup;
+
+	}
+
+    //Dump the Data segment to the bottom of the buffer.
+	n = 0;
+	err = proc_rw_mem(proc, (void*)DataSegBase, DataSegSize, (void*)(DumpedData + TextSegSize), &n, 0);
+    if(err)
+    {
+        DebugLog(LOGTYPE_ERR, "Failed to read Data Segment Data: %d(%d).", err, n);
+
+		SendStatus(Socket, API_ERROR_FAIL);
+
+		goto Cleanup;
+	}
+
+	SendStatus(Socket, API_OK);
+
+    //Send the Size and the dumped data.
+	Send(Socket, (char*)&Size, sizeof(int));
+	Send(Socket, DumpedData, Size);
+
+    char Buffer[0x200];
+	sprintf(Buffer, "Dumped\n%s\n0x%llX", ModuleName, TextSegSize + DataSegSize);
+	pHelperManager->pUserlandHelper->sceSysUtilSendNotificationRequest(Buffer);
+
+Cleanup:
+	_free(DumpedData);
+}
+
 void OrbisProc::Proc_GetModuleList(int Socket)
 {
     proc* proc = proc_find_by_name(CurrentProcName);
@@ -872,6 +966,10 @@ void OrbisProc::APIHandle(int Socket, API_Packet_s* Packet)
 
         case API_PROC_RELOAD_SPRX_HANDLE:
             Proc_ReloadSPRX(Socket, Packet->Proc_SPRX.hModule);
+            break;
+
+        case API_PROC_DUMP_MODULE:
+            Proc_DumpModule(Socket, Packet->Proc_SPRX.ModuleName);
             break;
 
         case API_PROC_MODULE_LIST:

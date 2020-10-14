@@ -40,6 +40,7 @@ public:
     void Proc_UnloadSPRX(int Socket, const char* Name, uint32_t flags);
     void Proc_ReloadSPRX(int Socket, const char *name);
     void Proc_ReloadSPRX(int Socket, int Handle);
+    void Proc_DumpModule(int Socket, const char* ModuleName);
     void Proc_GetModuleList(int Socket);
 
     void APIHandle(int Socket, API_Packet_s* Packet);

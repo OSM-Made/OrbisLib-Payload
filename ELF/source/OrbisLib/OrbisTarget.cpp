@@ -104,37 +104,24 @@ void OrbisTarget::SetLED(int Socket)
     DebugLog(LOGTYPE_WARN, "Not Implimented!");
 	SendStatus(Socket, API_ERROR_FAIL);
 
-    /*struct
+    struct
 	{
-		uint8_t unk; //0x00
-		uint8_t unk1; //0x02
-		uint8_t unk2; //0x04
-		uint8_t unk3; //0x08
-		uint8_t unk4; //0x0A
-		uint8_t unk5; //0x0C
-		uint8_t unk6; //0x0E
-		uint8_t unk7; //0x10
-		uint8_t unk8; //0x12
-		uint8_t unk9; //0x14
-		uint8_t unk10; //0x16
-		uint8_t unk11; //0x18
+		uint16_t unk; //0x00
+		uint16_t unk1; //0x02
+		uint16_t unk2; //0x04
+		uint16_t unk3; //0x08
+		uint16_t unk4; //0x0A
+		uint16_t unk5; //0x0C
+		uint16_t unk6; //0x0E
+		uint16_t unk7; //0x10
+		uint16_t unk8; //0x12
+		uint16_t unk9; //0x14
+		uint16_t unk10; //0x16
+		uint16_t unk11; //0x18
 	}somethingcolours;
 
 	auto getledsboss = (void(*)(uint64_t*))resolve(0x104B20);
 	getledsboss((uint64_t*)&somethingcolours);
-
-	somethingcolours.unk = 0xFF;
-	somethingcolours.unk1 = 0xFF;
-	somethingcolours.unk2 = 0xFF;
-	somethingcolours.unk3 = 0xFF;
-	somethingcolours.unk4 = 0xFF;
-	somethingcolours.unk5 = 0xFF;
-	somethingcolours.unk6 = 0xFF;
-	somethingcolours.unk7 = 0xFF;
-	somethingcolours.unk8 = 0xFF;
-	somethingcolours.unk9 = 0xFF;
-	somethingcolours.unk10 = 0xFF;
-	somethingcolours.unk11 = 0xFF;
 
 	DebugLog(LOGTYPE_INFO, "unk = %llX", somethingcolours.unk);
 	DebugLog(LOGTYPE_INFO, "unk1 = %llX", somethingcolours.unk1);
@@ -149,8 +136,8 @@ void OrbisTarget::SetLED(int Socket)
 	DebugLog(LOGTYPE_INFO, "unk10 = %llX", somethingcolours.unk10);
 	DebugLog(LOGTYPE_INFO, "unk11 = %llX", somethingcolours.unk11);
 
-	auto setledsboss = (void(*)(uint64_t*))resolve(0x1049B0);
-	setledsboss((uint64_t*)&somethingcolours);*/
+	//auto setledsboss = (void(*)(uint64_t*))resolve(0x1049B0);
+	//etledsboss((uint64_t*)&somethingcolours);
 }
 
 void OrbisTarget::GetLED(int Socket)
