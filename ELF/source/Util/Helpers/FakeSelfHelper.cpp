@@ -344,11 +344,9 @@ int FakeSelfHelper::SceSblAuthMgrSmLoadSelfBlock_MailboxHook(uint64_t pServiceId
     bool s_IsUnsigned = pContext && (pContext->format == SelfFormat::Elf || IsFakeSelf((SelfContext*)pContext));
 
     if (!s_IsUnsigned) {
-        //WriteLog(LL_Debug, "signed (s)elf detected");
         return sceSblServiceMailbox(pServiceId, pRequest, pResponse);
     } else {
-        //WriteLog(LL_Debug, "unsigned/fake (s)elf detected");
-
+        
         vm_offset_t s_SegmentDataGpuVa = *(uint64_t*)(pRequest + 0x08);
         vm_offset_t s_CurrentDataGpuVa = *(uint64_t*)(pRequest + 0x50);
         vm_offset_t s_CurrentData2GpuVa = *(uint64_t*)(pRequest + 0x58);

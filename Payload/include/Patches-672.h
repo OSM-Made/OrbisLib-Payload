@@ -9,9 +9,6 @@ void DoPatches(uint64_t kernbase)
 	uint8_t *disable_console_output = (uint8_t*)(kernbase + patch_disable_console_output);
 	*disable_console_output = 0;
 
-	// flatz allow sys_dynlib_dlsym in all processes
-	*(uint64_t*)(kernbase + patch_sys_dynlib_dlsym) = 0x8B4890000001C7E9;
-	
 	//debug settings patches
 	*(char*)(kernbase + patch_dbg_Settings_0) |= 0x14;
   	*(char*)(kernbase + patch_dbg_Settings_1) |= 3;
@@ -28,6 +25,7 @@ void DoPatches(uint64_t kernbase)
 	*(uint8_t*)(kernbase + patch_kmem_Alloc_1) = VM_PROT_ALL; //patch kmem_alloc
 	*(uint8_t *)(kernbase + patch_Disable_Core_Dump) = 0xC3; //disable sysdump_perform_dump_on_fatal_trap
 
+	memcpy((void*)(kernbase + patch_sys_dynlib_dlsym), "\xE9\xC7\x01\x00\x00", 5); // flatz allow sys_dynlib_dlsym in all processes
 	memcpy((void*)(kernbase + patch_SystemLevelDebugging), "\x48\xC7\xC0\x01\x00\x00\x00\xC3", 8); //patch sceSblACMgrIsAllowedSystemLevelDebugging
 	memcpy((void*)(kernbase + patch_MmapSelfCapability), "\x48\xC7\xC0\x01\x00\x00\x00\xC3", 8); //patch sceSblACMgrHasMmapSelfCapability
 	memcpy((void*)(kernbase + patch_AllowedToMmapSelf), "\x48\xC7\xC0\x01\x00\x00\x00\xC3", 8); //patch sceSblACMgrIsAllowedToMmapSelf

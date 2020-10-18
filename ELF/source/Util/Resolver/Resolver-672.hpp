@@ -33,6 +33,7 @@
 #define addr_strcpy								0x2390C0
 #define addr_strncpy                            0x329010
 #define addr_strcmp                             0x341810
+#define addr_strstr                             0x4817F0
 #define addr_sprintf                            0x1234C0
 #define addr_snprintf                           0x123590
 #define addr_vsprintf                           0x123550
@@ -91,19 +92,19 @@
 #define addr_mtx_unlock_flags                   0x00496810
 
 /* Fake Selfs */
-#define addr_sbl_drv_msg_mtx                    0x0266AC70
-#define addr_gpu_va_page_list                   0x0266AC68
+#define addr_sbl_drv_msg_mtx                    0x266AC70
+#define addr_gpu_va_page_list                   0x266AC68
 #define addr_mini_syscore_self_binary           0x0156A588
-#define addr_sceSblAuthMgrGetSelfInfo           0x0065E010
-#define addr_sceSblAuthMgrIsLoadable2           0x0065D7A0
-#define addr_sceSblAuthMgrSmStart               0x0065E490
-#define addr_sceSblAuthMgrVerifyHeader          0x0065D800
-#define addr_sceSblServiceMailbox               0x0064CC20
+#define addr_sceSblAuthMgrGetSelfInfo           0x65E010
+#define addr_sceSblAuthMgrIsLoadable2           0x65D7A0
+#define addr_sceSblAuthMgrSmStart               0x65E490
+#define addr_sceSblAuthMgrVerifyHeader          0x65D800
+#define addr_sceSblServiceMailbox               0x64CC20
 #define addr_sceSblAuthMgrVerifyHeaderHook1     0x659AC6
 #define addr_sceSblAuthMgrVerifyHeaderHook2     0x65A758
 #define addr_SceSblAuthMgrIsLoadable2Hook       0x65930F
-#define addr_SceSblAuthMgrSmLoadSelfSegment_Mailbox 0x661571
-#define addr_SceSblAuthMgrSmLoadSelfBlock_Mailbox 0x66092A
+#define addr_SceSblAuthMgrSmLoadSelfSegment_Mailbox 0x66092A
+#define addr_SceSblAuthMgrSmLoadSelfBlock_Mailbox 0x661571
 
 /* Critical Sections */
 #define addr_EnterCriticalSection               0x2AA0A0
@@ -124,16 +125,16 @@
 
 /* Kernel Misc */
 #define addr_kernel_sysctlbyname                0x2782E0
-#define addr_kernel_ioctl                       0
-#define addr_icc_indicator_set_buzzer           0
+#define addr_kernel_ioctl                       0x39C5C0
+#define addr_icc_indicator_set_buzzer           0x9A250
 
 /* Registry */
-#define addr_sceRegMgrGetStr                    0
-#define addr_sceRegMgrSetStr                    0
-#define addr_sceRegMgrGetInt                    0
-#define addr_sceRegMgrSetInt                    0
-#define addr_sceRegMgrGetBin                    0
-#define addr_sceRegMgrSetBin                    0
+#define addr_sceRegMgrGetStr                    0x509220
+#define addr_sceRegMgrSetStr                    0x509060
+#define addr_sceRegMgrGetInt                    0x508A60
+#define addr_sceRegMgrSetInt                    0x5077D0
+#define addr_sceRegMgrGetBin                    0x5093A0
+#define addr_sceRegMgrSetBin                    0x5092F0
 
 /* Module Offsets */
 #define addr_thr_initial_libkernel              0x435420

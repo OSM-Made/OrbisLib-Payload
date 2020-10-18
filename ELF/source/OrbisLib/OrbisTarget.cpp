@@ -22,7 +22,8 @@ void OrbisTarget::Info(int Socket)
 	int ret = kernel_sysctlbyname(curthread(), "machdep.openpsid", (char*)&PSID, &PSIDlen, NULL, NULL, NULL, 0);
 
 	char IDPS[16] = { 0 };
-	memcpy(IDPS, resolve(0x1CD0688), 16);
+	size_t IDPSlen = 16;
+	ret = kernel_sysctlbyname(curthread(), "machdep.idps", (char*)&IDPS, &IDPSlen, NULL, NULL, NULL, 0);
 
 	int ConsoleType = GetConsoleType(IDPS[5] & 0xffU);
 
@@ -42,7 +43,7 @@ void OrbisTarget::Info(int Socket)
 		strcpy(TargetInfo.CurrentTitleID, proc->titleId);
 	else
 	    strcpy(TargetInfo.CurrentTitleID, "XMB");
-
+	
     //Fill Response packet.
     TargetInfo.SDKVersion = sdk_version;
     TargetInfo.SoftwareVersion = upd_version;
