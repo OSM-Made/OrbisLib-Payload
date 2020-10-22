@@ -178,7 +178,7 @@ uint64_t GetCPUTemp()
 	{
 		kernel_ioctl(curthread(), fd, 0x4004A501, &temp);
 
-		sys_close(fd);
+		sys_fclose(fd);
 	}
 
 	return temp;
@@ -189,9 +189,12 @@ uint64_t GetSOCTemp()
 	uint64_t temp = 0;
 	int fd = sys_fopen("/dev/sbi", 2, 0);
 
-	int ret = kernel_ioctl(curthread(), fd, 0xC008A502, &temp);
+	if(fd)
+	{
+		kernel_ioctl(curthread(), fd, 0xC008A502, &temp);
 
-	sys_close(fd);
+		sys_fclose(fd);
+	}
 
 	return temp >> 32;
 }
