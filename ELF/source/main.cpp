@@ -5,17 +5,21 @@
 
 OrbisLib* orbisLib = NULL;
 HelperManager* pHelperManager = NULL;
+TargetComms* pTargetComms = NULL;
 
 extern "C" void _main(uint64_t* p)
 {
 	Install_Patches();
 	ResolveFunctions();
 
+	//Target Comms used for sending info to the host.
+    pTargetComms = new TargetComms();
+
 	//Start up the main orbis lib API.
 	orbisLib = new OrbisLib();
 
-	//Start up the DebugLogger
-    StartDebugLogger();
+	//Start up the thread once the kproc has started.
+	pTargetComms->StartUpThread();
 
 	//Start up the Helper Manager
 	pHelperManager = new HelperManager();

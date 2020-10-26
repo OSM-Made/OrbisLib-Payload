@@ -33,7 +33,7 @@ void OrbisProc::OnProcessStart(void *arg, struct proc *p)
 
     if(strstr(p->titleId, "CUSA"))
     {
-        SendNewTitle(p->titleId);
+        pTargetComms->SendNewTitle(p->titleId);
 
         Log("New Title started! (%s)", p->titleId);
     }
@@ -45,7 +45,7 @@ void OrbisProc::OnProcessExit(void *arg, struct proc *p)
 
     if(strstr(p->titleId, "CUSA"))
     {
-        SendNewTitle("XMB");
+        pTargetComms->SendNewTitle("XMB");
 
         Log("Returning to XMB!");
     }
@@ -57,7 +57,7 @@ void OrbisProc::OnProcessExit(void *arg, struct proc *p)
         return;
 
     //Let the host know the process has died.
-    SendTargetCommand(CMD_PROC_DIE);
+   pTargetComms->SendTargetCommand(CMD_PROC_DIE);
 
      //Reset Data Values
     orbisProc->CurrentProcessID = -1;
@@ -204,7 +204,7 @@ void OrbisProc::Proc_Attach(int Socket, char* ProcName)
     strcpy(CurrentProcName, ProcName);
 
     //Notify all current Host instances we have attached to a new proc
-    SendProcChange(ProcName);
+    pTargetComms->SendProcChange(ProcName);
 
     DebugLog(LOGTYPE_INFO, "Attached to process \"%s\".", ProcName);
 
@@ -268,7 +268,7 @@ void OrbisProc::Proc_Detach(int Socket, char* ProcName)
         CurrentlyAttached = false;
 
         //Notify the host instances that we have detached from the current process.
-        SendTargetCommand(CMD_PROC_DETACH);
+        pTargetComms->SendTargetCommand(CMD_PROC_DETACH);
     }
 
     DebugLog(LOGTYPE_INFO, "Detached from process \"%s\".", ProcName);

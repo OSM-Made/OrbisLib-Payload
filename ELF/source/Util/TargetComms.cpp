@@ -1,13 +1,14 @@
 #include "../Main.hpp"
 #include "TargetComms.hpp"
 
-int SendTargetCommand(int Command, TargetCommandPacket_s* TargetCommandPacket)
+TargetCommBackLog_s TargetCommBackLog[100];
+
+bool TargetComms::SendTargetCommand(TargetCommandPacket_s* TargetCommandPacket)
 {
-    //Prepare our buffer
-    TargetCommandPacket->CommandIndex = Command;
+    int sock = -1;
 
     //Prepare a new socket for our print
-	int sock = sys_socket(AF_INET, SOCK_STREAM, 0);
+	sock = sys_socket(AF_INET, SOCK_STREAM, 0);
 
 	//Set the Socket Option SO_NOSIGPIPE
 	int optval = 1;
@@ -23,76 +24,231 @@ int SendTargetCommand(int Command, TargetCommandPacket_s* TargetCommandPacket)
 	sys_connect(sock, (struct sockaddr*)&sockAddr, sizeof(struct sockaddr));
 
     //Send our command packet.
-	Send(sock, (char*)TargetCommandPacket, sizeof(TargetCommandPacket_s));
+    Send(sock, (char*)TargetCommandPacket, sizeof(TargetCommandPacket_s));
 
-	return sock;
+	//Close the socket.
+    sys_close(sock);
+
+    return true;
 }
 
-void SendTargetCommand(int Command)
+int TargetComms::GetFreeBackLog()
 {
-    //Prepare our packet.
-    TargetCommandPacket_s TargetCommandPacket;
+    int IndexFound = 99;
+    bool SlotFound = false;
 
-    //Send the command packet.
-    int sock = SendTargetCommand(Command, &TargetCommandPacket);
+    do
+	{
+		if (!TargetCommBackLog[IndexFound].Used)
+			SlotFound = true;
+		else
+			IndexFound --;
+	} while (SlotFound == false && IndexFound != -1);
 
-    //close the socket.
-    sys_close(sock);
+    //Make sure we found our Buffer.
+	if (IndexFound == -1 || SlotFound == false)
+		return -1;
+
+    //Set as used.
+    TargetCommBackLog[IndexFound].Used = true;
+
+    return IndexFound;
 }
 
-void SendProcChange(char* ProcName)
+void TargetComms::SendTargetCommand(int Command)
 {
-    //Prepare our packet.
-    TargetCommandPacket_s TargetCommandPacket;
-    strcpy(TargetCommandPacket.ProcName, ProcName);
+    //We must lock before we make changes so we dont send incomplete packets.
+    mtx_lock_flags(&mLock, 0);
 
-    //send the command packet.
-    int sock = SendTargetCommand(CMD_PROC_ATTACH, &TargetCommandPacket);
+    //Add Our command to the Que.
+    int index = GetFreeBackLog();
 
-    //Close the socket.
-    sys_close(sock);
+    //Make sure the index was found.
+    if(index == -1)
+        return;
+    
+    //Copy our data to the packet.
+    TargetCommBackLog[index].TargetCommandPacket.CommandIndex = Command;
+
+    //Set Packet to send.
+    TargetCommBackLog[index].ReadyToSend = true;
+
+    //dont forget to unlock.
+    mtx_unlock_flags(&mLock, 0);
 }
 
-void SendNewTitle(char* TitleID)
+void TargetComms::SendProcChange(char* ProcName)
 {
-    //Prepare our packet.
-    TargetCommandPacket_s TargetCommandPacket;
-    strcpy(TargetCommandPacket.TitleChange.TitleID, TitleID);
+    //We must lock before we make changes so we dont send incomplete packets.
+    mtx_lock_flags(&mLock, 0);
 
-    //send the command packet.
-    int sock = SendTargetCommand(CMD_TARGET_NEWTITLE, &TargetCommandPacket);
+    //Add Our command to the Que.
+    int index = GetFreeBackLog();
 
-    //Close the socket.
-    sys_close(sock);
+    //Make sure the index was found.
+    if(index == -1)
+        return;
+
+    //Copy our data to the packet.
+    TargetCommBackLog[index].TargetCommandPacket.CommandIndex = CMD_PROC_ATTACH;
+    strcpy(TargetCommBackLog[index].TargetCommandPacket.ProcName , ProcName);
+
+    //Set Packet to send.
+    TargetCommBackLog[index].ReadyToSend = true;
+
+    //dont forget to unlock.
+    mtx_unlock_flags(&mLock, 0);
 }
 
-void SendPrint(char* Data, int len)
+void TargetComms::SendNewTitle(char* TitleID)
 {
-    //Prepare our packet.
-    TargetCommandPacket_s TargetCommandPacket;
-    TargetCommandPacket.Print.Type = PT_SOCK;
-    TargetCommandPacket.Print.Len = len;
+    //We must lock before we make changes so we dont send incomplete packets.
+    mtx_lock_flags(&mLock, 0);
 
-    //send the command packet.
-    int sock = SendTargetCommand(CMD_PRINT, &TargetCommandPacket);
+    //Add Our command to the Que.
+    int index = GetFreeBackLog();
 
-    //Send the data from the print.
-    Send(sock, Data, len);
+    //Make sure the index was found.
+    if(index == -1)
+        return;
 
-    //Close the socket.
-    sys_close(sock);
+    //Copy our data to the packet.
+    TargetCommBackLog[index].TargetCommandPacket.CommandIndex = CMD_TARGET_NEWTITLE;
+    strcpy(TargetCommBackLog[index].TargetCommandPacket.TitleChange.TitleID, TitleID);
+
+    //Set Packet to send.
+    TargetCommBackLog[index].ReadyToSend = true;
+
+    //dont forget to unlock.
+    mtx_unlock_flags(&mLock, 0);
 }
 
-void SendIntercept(int Reason, reg* Registers)
+void TargetComms::SendPrint(char* Sender, int Type, const char* fmt, ...)
 {
-    //Prepare our packet.
-    TargetCommandPacket_s TargetCommandPacket;
-    TargetCommandPacket.Break.Reason = Reason;
-    memcpy((void*)&TargetCommandPacket.Break.Registers, Registers, sizeof(reg));
+    char Data[0x400] = { 0 };
 
-    //send the command packet.
-    int sock = SendTargetCommand(CMD_INTERCEPT, &TargetCommandPacket);
+    va_list args;
+	va_start(args, fmt);
+	vsprintf(Data, fmt, args);
+    va_end(args);
 
-    //Close the socket.
-    sys_close(sock);
+    //printf("Data Set: %s\n", Data);
+
+    //We must lock before we make changes so we dont send incomplete packets.
+    mtx_lock_flags(&mLock, 0);
+
+    //Add Our command to the Que.
+    int index = GetFreeBackLog();
+
+    //Make sure the index was found.
+    if(index == -1)
+        return;
+    
+    //Copy our data to the packet.
+    TargetCommBackLog[index].TargetCommandPacket.CommandIndex = CMD_PRINT;
+    strcpy(TargetCommBackLog[index].TargetCommandPacket.Print.Sender, Sender);
+    TargetCommBackLog[index].TargetCommandPacket.Print.Type = Type;
+    memcpy(&TargetCommBackLog[index].TargetCommandPacket.Print.Data[0], Data, 0x400);
+
+    //Set Packet to send.
+    TargetCommBackLog[index].ReadyToSend = true;
+
+    //dont forget to unlock.
+    mtx_unlock_flags(&mLock, 0);
+}
+
+void TargetComms::SendIntercept(int Reason, reg* Registers)
+{
+    //We must lock before we make changes so we dont send incomplete packets.
+    mtx_lock_flags(&mLock, 0);
+
+    //Add Our command to the Que.
+    int index = GetFreeBackLog();
+
+    //Make sure the index was found.
+    if(index == -1)
+        return;
+
+    //Copy our data to the packet.
+    TargetCommBackLog[index].TargetCommandPacket.CommandIndex = CMD_INTERCEPT;
+    TargetCommBackLog[index].TargetCommandPacket.Break.Reason = Reason;
+    memcpy((void*)&TargetCommBackLog[index].TargetCommandPacket.Break.Registers, Registers, sizeof(reg));
+
+    //Set Packet to send.
+    TargetCommBackLog[index].ReadyToSend = true;
+
+    //dont forget to unlock.
+    mtx_unlock_flags(&mLock, 0);
+}
+
+void TargetComms::TargetCommsThread(void* arg)
+{
+    TargetComms* targetComms = (TargetComms*)arg;
+
+    //Wait for our host to connect
+	while(orbisLib->HostIPAddr == 0)
+	{
+		pause("", 100);
+	}
+
+    while(targetComms->IsRunning)
+    {
+        kthread_suspend_check();
+
+        for(int i = 0; i < 100; i++)
+        {
+            //lock the mutex when sending.
+            mtx_lock_flags(&targetComms->mLock, 0);
+
+            if(TargetCommBackLog[i].ReadyToSend == true)
+            {
+                if(targetComms->SendTargetCommand(&TargetCommBackLog[i].TargetCommandPacket))
+                {
+                    //Set the status to free.
+                    memset(&TargetCommBackLog[i].TargetCommandPacket, 0, sizeof(TargetCommandPacket_s));
+                    TargetCommBackLog[i].Used = false;
+                    TargetCommBackLog[i].ReadyToSend = false;
+                }
+            }
+
+            //dont forget to unlock.
+            mtx_unlock_flags(&targetComms->mLock, 0);
+        }
+
+        pause("", 100);
+    }
+
+    //Clean up
+    mtx_destroy(&targetComms->mLock);
+
+    //shut down.
+    kthread_exit();
+}
+
+void TargetComms::StartUpThread()
+{
+    while(orbisLib->kOrbisProc == 0)
+		pause("", 100);
+
+    kproc_kthread_add(TargetCommsThread, this, &orbisLib->kOrbisProc, NULL, NULL, 0, "OrbisLib.elf", "Target Comms Thread");
+}
+
+TargetComms::TargetComms()
+{
+    //initialize the mutex.
+    mtx_init(&this->mLock, "TargetComms_mLock", 0, MTX_DEF);
+
+    IsRunning = true;
+
+    for(int i = 0; i < 100; i++)
+    {
+        memset(&TargetCommBackLog[i].TargetCommandPacket, 0, sizeof(TargetCommandPacket_s));
+        TargetCommBackLog[i].Used = false;
+        TargetCommBackLog[i].ReadyToSend = false;
+    }
+}
+
+TargetComms::~TargetComms()
+{
+    IsRunning = false;
 }

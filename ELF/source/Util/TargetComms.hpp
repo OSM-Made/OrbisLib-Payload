@@ -9,7 +9,7 @@ extern "C"
 enum TargetCommands
 {
 	//Print Server
-	CMD_PRINT,
+	CMD_PRINT = 1,
 
 	//Debugging
 	CMD_INTERCEPT,
@@ -33,16 +33,11 @@ enum TargetCommands
 	CMD_TARGET_AVAILABILITY,
 };
 
-enum PrintType
-{
-	PT_SOCK,
-	PT_SERIAL
-};
-
+#pragma pack(push, 2)
 struct TargetCommandPacket_s
 {
-	int CommandIndex;
-	char IPAddr[16];
+	int CommandIndex; //0x00
+	char IPAddr[16]; //0x04
 	union
 	{
 		char ProcName[0x20];
@@ -52,8 +47,9 @@ struct TargetCommandPacket_s
 		}TitleChange;
 		struct
 		{
+			char Sender[0x100]; //0x14
+			char Data[0x400]; //0x114
 			int Type;
-			int Len;
 		}Print;
 		struct
 		{
@@ -67,11 +63,33 @@ struct TargetCommandPacket_s
 		}Target;
 	};
 };
+#pragma pack(pop)
 
-int SendTargetCommand(int Command, TargetCommandPacket_s* TargetCommandPacket);
-void SendTargetCommand(int Command);
+struct TargetCommBackLog_s
+{
+	bool Used;
+	bool ReadyToSend;
+	TargetCommandPacket_s TargetCommandPacket;
+};
 
-void SendProcChange(char* ProcName);
-void SendNewTitle(char* TitleID);
-void SendPrint(char* Data, int len);
-void SendIntercept(int Reason, reg* Registers);
+class TargetComms
+{
+private:
+	mtx mLock;
+	bool IsRunning;
+
+	bool SendTargetCommand(TargetCommandPacket_s* TargetCommandPacket);
+	int GetFreeBackLog();
+	static void TargetCommsThread(void* arg);
+
+public:
+	void SendTargetCommand(int Command);
+	void SendProcChange(char* ProcName);
+	void SendNewTitle(char* TitleID);
+	void SendPrint(char* Sender, int Type, const char* fmt, ...);
+	void SendIntercept(int Reason, reg* Registers);
+
+	void StartUpThread();
+	TargetComms();
+	~TargetComms();
+};

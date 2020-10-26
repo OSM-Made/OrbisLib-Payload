@@ -52,3 +52,4 @@ extern "C"
 
 extern OrbisLib* orbisLib;
 extern HelperManager* pHelperManager;
+extern TargetComms* pTargetComms;

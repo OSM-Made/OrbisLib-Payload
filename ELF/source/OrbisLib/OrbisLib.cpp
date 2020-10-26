@@ -161,18 +161,18 @@ void OrbisLib::ProcThread(void *arg)
 
 void OrbisLib::OnSystemSuspend(void *arg)
 {
-    SendTargetCommand(CMD_TARGET_SUSPEND);
+    pTargetComms->SendTargetCommand(CMD_TARGET_SUSPEND);
 
 }
 
 void OrbisLib::OnSystemResume(void *arg)
 {
-    SendTargetCommand(CMD_TARGET_RESUME);
+    pTargetComms->SendTargetCommand(CMD_TARGET_RESUME);
 }
 
 void OrbisLib::OnSystemShutdown(void *arg)
 {
-    SendTargetCommand(CMD_TARGET_SHUTDOWN);
+    pTargetComms->SendTargetCommand(CMD_TARGET_SHUTDOWN);
 }
 
 OrbisLib::OrbisLib()
@@ -219,7 +219,7 @@ OrbisLib::OrbisLib()
     }
 
     //Set our proc titleID doesnt really do anything is just cool :)
-    strcpy(kOrbisProc->titleId, "ORBIS2000");
+    strcpy(kOrbisProc->titleId, "ORBS20000");
 
     //Register Callbacks.
     SystemSuspend = EVENTHANDLER_REGISTER(system_suspend_phase1, (void*)OnSystemSuspend, this, EVENTHANDLER_PRI_FIRST);
@@ -233,9 +233,6 @@ OrbisLib::~OrbisLib()
     
     //Signal threads to shutdown.
     IsRunning = false;
-
-    //Kill the DebugLogger
-    StopDebugLogger();
 
     //Free the OrbisProc Class
     delete orbisProc;
