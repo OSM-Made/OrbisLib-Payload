@@ -47,8 +47,9 @@ void OrbisDebugger::WatcherThread(void* arg)
         switch (Signal)
         {
         case SIGTRAP:
-            
+            DebugLog(LOGTYPE_INFO, "SIGTRAP Caught @ 0x%llX", 0);
             break;
+            
         }
     }
 

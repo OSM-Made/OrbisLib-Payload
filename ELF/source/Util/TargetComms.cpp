@@ -1,14 +1,15 @@
 #include "../Main.hpp"
 #include "TargetComms.hpp"
 
-TargetCommBackLog_s TargetCommBackLog[100];
+#define TARGETCOMM_BACKLOG 100
+TargetCommBackLog_s TargetCommBackLog[TARGETCOMM_BACKLOG];
 
 bool TargetComms::SendTargetCommand(TargetCommandPacket_s* TargetCommandPacket)
 {
     int sock = -1;
 
     //Prepare a new socket for our print
-	sock = sys_socket(AF_INET, SOCK_STREAM, 0);
+	sock = sys_socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
 	//Set the Socket Option SO_NOSIGPIPE
 	int optval = 1;
@@ -24,7 +25,7 @@ bool TargetComms::SendTargetCommand(TargetCommandPacket_s* TargetCommandPacket)
 	sys_connect(sock, (struct sockaddr*)&sockAddr, sizeof(struct sockaddr));
 
     //Send our command packet.
-    Send(sock, (char*)TargetCommandPacket, sizeof(TargetCommandPacket_s));
+    Send(sock, (char*)TargetCommandPacket, sizeof(TargetCommandPacket_s)); //sys_write
 
 	//Close the socket.
     sys_close(sock);
@@ -34,13 +35,18 @@ bool TargetComms::SendTargetCommand(TargetCommandPacket_s* TargetCommandPacket)
 
 int TargetComms::GetFreeBackLog()
 {
-    int IndexFound = 99;
+    int IndexFound = TARGETCOMM_BACKLOG - 1;
     bool SlotFound = false;
 
     do
 	{
 		if (!TargetCommBackLog[IndexFound].Used)
+        {
+            //Set as used.
+            TargetCommBackLog[IndexFound].Used = true;
+
 			SlotFound = true;
+        }
 		else
 			IndexFound --;
 	} while (SlotFound == false && IndexFound != -1);
@@ -49,23 +55,23 @@ int TargetComms::GetFreeBackLog()
 	if (IndexFound == -1 || SlotFound == false)
 		return -1;
 
-    //Set as used.
-    TargetCommBackLog[IndexFound].Used = true;
-
     return IndexFound;
 }
 
 void TargetComms::SendTargetCommand(int Command)
 {
     //We must lock before we make changes so we dont send incomplete packets.
-    mtx_lock_flags(&mLock, 0);
+    //mtx_lock_flags(&mLock, 0);
 
     //Add Our command to the Que.
     int index = GetFreeBackLog();
 
     //Make sure the index was found.
     if(index == -1)
+    {
+        mtx_unlock_flags(&mLock, 0);
         return;
+    }
     
     //Copy our data to the packet.
     TargetCommBackLog[index].TargetCommandPacket.CommandIndex = Command;
@@ -74,20 +80,23 @@ void TargetComms::SendTargetCommand(int Command)
     TargetCommBackLog[index].ReadyToSend = true;
 
     //dont forget to unlock.
-    mtx_unlock_flags(&mLock, 0);
+    //mtx_unlock_flags(&mLock, 0);
 }
 
 void TargetComms::SendProcChange(char* ProcName)
 {
     //We must lock before we make changes so we dont send incomplete packets.
-    mtx_lock_flags(&mLock, 0);
+    //mtx_lock_flags(&mLock, 0);
 
     //Add Our command to the Que.
     int index = GetFreeBackLog();
 
     //Make sure the index was found.
     if(index == -1)
+    {
+        mtx_unlock_flags(&mLock, 0);
         return;
+    }
 
     //Copy our data to the packet.
     TargetCommBackLog[index].TargetCommandPacket.CommandIndex = CMD_PROC_ATTACH;
@@ -97,7 +106,7 @@ void TargetComms::SendProcChange(char* ProcName)
     TargetCommBackLog[index].ReadyToSend = true;
 
     //dont forget to unlock.
-    mtx_unlock_flags(&mLock, 0);
+    //mtx_unlock_flags(&mLock, 0);
 }
 
 void TargetComms::SendNewTitle(char* TitleID)
@@ -110,7 +119,10 @@ void TargetComms::SendNewTitle(char* TitleID)
 
     //Make sure the index was found.
     if(index == -1)
+    {
+        mtx_unlock_flags(&mLock, 0);
         return;
+    }
 
     //Copy our data to the packet.
     TargetCommBackLog[index].TargetCommandPacket.CommandIndex = CMD_TARGET_NEWTITLE;
@@ -132,8 +144,6 @@ void TargetComms::SendPrint(char* Sender, int Type, const char* fmt, ...)
 	vsprintf(Data, fmt, args);
     va_end(args);
 
-    //printf("Data Set: %s\n", Data);
-
     //We must lock before we make changes so we dont send incomplete packets.
     mtx_lock_flags(&mLock, 0);
 
@@ -142,7 +152,10 @@ void TargetComms::SendPrint(char* Sender, int Type, const char* fmt, ...)
 
     //Make sure the index was found.
     if(index == -1)
+    {
+        mtx_unlock_flags(&mLock, 0);
         return;
+    }
     
     //Copy our data to the packet.
     TargetCommBackLog[index].TargetCommandPacket.CommandIndex = CMD_PRINT;
@@ -167,7 +180,10 @@ void TargetComms::SendIntercept(int Reason, reg* Registers)
 
     //Make sure the index was found.
     if(index == -1)
+    {
+        mtx_unlock_flags(&mLock, 0);
         return;
+    }
 
     //Copy our data to the packet.
     TargetCommBackLog[index].TargetCommandPacket.CommandIndex = CMD_INTERCEPT;
@@ -195,12 +211,13 @@ void TargetComms::TargetCommsThread(void* arg)
     {
         kthread_suspend_check();
 
-        for(int i = 0; i < 100; i++)
+        int i = TARGETCOMM_BACKLOG - 1;
+        do
         {
             //lock the mutex when sending.
             mtx_lock_flags(&targetComms->mLock, 0);
 
-            if(TargetCommBackLog[i].ReadyToSend == true)
+            if(TargetCommBackLog[i].Used && TargetCommBackLog[i].ReadyToSend)
             {
                 if(targetComms->SendTargetCommand(&TargetCommBackLog[i].TargetCommandPacket))
                 {
@@ -213,8 +230,10 @@ void TargetComms::TargetCommsThread(void* arg)
 
             //dont forget to unlock.
             mtx_unlock_flags(&targetComms->mLock, 0);
-        }
 
+            i--;
+        } while (i >= 0);
+        
         pause("", 100);
     }
 
@@ -240,7 +259,7 @@ TargetComms::TargetComms()
 
     IsRunning = true;
 
-    for(int i = 0; i < 100; i++)
+    for(int i = 0; i < TARGETCOMM_BACKLOG; i++)
     {
         memset(&TargetCommBackLog[i].TargetCommandPacket, 0, sizeof(TargetCommandPacket_s));
         TargetCommBackLog[i].Used = false;
