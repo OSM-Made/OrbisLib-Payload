@@ -1,5 +1,5 @@
-CC		:=	gcc
-AS		:=	gcc
+CC		:=	g++
+AS		:=	g++
 OBJCOPY	:=	objcopy
 ODIR	:=	build
 SDIR	:=	source

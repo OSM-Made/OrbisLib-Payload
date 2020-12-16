@@ -59,7 +59,7 @@ typedef volatile s16 vs16;
 typedef volatile s32 vs32;
 typedef volatile s64 vs64;
 
-typedef uint32_t __dev_t;
+//typedef uint32_t __dev_t;
 typedef uint32_t blksize_t;
 typedef int64_t  blkcnt_t;
 typedef uint32_t dev_t;

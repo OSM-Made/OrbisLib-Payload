@@ -5,9 +5,9 @@ ENTRY(_start)
 
 PHDRS
 {
-	code PT_LOAD;
-  	headers PT_PHDR FILEHDR PHDRS;
-	text PT_LOAD;
+	code PT_LOAD FILEHDR PHDRS;
+  	headers PT_PHDR PHDRS;
+	text PT_LOAD FILEHDR PHDRS;
 	data PT_LOAD;
 	bss PT_LOAD;
 }
