@@ -26,5 +26,7 @@ extern "C" void _main(uint64_t* p)
 
 	DebugLog(LOGTYPE_INFO, "API Loaded!!!\nProcess Functions: %d\nDebugging Functions %d\nKernel Functions: %d\nTarget Functions: %d\nTotal API Calls: %d", (PROC_END - PROC_START) - 2, (DBG_END - DBG_START) - 2, (KERN_END - KERN_START) - 2, (TARGET_END - TARGET_START) - 2, TARGET_END - 8);
 
-	pHelperManager->pUserlandHelper->sceSysUtilSendNotificationRequest("OrbisLib v2.1 Loaded!\nMade by OSM");
+	char MessageBuffer[0x200];
+	sprintf(MessageBuffer, "OrbisLib v%s Loaded!\nMade by OSM", ORBISLIB_VERSION);
+	pHelperManager->pUserlandHelper->sceSysUtilSendNotificationRequest(MessageBuffer);
 }

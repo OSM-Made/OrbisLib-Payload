@@ -70,7 +70,7 @@
 #define patch_dbg_err_0                         0x507B09
 #define patch_dbg_err_1                         0x508D5C
 #define patch_memcpy                            0x3C15BD
-#define patch_ASLR                              0x3CECE1
+#define patch_ASLR                              0x3CEC8A
 #define patch_kmem_Alloc_0                      0x2507F5
 #define patch_kmem_Alloc_1                      0x250803
 #define patch_Disable_Core_Dump                 0x784120
