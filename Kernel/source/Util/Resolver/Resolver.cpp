@@ -23,6 +23,7 @@ int (*vprintf)(const char *fmt, va_list arg);
 int(*sscanf)(const char *str, const char *format, ...);
 char *(*strdup)(const char *s, void* type);
 char *(*realloc)(void *addr, unsigned long size, void* mtp, int flags);
+void(*kprintf)(const char* fmt, ...) = nullptr;
 
 /* Kproc */
 int (*kproc_create)(void (*func)(void *), void *arg, struct proc **newpp, int flags, int pages, const char *fmt, ...);
@@ -137,6 +138,8 @@ void ResolveFunctions()
     sscanf = (int(*)(const char *str, const char *format, ...))resolve(addr_sscanf);
     strdup = (char*(*)(const char *s, void*))resolve(addr_strdup);
     realloc = (char*(*)(void *addr, unsigned long size, void* mtp, int flags))resolve(addr_realloc);
+    kprintf = (decltype(kprintf))resolve(addr_printf);
+    
 
     /* Kproc */
     kproc_create = (int(*)(void (*func)(void *), void *arg, struct proc **newpp, int flags, int pages, const char *fmt, ...))resolve(addr_kproc_create);

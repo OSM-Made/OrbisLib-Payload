@@ -4,7 +4,7 @@ OBJCOPY   	:=    objcopy
 ODIR    	:=    build
 SDIR    	:=    source
 IDIRS    	:=    -Iinclude -I$(FREEBSD_INCLUDES)
-CFLAGS    	:=    $(IDIRS) -O3 -s -w -std=gnu++11 -fno-builtin -fno-exceptions -fno-asynchronous-unwind-tables -nostartfiles -nostdlib -w -masm=intel -march=btver2 -mtune=btver2 -m64 -mabi=sysv -mcmodel=small -mstackrealign -fPIE
+CFLAGS    	:=    $(IDIRS) -O3 -s -w -std=gnu++11 -fno-builtin -fno-exceptions -fno-asynchronous-unwind-tables -nostartfiles -nostdlib -w -masm=intel -march=btver2 -mtune=btver2 -m64 -mabi=sysv -mcmodel=small -mstackrealign -fPIE -DSOFTWARE_VERSION_$(VERSION)
 LFLAGS    	:=    -Xlinker -T Linker -Wl,--build-id=none -mstackrealign -pie
 SFLAGS  	:=    -nostartfiles -nostdlib -masm=intel -march=btver2 -mtune=btver2 -m64 -mabi=sysv -mcmodel=small
 CFILES    	:=    $(shell find $(SDIR) -name \*.cpp)

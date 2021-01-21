@@ -20,7 +20,7 @@ void DoPatches(uint64_t kernbase)
   	*(uint32_t*)(kernbase + patch_dbg_err_1) = 0;
 
 	*(uint8_t*)(kernbase + patch_memcpy) = 0xEB; //patch memcpy first
-	*(uint16_t*)(kernbase + patch_ASLR) = 0x9090; //patch ASLR
+	*(uint8_t*)(kernbase + patch_ASLR) = 0xEB; //patch ASLR
 	*(uint8_t*)(kernbase + patch_kmem_Alloc_0) = VM_PROT_ALL; //patch kmem_alloc
 	*(uint8_t*)(kernbase + patch_kmem_Alloc_1) = VM_PROT_ALL; //patch kmem_alloc
 	*(uint8_t *)(kernbase + patch_Disable_Core_Dump) = 0xC3; //disable sysdump_perform_dump_on_fatal_trap

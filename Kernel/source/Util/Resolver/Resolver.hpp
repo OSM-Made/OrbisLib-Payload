@@ -42,6 +42,7 @@ extern int (*vprintf)(const char *fmt, va_list arg);
 extern int(*sscanf)(const char *str, const char *format, ...);
 extern char *(*strdup)(const char *s, void* type);
 extern char *(*realloc)(void *addr, unsigned long size, void* mtp, int flags);
+extern void(*kprintf)(const char* fmt, ...);
 
 /* Kproc */
 extern int (*kproc_create)(void (*func)(void *), void *arg, proc **newpp, int flags, int pages, const char *fmt, ...);

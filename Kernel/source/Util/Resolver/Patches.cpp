@@ -8,7 +8,7 @@ void Install_Patches()
     gpKernelBase = (uint8_t*)__readmsr(0xC0000082) - addr_Xfast_syscall;
 
     if (!gpKernelBase) {
-        //printf("Failed to get Kernel Base!\n");
+        kprintf("Failed to get Kernel Base!\n");
         return;
     }
 

@@ -234,7 +234,7 @@ void TargetComms::TargetCommsThread(void* arg)
             i--;
         } while (i >= 0);
         
-        //pause("", 100);
+        pause("", 100);
     }
 
     //Clean up

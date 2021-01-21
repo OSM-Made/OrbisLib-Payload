@@ -71,10 +71,10 @@ ClientThreadEnd:
 
 void OrbisLib::ProcThread(void *arg) 
 {
-    OrbisLib* orbisLib = (OrbisLib*)arg;
+    //OrbisLib* orbisLib = (OrbisLib*)arg;
 
-	thread* CurrentThread = curthread();
-	ksetuid(0, CurrentThread);
+	//thread* CurrentThread = curthread();
+	/*ksetuid(0, CurrentThread);
 
 	// Root and escape our thread
 	if (CurrentThread->td_ucred)
@@ -97,15 +97,15 @@ void OrbisLib::ProcThread(void *arg)
 		// make system credentials
 		CurrentThread->td_ucred->cr_sceCaps[0] = 0xFFFFFFFFFFFFFFFFULL;
 		CurrentThread->td_ucred->cr_sceCaps[1] = 0xFFFFFFFFFFFFFFFFULL;
-	}
+	}*/
 
     //TODO: Start watcher thread to manage proc changes and handle intercepts
     //      Possibly maybe change this to call backs if we can and maybe hook the trap function
 
-    kproc_kthread_add(orbisLib->orbisDebugger->WatcherThread, orbisLib, &orbisLib->kOrbisProc, NULL, NULL, 0, "OrbisLib.elf", "Proc Watcher Thread");
+    //kproc_kthread_add(orbisLib->orbisDebugger->WatcherThread, orbisLib, &orbisLib->kOrbisProc, NULL, NULL, 0, "OrbisLib.elf", "Proc Watcher Thread");
 
     //Create a new socket for our listener.
-	int ClientSocket = -1;
+	/*int ClientSocket = -1;
 	int ServerSocket = sys_socket(AF_INET, SOCK_STREAM, 0);
 
     int optval = 1;
@@ -120,9 +120,9 @@ void OrbisLib::ProcThread(void *arg)
     sys_bind(ServerSocket, (struct sockaddr *)&servaddr, sizeof(servaddr));
 	sys_listen(ServerSocket, 100);
 
-    DebugLog(LOGTYPE_INFO, "API Started listening on port 6900...");
+    DebugLog(LOGTYPE_INFO, "API Started listening on port 6900...");*/
 
-    while(orbisLib->IsRunning)
+    /*while(orbisLib->IsRunning)
     {
         kthread_suspend_check();
         
@@ -151,11 +151,16 @@ void OrbisLib::ProcThread(void *arg)
             //Set our last Connection so we can tell when we have a new host.
             orbisLib->LastHostIPAddr = orbisLib->HostIPAddr;
 		}
-    }
+    }*/
+
+    /*while(1)
+    {
+        pause("", 100);
+    }*/
 
     //kthread_exit();
     DebugLog(LOGTYPE_NONE, "kproc Exiting!!!");
-	sys_close(ServerSocket);
+	//sys_close(ServerSocket);
     kproc_exit(0);
 }
 
@@ -208,10 +213,10 @@ OrbisLib::OrbisLib()
     }
 
     //Create Proc used to run the API and debugging.
-    kproc_create(ProcThread, this, &kOrbisProc, 0, 0, "OrbisLib.elf");
+    int ret = kproc_create(ProcThread, this, &kOrbisProc, 0, 0, "OrbisLib.elf");
 
     //Make sure the proc was made.
-    if(!kOrbisProc)
+    if(ret != 0 || !kOrbisProc)
     {
         DebugLog(LOGTYPE_ERR, "Failed to create OrbisProc!!");
         IsRunning = false;
