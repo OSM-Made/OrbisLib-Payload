@@ -30,30 +30,11 @@ extern "C" void _main(uint64_t* p)
 	//uint8_t Uart = 1;
 	//icc_nvs_write(4, 0x31F, 0x1, &Uart);
 
-	//Getting Console info
-	/*struct nvs_console_info {
-		char moboserial[14];
-		char _fill1[0x22];
-		char serial[10];
-		char _fill2[7];
-		char model[13];
-	} __attribute__((packed));*/
+	uint8_t Uart = 0;
+	icc_nvs_write(4, 0x1600, 0x1, &Uart);
 
-	//nvs_console_info info;
-	//icc_nvs_read(2, 0, sizeof(nvs_console_info), (unsigned char*)&info);
-
-	//pHelperManager->pUserlandHelper->sceSysUtilSendNotificationRequest("Motherboard Serial: %.*s", info.moboserial);
-	//pHelperManager->pUserlandHelper->sceSysUtilSendNotificationRequest("Serial: %.*s", info.serial);
-
-	//char Model[13];
-	//icc_nvs_read(2, 0x40, sizeof(Model), (unsigned char*)&Model);
-	//pHelperManager->pUserlandHelper->sceSysUtilSendNotificationRequest("Model Name = %s", Model);
-
-	//Getting Mac Address of lan
-	//unsigned char MACAdress[6];
-	//icc_nvs_read(0, 0x21, sizeof(MACAdress), (unsigned char*)&MACAdress);
-	//pHelperManager->pUserlandHelper->sceSysUtilSendNotificationRequest("%02X:%02X:%02X:%02X:%02X:%02X", MACAdress[0], MACAdress[1], MACAdress[2], MACAdress[3], MACAdress[4], MACAdress[5]);
-	//DebugLog(LOGTYPE_INFO, "%02X:%02X:%02X:%02X:%02X:%02X", MACAdress[0], MACAdress[1], MACAdress[2], MACAdress[3], MACAdress[4], MACAdress[5]);
+	//for(int i = 0; i < 6; i++)
+	//	Log("Value = %d%%\n", *(int32_t*)(resolve(0x2381C48) + (i * 0x4)));
 
 	pHelperManager->pUserlandHelper->sceSysUtilSendNotificationRequest("OrbisLib v%i.%i Loaded!\nMade by OSM", ORBISLIB_MAJOR_VERSION, ORBISLIB_MINOR_VERSION);
 

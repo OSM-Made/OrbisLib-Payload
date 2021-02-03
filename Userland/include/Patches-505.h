@@ -36,8 +36,5 @@ void DoPatches(uint64_t kernbase)
 	memcpy((void*)(kernbase + patch_ptrace_0), "\xE9\xD0\x00\x00\x00", 5); //remove all these bullshit checks from ptrace, by golden
 	*(uint8_t*)(kernbase + patch_ptrace_1) = 0xEB; //patch ptrace
 
-	//memcpy((void*)(kernbase + 0x262591), "\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90", 11); //sysctl write only patch
-	//memcpy((void*)(kernbase + 0x2626DE), "\xf1\x89\xd8", 3);
-
     __writecr0(CR0);
 }

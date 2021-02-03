@@ -47,12 +47,17 @@ void OrbisTarget::Info(int Socket)
     //Fill Response packet.
     TargetInfo.SDKVersion = sdk_version;
     TargetInfo.SoftwareVersion = upd_version;
+	icc_nvs_read(4, 0x60, sizeof(TargetInfo.FactorySoftwareVersion), (unsigned char*)&TargetInfo.FactorySoftwareVersion);
 	TargetInfo.CPUTemp = CPUTemp;
 	TargetInfo.SOCTemp = SOCTemp;
 	sceRegMgrGetStr(0x02050000, (char*)&TargetInfo.ConsoleName, sizeof(TargetInfo.ConsoleName)); // /SYSYEM/nickname
-	//Serial Number
-	//Model Number
-	//Mac Address
+	icc_nvs_read(2, 0, 14, (unsigned char*)&TargetInfo.MotherboardSerial);
+	icc_nvs_read(2, 0x30, 10, (unsigned char*)&TargetInfo.Serial);
+	icc_nvs_read(2, 0x41, 9, (unsigned char*)&TargetInfo.Model);
+	icc_nvs_read(0, 0x21, 6, (unsigned char*)&TargetInfo.MACAdressLAN);
+	icc_nvs_read(0, 0x21, 6, (unsigned char*)&TargetInfo.MACAdressWIFI); //TODO: Find
+	icc_nvs_read(4, 0x31F, 0x1, (unsigned char*)&TargetInfo.UART);
+	icc_nvs_read(4, 0x1600, 0x1, (unsigned char*)&TargetInfo.IDUMode);
     memcpy(TargetInfo.IDPS, IDPS, 16);
     memcpy(TargetInfo.PSID, PSID, 16);
     TargetInfo.ConsoleType = ConsoleType;

@@ -297,10 +297,18 @@ struct RESP_TargetInfo
 {
     int32_t SDKVersion;
     int32_t SoftwareVersion;
+    int32_t FactorySoftwareVersion;
     int32_t CPUTemp;
     int32_t SOCTemp;
     char CurrentTitleID[10];
     char ConsoleName[100];
+    char MotherboardSerial[14];
+    char Serial[10];
+    char Model[9];
+    unsigned char MACAdressLAN[6];
+    unsigned char MACAdressWIFI[6];
+    int32_t UART;
+    int32_t IDUMode;
     char IDPS[16];
     char PSID[16];
     int32_t ConsoleType;

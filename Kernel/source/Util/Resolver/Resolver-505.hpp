@@ -41,6 +41,7 @@
 #define addr_sscanf                             0x175900
 #define addr_strdup                             0x1C1C30
 #define addr_realloc                            0x10E590
+#define addr_printf                             0x436040
 
 #define addr_kmem_alloc							0xFCC80
 

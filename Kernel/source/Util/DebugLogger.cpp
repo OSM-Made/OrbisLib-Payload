@@ -43,13 +43,13 @@ void LogInternal(enum LogType_e LogType, const char* FunctionName, int32_t LineN
 
 	if(LogType == LOGTYPE_NONE)
 	{
-		kprintf("[%s:%d] %s\n", FunctionName, LineNumber, buffer);
-		//pTargetComms->SendPrint("OrbisLib", LogType, "%s\n", buffer);
+		kprintf("%s\n", buffer);
+		pTargetComms->SendPrint("OrbisLib", LogType, "%s\n", buffer);
 	}
 	else
 	{
 		kprintf("[%s:%d] %s\n", FunctionName, LineNumber, buffer);
-		//pTargetComms->SendPrint("OrbisLib", LogType, "[%s:%d] %s\n", FunctionName, LineNumber, buffer);
+		pTargetComms->SendPrint("OrbisLib", LogType, "[%s:%d] %s\n", FunctionName, LineNumber, buffer);
 	}
 
 	va_end(args);

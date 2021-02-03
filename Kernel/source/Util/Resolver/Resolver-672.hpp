@@ -95,7 +95,7 @@
 /* Fake Selfs */
 #define addr_sbl_drv_msg_mtx                    0x266AC70
 #define addr_gpu_va_page_list                   0x266AC68
-#define addr_mini_syscore_self_binary           0x0156A588
+#define addr_mini_syscore_self_binary           0x156A588
 #define addr_sceSblAuthMgrGetSelfInfo           0x65E010
 #define addr_sceSblAuthMgrIsLoadable2           0x65D7A0
 #define addr_sceSblAuthMgrSmStart               0x65E490
