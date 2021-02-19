@@ -233,7 +233,7 @@ void printf(const char *fmt, ...) {
 }
 
 void printf2(const char *fmt, ...) {
-	char buffer[0x400] = { 0 };
+	/*char buffer[0x400] = { 0 };
 	va_list args;
 	va_start(args, fmt);
 	vsprintf(buffer, fmt, args);
@@ -252,5 +252,5 @@ void printf2(const char *fmt, ...) {
 	sceNetSend(sock, buffer, 0x400, 0);
 	sceNetSocketClose(sock);
 
-	va_end(args);
+	va_end(args);*/
 }

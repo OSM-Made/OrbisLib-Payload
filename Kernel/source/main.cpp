@@ -29,4 +29,6 @@ extern "C" void _main(uint64_t* p)
 	pHelperManager->pUserlandHelper->sceSysUtilSendNotificationRequest("OrbisLib v%i.%i Loaded!\nMade by OSM", ORBISLIB_MAJOR_VERSION, ORBISLIB_MINOR_VERSION);
 
 	kprintf("Hello world from OrbisLib!!!\n");
+
+	sceKernelIccIndicatorStandbyBoot();
 }

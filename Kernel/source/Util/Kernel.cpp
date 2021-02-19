@@ -199,6 +199,79 @@ uint64_t GetSOCTemp()
 	return temp >> 32;
 }
 
+void IccIndicatorBootDone()
+{
+	unsigned int device = sys_fopen("/dev/icc_indicator", 0x10002, 0);
+
+	if(device)
+	{
+		kernel_ioctl(curthread(), device, 0x20009506);
+
+		sys_fclose(device);
+	}
+}
+
+void IccIndicatorShutdown()
+{
+	unsigned int device = sys_fopen("/dev/icc_indicator", 0x10002, 0);
+
+	if(device)
+	{
+		kernel_ioctl(curthread(), device, 0x20009507);
+
+		sys_fclose(device);
+	}
+}
+
+void IccIndicatorStandby()
+{
+	unsigned int device = sys_fopen("/dev/icc_indicator", 0x10002, 0);
+
+	if(device)
+	{
+		kernel_ioctl(curthread(), device, 0x20009508);
+
+		sys_fclose(device);
+	}
+}
+
+void sceKernelIccIndicatorStandbyShutdown()
+{
+	unsigned int device = sys_fopen("/dev/icc_indicator", 0x10002, 0);
+
+	if(device)
+	{
+		kernel_ioctl(curthread(), device, 0x20009509);
+
+		sys_fclose(device);
+	}
+}
+
+void sceKernelIccIndicatorStandbyBoot()
+{
+	unsigned int device = sys_fopen("/dev/icc_indicator", 0x10002, 0);
+
+	if(device)
+	{
+		kernel_ioctl(curthread(), device, 0x2000950A);
+
+		sys_fclose(device);
+	}
+}
+
+void sceKernelIccIndicatorUNK()
+{
+	char unk = 0;
+	unsigned int device = sys_fopen("/dev/icc_indicator", 0x10002, 0);
+
+	if(device)
+	{
+		kernel_ioctl(curthread(), device, 0x80019501, &unk);
+
+		sys_fclose(device);
+	}
+}
+
 int32_t sys_evf_open(const char* evf)
 {
 	struct sys_evf_open_args {
