@@ -9,11 +9,12 @@ HelperManager::HelperManager(/* args */)
     this->pFakeSelfHelper = new FakeSelfHelper();
 
     //Highjack the Remoteplay Process for FTP
-    LoadFTP("SceRemotePlay");
+    //LoadFTP("SceRemotePlay");
+    LoadFTP("SceShellCore");
 
     //Use ShellCore for our userland calls. Could be useful later for patches too.
-    this->pUserlandHelper = new UserlandHelper();
-    this->pUserlandHelper->InstallShellCode("SceShellCore");
+    //this->pUserlandHelper = new UserlandHelper();
+    //this->pUserlandHelper->InstallShellCode("SceShellCore");
 }
 
 HelperManager::~HelperManager()

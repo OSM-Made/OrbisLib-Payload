@@ -90,6 +90,8 @@ char *(*strdup)(const char *s);
 
 int (*sysctlbyname)(char *name, char *oldval, size_t *oldlen, char *newval, size_t newlen);
 
+void (*sceSystemStateMgrEnterStandby)(uint64_t unk);
+
 int sys_dynlib_dlsym(int loadedModuleID, const char *name, void *destination) {
 	return syscall(591, loadedModuleID, name, destination);
 }
@@ -197,6 +199,9 @@ void LoadImports()
 	int sysUtilHandle = sceKernelLoadStartModule("libSceSysUtil.sprx", 0, NULL, 0, 0, 0);
 	sys_dynlib_dlsym(sysUtilHandle, "sceSysUtilSendSystemNotificationWithText", &sceSysUtilSendSystemNotificationWithText);
 	sys_dynlib_dlsym(sysUtilHandle, "sceSysUtilSendNotificationRequest", &sceSysUtilSendNotificationRequest);
+
+	//int libSceSystemService = sceKernelLoadStartModule("Sce.Vsh.ShellCoreUtilWrapper.dll.sprx", 0, NULL, 0, 0, 0);
+	//sys_dynlib_dlsym(libSceSystemService, "sceSystemStateMgrEnterStandby", &sceSystemStateMgrEnterStandby);
 }
 
 void Sleep(unsigned int milliseconds) {
