@@ -281,6 +281,8 @@ extern char *(*strdup)(const char *s);
 
 extern int (*sysctlbyname)(char *name, char *oldval, size_t *oldlen, char *newval, size_t newlen);
 
+extern void (*sceSystemStateMgrEnterStandby)(uint64_t unk);
+
 int sys_dynlib_dlsym(int loadedModuleID, const char *name, void *destination);
 int sys_dynlib_load_prx(const char *name, int *idDestination);
 

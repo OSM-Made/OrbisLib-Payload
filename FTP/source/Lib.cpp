@@ -90,6 +90,8 @@ char *(*strdup)(const char *s);
 
 int (*sysctlbyname)(char *name, char *oldval, size_t *oldlen, char *newval, size_t newlen);
 
+void (*sceSystemStateMgrEnterStandby)(uint64_t unk);
+
 int sys_dynlib_dlsym(int loadedModuleID, const char *name, void *destination) {
 	return syscall(591, loadedModuleID, name, destination);
 }
@@ -197,6 +199,9 @@ void LoadImports()
 	int sysUtilHandle = sceKernelLoadStartModule("libSceSysUtil.sprx", 0, NULL, 0, 0, 0);
 	sys_dynlib_dlsym(sysUtilHandle, "sceSysUtilSendSystemNotificationWithText", &sceSysUtilSendSystemNotificationWithText);
 	sys_dynlib_dlsym(sysUtilHandle, "sceSysUtilSendNotificationRequest", &sceSysUtilSendNotificationRequest);
+
+	//int libSceSystemService = sceKernelLoadStartModule("Sce.Vsh.ShellCoreUtilWrapper.dll.sprx", 0, NULL, 0, 0, 0);
+	//sys_dynlib_dlsym(libSceSystemService, "sceSystemStateMgrEnterStandby", &sceSystemStateMgrEnterStandby);
 }
 
 void Sleep(unsigned int milliseconds) {
@@ -233,7 +238,7 @@ void printf(const char *fmt, ...) {
 }
 
 void printf2(const char *fmt, ...) {
-	char buffer[0x400] = { 0 };
+	/*char buffer[0x400] = { 0 };
 	va_list args;
 	va_start(args, fmt);
 	vsprintf(buffer, fmt, args);
@@ -252,5 +257,5 @@ void printf2(const char *fmt, ...) {
 	sceNetSend(sock, buffer, 0x400, 0);
 	sceNetSocketClose(sock);
 
-	va_end(args);
+	va_end(args);*/
 }
