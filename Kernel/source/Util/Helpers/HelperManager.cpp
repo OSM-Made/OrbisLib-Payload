@@ -9,10 +9,12 @@ HelperManager::HelperManager(/* args */)
     this->pFakeSelfHelper = new FakeSelfHelper();
 
     //Highjack the Remoteplay Process for FTP
-    //LoadFTP("SceRemotePlay");
-    LoadFTP("SceShellCore");
+    LoadFTP("SceRemotePlay");
+    //LoadFTP("SceShellCore");
 
-    //Use ShellCore for our userland calls. Could be useful later for patches too.
+    //Use ShellCore for our userland calls. Could be useful later for patches too 
+    //                  and as ive found the SystemStateMgr could be used to control 
+    //                  the power state of the system.
     //this->pUserlandHelper = new UserlandHelper();
     //this->pUserlandHelper->InstallShellCode("SceShellCore");
 }

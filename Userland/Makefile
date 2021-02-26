@@ -4,7 +4,7 @@ OBJCOPY	:=	objcopy
 ODIR	:=	build
 SDIR	:=	source
 IDIRS	:= -Iinclude
-CFLAGS	:=	$(IDIRS) -Os -std=gnu11 -ffunction-sections -fdata-sections -fno-builtin -nostartfiles -nostdlib -Wall -masm=intel -march=btver2 -mtune=btver2 -m64 -mabi=sysv -mcmodel=small -fpie #-DSOFTWARE_VERSION_$(VERSION)
+CFLAGS	:=	$(IDIRS) -Os -std=gnu11 -ffunction-sections -fdata-sections -fno-builtin -nostartfiles -nostdlib -Wall -masm=intel -march=btver2 -mtune=btver2 -m64 -mabi=sysv -mcmodel=small -fpie -DVERSION_$(VERSION)
 SFLAGS	:=	-nostartfiles -nostdlib -march=btver2 -mtune=btver2
 LFLAGS	:=	-Xlinker -T linkfile -Wl,--build-id=none -Wl,--gc-sections
 CFILES	:=	$(wildcard $(SDIR)/*.c)

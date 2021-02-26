@@ -20,7 +20,7 @@ void printf(char* fmt, ...)
 	struct sockaddr_in sockAddr = { 0 };
 	sockAddr.sin_family = AF_INET;
 	sockAddr.sin_port = htons(9902);
-	sockAddr.sin_addr.s_addr = IP(192, 168, 1, 64);
+	sockAddr.sin_addr.s_addr = IP(192, 168, 1, 71);
 
 	sys_connect(sock, (struct sockaddr*)&sockAddr, sizeof(struct sockaddr));
 

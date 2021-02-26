@@ -204,7 +204,7 @@ void ResolveFunctions()
     #ifdef SOFTWARE_VERSION_505
     eventhandler_register = (eventhandler_tag(*)(eventhandler_list *list, const char *name, void *func, void *arg, int priority))resolve(addr_eventhandler_register);
     #endif
-    #ifdef SOFTWARE_VERSION_672 || SOFTWARE_VERSION_702
+    #ifdef SOFTWARE_VERSION_672 || SOFTWARE_VERSION_702 || SOFTWARE_VERSION_755
     eventhandler_register = (eventhandler_tag(*)(eventhandler_list *list, const char *name, void *func, const char* unk, void *arg, int priority))resolve(addr_eventhandler_register);
     #endif
     eventhandler_deregister = (void(*)(struct eventhandler_list* a, struct eventhandler_entry* b))resolve(addr_eventhandler_deregister);
