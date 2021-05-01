@@ -851,7 +851,7 @@ void OrbisProc::Proc_DumpModule(int Socket, const char* ModuleName)
 
     char Buffer[0x200];
 	sprintf(Buffer, "Dumped\n%s\n0x%llX", ModuleName, TextSegSize + DataSegSize);
-	pHelperManager->pUserlandHelper->sceSysUtilSendNotificationRequest(Buffer);
+	SceNotify(Buffer);
 
 Cleanup:
 	_free(DumpedData);

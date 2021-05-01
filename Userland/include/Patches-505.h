@@ -13,10 +13,10 @@ void DoPatches(uint64_t kernbase)
 	*(uint64_t*)(kernbase + patch_sys_dynlib_dlsym) = 0x8B4890000001C1E9;
 	
 	//debug settings patches 5.05
-	*(char*)(kernbase + patch_dbg_Settings_0) |= 0x14;
+	/*(char*)(kernbase + patch_dbg_Settings_0) |= 0x14;
   	*(char*)(kernbase + patch_dbg_Settings_1) |= 3;
   	*(char*)(kernbase + patch_dbg_Settings_2) |= 1;
-  	*(char*)(kernbase + patch_dbg_Settings_3) |= 1;
+  	*(char*)(kernbase + patch_dbg_Settings_3) |= 1;*/
 
 	//debug menu error patches 5.05
   	*(uint32_t*)(kernbase + patch_dbg_err_0) = 0;

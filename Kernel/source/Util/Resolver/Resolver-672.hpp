@@ -12,7 +12,7 @@
 #define addr_copyout							0x3C16B0
 
 /* Patches */
-#define patch_copyin1                           0x3C17E8
+#define patch_copyin1                           0x3C1803
 #define patch_copyin2                           0x3C17F7
 #define patch_copyout1                          0x3C16EB
 #define patch_copyout2                          0x3C16F3

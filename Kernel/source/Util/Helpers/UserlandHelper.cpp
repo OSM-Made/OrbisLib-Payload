@@ -21,6 +21,7 @@ void UserlandHelper::InstallShellCode(char* ProcName)
     int err = 0;
     proc* proc = proc_find_by_name(ProcName); 
     uint64_t thr_initial = 0;
+    uint64_t SceSysCoreBase = 0;
 
     if(!proc)
     {
@@ -107,11 +108,15 @@ void UserlandHelper::InstallShellCode(char* ProcName)
     //Set Text Segments as writeable.
     m_library = proc->p_dynlibptr->p_dynlib;
     while(m_library != 0)
-	{ 
+	{
+        if(!strcmp(basename(m_library->ModulePath), "SceSysCore.elf"))
+            SceSysCoreBase = m_library->codeBase;
+
         proc_mprotect(proc, (void *)m_library->codeBase, (void*)m_library->codeSize, VM_PROT_ALL);
         m_library = m_library->dynlib_next;
     }
 
+    DebugLog(LOGTYPE_INFO, "SceSysCoreBase = %llX", SceSysCoreBase);
     DebugLog(LOGTYPE_INFO, "thr_initial = %llX", thr_initial);
     DebugLog(LOGTYPE_INFO, "gShellCodePtr = %llX", gShellCodePtr);
 
@@ -129,9 +134,99 @@ void UserlandHelper::InstallShellCode(char* ProcName)
         return;
     }
 
+    err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisUserlandHelper_header, SceSysCoreBase), sizeof(SceSysCoreBase), (void *)&SceSysCoreBase, &n, 1);
+    if(err)
+    {
+        DebugLog(LOGTYPE_ERR, "Failed to write SceSysCoreBase to ShellCode. Error: %d.", err);
+
+        if (gShellCodePtr)
+			proc_deallocate(proc, gShellCodePtr, gShellCodeSize);
+
+		if (gStackPtr)
+			proc_deallocate(proc, gStackPtr, 0x80000);
+
+        return;
+    }
+
+    uint64_t spawnProcess = SceSysCoreBase + 0x9EA0;//0x3B40;
+    err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisUserlandHelper_header, spawnProcess), sizeof(spawnProcess), (void *)&spawnProcess, &n, 1);
+    if(err)
+    {
+        DebugLog(LOGTYPE_ERR, "Failed to write spawnProcess to ShellCode. Error: %d.", err);
+
+        if (gShellCodePtr)
+			proc_deallocate(proc, gShellCodePtr, gShellCodeSize);
+
+		if (gStackPtr)
+			proc_deallocate(proc, gStackPtr, 0x80000);
+
+        return;
+    }
+
+    uint64_t param3 = SceSysCoreBase + 0xD0120;
+    err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisUserlandHelper_header, param3), sizeof(param3), (void *)&param3, &n, 1);
+    if(err)
+    {
+        DebugLog(LOGTYPE_ERR, "Failed to write param3 to ShellCode. Error: %d.", err);
+
+        if (gShellCodePtr)
+			proc_deallocate(proc, gShellCodePtr, gShellCodeSize);
+
+		if (gStackPtr)
+			proc_deallocate(proc, gStackPtr, 0x80000);
+
+        return;
+    }
+
+    uint64_t param4 = SceSysCoreBase + 0x96EE0;
+    err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisUserlandHelper_header, param4), sizeof(param4), (void *)&param4, &n, 1);
+    if(err)
+    {
+        DebugLog(LOGTYPE_ERR, "Failed to write param4 to ShellCode. Error: %d.", err);
+
+        if (gShellCodePtr)
+			proc_deallocate(proc, gShellCodePtr, gShellCodeSize);
+
+		if (gStackPtr)
+			proc_deallocate(proc, gStackPtr, 0x80000);
+
+        return;
+    }
+
     struct thread *thr = TAILQ_FIRST(&proc->p_threads);
 	uint64_t ShellCodeEntry = (uint64_t)gShellCodePtr + *(uint64_t *)(OrbisUserlandHelper + 4);
 	create_thread(thr, NULL, (void*)ShellCodeEntry, NULL, (char*)gStackPtr, StackSize, NULL, NULL, NULL, 0, NULL);
+
+    int32_t Complete = 0;
+    uint32_t Result = 0;
+    int32_t ProcessID = 0;
+
+    while (!Complete) 
+	{
+        err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisUserlandHelper_header, Complete), sizeof(Complete), (void *)&Complete, &n, 0);
+        if(err)
+        {
+            DebugLog(LOGTYPE_ERR, "Failed to read Complete.");
+            return;
+        }
+        pause("", 100);
+	}
+
+    err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisUserlandHelper_header, Result), sizeof(Result), (void *)&Result, &n, 0);
+    if(err)
+    {
+        DebugLog(LOGTYPE_ERR, "Failed to read Result.");
+        return;
+    }
+
+    err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisUserlandHelper_header, ProcessID), sizeof(ProcessID), (void *)&ProcessID, &n, 0);
+    if(err)
+    {
+        DebugLog(LOGTYPE_ERR, "Failed to read Result.");
+        return;
+    }
+
+    printf("ProcessID = %i\nResult = %X\n", ProcessID, Result);
     
     ShellCodeLoaded = true;
 }
@@ -161,13 +256,6 @@ void UserlandHelper::DestroyShellCode()
         return;
     }
 
-    err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisUserlandHelper_header, ShouldExit), sizeof(ShouldExit), (void *)&ShouldExit, &n, 1);
-	if(err)
-    {
-        DebugLog(LOGTYPE_ERR, "Failed to set ShouldExit to 1.");
-        return;
-    }
-
     pause("", 500);
 
     if (gShellCodePtr)
@@ -179,113 +267,4 @@ void UserlandHelper::DestroyShellCode()
     gShellCodePtr = NULL;
     gStackPtr = NULL;
     ShellCodeLoaded = false;
-}
-
-void UserlandHelper::sceSysUtilSendNotificationRequest(char* fmt, ...)
-{
-    //Create full string from va list
-    char buffer[0x200] = { 0 };
-	va_list args;
-	va_start(args, fmt);
-	vsprintf(buffer, fmt, args);
-
-    proc* proc = proc_find_by_name(ProcName);
-	size_t n = 0;
-    int err = 0;
-	uint8_t CommandIndex = CMD_sceSysUtilSendNotificationRequest;
-    uint8_t ShellCodeComplete = 0;
-    uint64_t ModuleHandle = 0;
-
-    DebugLog(LOGTYPE_INFO, buffer);
-
-    //write the message to the shellcode.
-    err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisUserlandHelper_header, Message), 100, (void *)buffer, &n, 1);
-    if(err)
-    {
-        DebugLog(LOGTYPE_ERR, "Failed to write params to ShellCode.");
-
-        //End the va list.
-        va_end(args);
-
-        return;
-    }
-
-    //End the va list.
-    va_end(args);
-
-    //Reset the shellcode completion flag.
-    err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisUserlandHelper_header, ShellCodeComplete), sizeof(ShellCodeComplete), (void *)&ShellCodeComplete, &n, 1);
-	if(err)
-    {
-        DebugLog(LOGTYPE_ERR, "Failed to set ShellCodeComplete to zero.");
-        return;
-    }
-
-    //Set the command index of the shellcode to be run.
-    err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisUserlandHelper_header, CommandIndex), sizeof(CommandIndex), (void *)&CommandIndex, &n, 1);
-	if(err)
-    {
-        DebugLog(LOGTYPE_ERR, "Failed to set CommandIndex.");
-        return;
-    }
-
-    //wait for the shellcode completion flag to be set.
-	while (!ShellCodeComplete) 
-	{
-        //Check the shell code completion flag.
-        err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisUserlandHelper_header, ShellCodeComplete), sizeof(ShellCodeComplete), (void *)&ShellCodeComplete, &n, 0);
-        if(err)
-        {
-            DebugLog(LOGTYPE_ERR, "Failed to read ShellCodeComplete.");
-            return;
-        }
-
-        //Wait for 100ms while the shellcode executes.
-        //DebugLog(LOGTYPE_INFO, "Waiting for ShellCode to compelete!");
-        pause("", 100);
-	}
-}
-
-void UserlandHelper::sceSysUtilSendSystemNotificationWithText(int MessageType, const char* Message)
-{
-    proc* proc = proc_find_by_name(ProcName);
-	size_t n = 0;
-    int err = 0;
-	uint8_t CommandIndex = CMD_sceSysUtilSendSystemNotificationWithText;
-    uint8_t ShellCodeComplete = 0;
-    uint64_t ModuleHandle = 0;
-
-    err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisUserlandHelper_header, Message), 100, (void *)Message, &n, 1);
-    err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisUserlandHelper_header, MessageType), sizeof(MessageType), (void *)&MessageType, &n, 1);
-    if(err)
-    {
-        DebugLog(LOGTYPE_ERR, "Failed to write params to ShellCode.");
-        return;
-    }
-
-    err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisUserlandHelper_header, ShellCodeComplete), sizeof(ShellCodeComplete), (void *)&ShellCodeComplete, &n, 1);
-	if(err)
-    {
-        DebugLog(LOGTYPE_ERR, "Failed to set ShellCodeComplete to zero.");
-        return;
-    }
-
-    err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisUserlandHelper_header, CommandIndex), sizeof(CommandIndex), (void *)&CommandIndex, &n, 1);
-	if(err)
-    {
-        DebugLog(LOGTYPE_ERR, "Failed to set CommandIndex.");
-        return;
-    }
-
-	while (!ShellCodeComplete) 
-	{
-        err = proc_rw_mem(proc, gShellCodePtr + offsetof(OrbisUserlandHelper_header, ShellCodeComplete), sizeof(ShellCodeComplete), (void *)&ShellCodeComplete, &n, 0);
-        if(err)
-        {
-            DebugLog(LOGTYPE_ERR, "Failed to read ShellCodeComplete.");
-            return;
-        }
-
-        pause("", 100);
-	}
 }

@@ -71,22 +71,19 @@ void OrbisTarget::Info(int Socket)
 
 void OrbisTarget::Shutdown(int Socket)
 {
-   DebugLog(LOGTYPE_WARN, "Not Implimented!");
+   kShutdown();
    SendStatus(Socket, API_ERROR_FAIL);
 }
 
 void OrbisTarget::Reboot(int Socket)
 {
-    DebugLog(LOGTYPE_WARN, "Not Implimented!");
+    kReboot();
 	SendStatus(Socket, API_ERROR_FAIL);
 }
 
-void OrbisTarget::Notify(int Socket, int Type, char* Message)
+void OrbisTarget::Notify(int Socket, char* IconUri, char* Message)
 {
-    if(Type == -1)
-        pHelperManager->pUserlandHelper->sceSysUtilSendNotificationRequest(Message);
-    else
-        pHelperManager->pUserlandHelper->sceSysUtilSendSystemNotificationWithText(Type, Message);
+    SceNotify(Message);
     
     SendStatus(Socket, API_OK);
 }
@@ -216,7 +213,7 @@ Cleanup:
 
 	char Buffer[0x200];
 	sprintf(Buffer, "Dumped: %s(0x%llX).", ProcessName, Size);
-	pHelperManager->pUserlandHelper->sceSysUtilSendNotificationRequest(Buffer);
+	SceNotify(Buffer);
 }
 
 void OrbisTarget::APIHandle(int Socket, API_Packet_s* Packet)
@@ -236,7 +233,7 @@ void OrbisTarget::APIHandle(int Socket, API_Packet_s* Packet)
 		break;
 
 	case API_TARGET_NOTIFY:
-		Notify(Socket, Packet->Target_Notify.MessageType, Packet->Target_Notify.Message);
+		Notify(Socket, Packet->Target_Notify.IconUri, Packet->Target_Notify.Message);
 		break;
 
 	case API_TARGET_BEEP:

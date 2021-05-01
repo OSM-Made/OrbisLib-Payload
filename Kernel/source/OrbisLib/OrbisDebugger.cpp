@@ -71,7 +71,7 @@ OrbisDebugger::OrbisDebugger(OrbisProc* orbisProc)
     for(int i = 0; i < WATCHPOINTS_MAX; i++)
         this->Watchpoints[i] = new OrbisWatchPoint();
 
-    Detour* OnTrapFatalDetour = new Detour((void*)resolve(addr_trap_fatalHook), (void*)OnTrapFatalHook, 17);
+   // Detour* OnTrapFatalDetour = new Detour((void*)resolve(addr_trap_fatalHook), (void*)OnTrapFatalHook, 17);
 }
 
 OrbisDebugger::~OrbisDebugger()

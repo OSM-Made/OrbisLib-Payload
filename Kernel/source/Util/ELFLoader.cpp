@@ -88,10 +88,6 @@ int proc_create_thread(proc *proc, uint64_t address)
         if(!strcmp(basename(m_library->ModulePath), "libkernel_sys.sprx"))
 			thr_initial = (uint64_t)m_library->codeBase + addr_thr_initial_libkernel_sys;
 
-        //TODO: Remove or update to 6.72 if required...
-        //if(!strcmp(basename(m_library->ModulePath), "mini-syscore.elf"))
-		//	thr_initial = (uint64_t)m_library->codeBase + addr_thr_initial_minisyscore;
-
         m_library = m_library->dynlib_next;
     }
 

@@ -10,6 +10,17 @@ void LoadFTP(const char* ProcessName)
 	if(proc) 
 	{
         //Give Root FS Perms
+        /*ucred* cred = proc->p_ucred;
+        if(cred)
+        {
+            cred->cr_prison = *(prison**)resolve(addr_prison0);
+
+            cred->cr_uid = 0;
+            cred->cr_ruid = 0;
+            cred->cr_rgid = 0;
+            cred->cr_groups[0] = 0;
+        }*/
+
 		filedesc* fd = proc->p_fd;
         if(fd)
         {

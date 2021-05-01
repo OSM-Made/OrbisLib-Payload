@@ -1,7 +1,7 @@
 #pragma once
 
 #define ORBISLIB_MAJOR_VERSION 2
-#define ORBISLIB_MINOR_VERSION 3
+#define ORBISLIB_MINOR_VERSION 4
 
 //Which software version we want to compile for
 #ifdef VERSION_505

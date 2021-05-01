@@ -17,20 +17,16 @@ private:
 	    uint64_t entry;
 
         uint64_t thr_initial;
-        uint8_t ShellCodeComplete;
-	    uint8_t CommandIndex;
-        uint8_t ShouldExit;
+        uint64_t SceSysCoreBase;
+        uint64_t spawnProcess;
+        uint32_t Result;
+        int32_t Complete;
 
-        uint32_t MessageType;
-        char Message[100];
+        uint64_t param3;
+        uint64_t param4;
+
+        int32_t ProcessID;
     }__attribute__((packed));
-
-    enum ShellCodeCommands
-    {
-        CMD_NA = 0,
-        CMD_sceSysUtilSendNotificationRequest,
-        CMD_sceSysUtilSendSystemNotificationWithText
-    };
 
 public:
     UserlandHelper(/* args */);
@@ -38,7 +34,5 @@ public:
 
     void InstallShellCode(char* ProcName);
     void DestroyShellCode();
-    void sceSysUtilSendNotificationRequest(char* fmt, ...);
-    void sceSysUtilSendSystemNotificationWithText(int MessageType, const char* Message);
 
 };

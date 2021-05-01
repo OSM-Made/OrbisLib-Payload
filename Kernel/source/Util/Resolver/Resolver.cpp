@@ -79,6 +79,7 @@ int (*sceSblAuthMgrIsLoadable2)(SelfContext* pSelfContext, SelfAuthInfo* pOldAut
 void (*sceSblAuthMgrSmStart)(void**);
 int (*sceSblAuthMgrVerifyHeader)(SelfContext* pSelfContext);
 int (*sceSblServiceMailbox)(uint32_t pServiceId, void* pRequest, void* pResponse);
+int (*sceSblACMgrGetPathId)(const char* path);
 
 /*Critical Sections*/
 void (*EnterCriticalSection)();
@@ -113,6 +114,8 @@ int (*sceRegMgrGetInt)(uint64_t RegID, int32_t* Value);
 int (*sceRegMgrSetInt)(uint64_t RegID, int32_t Value);
 int (*sceRegMgrGetBin)(uint64_t RegID, char* Value, int size);
 int (*sceRegMgrSetBin)(uint64_t RegID, char* Value, int size);
+
+#define NATIVE_RESOLVE(_Ty) _Ty = (decltype(_Ty))(void*)((uint8_t *)&gpKernelBase[addr_ ## _Ty]);
 
 void ResolveFunctions()
 {
@@ -190,11 +193,12 @@ void ResolveFunctions()
     _mtx_unlock_flags = (void(*)(mtx *mutex, int flags, const char *file, int line))resolve(addr_mtx_unlock_flags);
 
     /* Fake Selfs */
-    sceSblAuthMgrGetSelfInfo = (int(*)(SelfContext* ctx, void *exInfo))resolve(addr_sceSblAuthMgrGetSelfInfo);
+    /*sceSblAuthMgrGetSelfInfo = (int(*)(SelfContext* ctx, void *exInfo))resolve(addr_sceSblAuthMgrGetSelfInfo);
     sceSblAuthMgrIsLoadable2 = (int(*)(SelfContext* pSelfContext, SelfAuthInfo* pOldAuthInfo, int32_t pPathId, SelfAuthInfo* pNewAuthInfo))resolve(addr_sceSblAuthMgrIsLoadable2);
     sceSblAuthMgrSmStart = (void(*)(void**))resolve(addr_sceSblAuthMgrSmStart);
     sceSblAuthMgrVerifyHeader = (int(*)(SelfContext* pSelfContext))resolve(addr_sceSblAuthMgrVerifyHeader);
     sceSblServiceMailbox = (int(*)(uint32_t pServiceId, void* pRequest, void* pResponse))resolve(addr_sceSblServiceMailbox);
+    sceSblACMgrGetPathId = (int (*)(const char* path))resolve(addr_sceSblACMgrGetPathId);*/
 
     /* Critical Sections */
     EnterCriticalSection = (void(*)())resolve(addr_EnterCriticalSection);
@@ -204,7 +208,7 @@ void ResolveFunctions()
     #ifdef SOFTWARE_VERSION_505
     eventhandler_register = (eventhandler_tag(*)(eventhandler_list *list, const char *name, void *func, void *arg, int priority))resolve(addr_eventhandler_register);
     #endif
-    #ifdef SOFTWARE_VERSION_672 || SOFTWARE_VERSION_702 || SOFTWARE_VERSION_755
+  #if defined(SOFTWARE_VERSION_672) || defined(SOFTWARE_VERSION_702) || defined(SOFTWARE_VERSION_755) 
     eventhandler_register = (eventhandler_tag(*)(eventhandler_list *list, const char *name, void *func, const char* unk, void *arg, int priority))resolve(addr_eventhandler_register);
     #endif
     eventhandler_deregister = (void(*)(struct eventhandler_list* a, struct eventhandler_entry* b))resolve(addr_eventhandler_deregister);

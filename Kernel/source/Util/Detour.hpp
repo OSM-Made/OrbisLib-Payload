@@ -9,13 +9,18 @@ private:
     void* FunctionPtr = 0;
     void* HookPtr = 0;
 
-    uint8_t* RestoreInstructions = 0;
-    int32_t RestoreInstructionsSize = 0;
 public:
+    template <typename result, typename... Args>
+    result Stub(Args... args)
+    {
+        result(*Stub_internal)(Args... args) = decltype(Stub_internal)(StubPtr);
+        return Stub_internal(args...);
+    }
+    
     void* DetourFunction(void* FunctionPtr, void* HookPtr, int32_t InstructionSize);
     void RestoreFunction();
 
-    Detour(void* FunctionPtr, void* HookPtr, int32_t InstructionSize);
+    Detour(/*void* FunctionPtr, void* HookPtr, int32_t InstructionSize*/);
     ~Detour();
 };
 

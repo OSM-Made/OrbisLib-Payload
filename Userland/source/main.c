@@ -67,7 +67,7 @@ int install_orbis(struct thread *td, struct payloadArgs *args) {
 	*(uint64_t*)(((char*)td_ucred) + 104) = 0xffffffffffffffff; 
 
 	DoPatches(kernbase);
-
+	
 	return install_payload(td, kernbase, args->payload, args->psize);
 }
 

@@ -39,6 +39,8 @@ static int mount_large_fs(const char* device, const char* mountpoint, const char
 	struct iovec* iov = NULL;
 	int iovlen = 0;
 
+	unmount(mountpoint, 0);
+
 	build_iovec(&iov, &iovlen, "fstype", fstype, -1);
 	build_iovec(&iov, &iovlen, "fspath", mountpoint, -1);
 	build_iovec(&iov, &iovlen, "from", device, -1);
@@ -55,12 +57,29 @@ static int mount_large_fs(const char* device, const char* mountpoint, const char
 	return nmount(iov, iovlen, flags);
 }
 
+int MountNullFS(char* where, char* what, int flags)
+{
+	struct iovec* iov = NULL;
+	int iovlen = 0;
+
+	unmount(where, 0);
+
+	build_iovec(&iov, &iovlen, "fstype", "nullfs", -1);
+	build_iovec(&iov, &iovlen, "fspath", where, -1);
+	build_iovec(&iov, &iovlen, "target", what, -1);
+
+	return nmount(iov, iovlen, flags);
+}
+
 void custom_MTRW(ftps4_client_info_t *client)
 {
-	if (mount_large_fs("/dev/da0x0.crypt", "/preinst",   "exfatfs", "511", MNT_UPDATE) < 0) goto fail;
-	if (mount_large_fs("/dev/da0x1.crypt", "/preinst2",  "exfatfs", "511", MNT_UPDATE) < 0) goto fail;
-	if (mount_large_fs("/dev/da0x4.crypt", "/system",    "exfatfs", "511", MNT_UPDATE) < 0) goto fail;
-	if (mount_large_fs("/dev/da0x5.crypt", "/system_ex", "exfatfs", "511", MNT_UPDATE) < 0) goto fail;
+	if(mount_large_fs("/dev/da0x1.crypt", "/preinst2", "exfatfs", "511", MNT_UPDATE) < 0) goto fail;
+	if(mount_large_fs("/dev/da0x4.crypt", "/system", "exfatfs", "511", MNT_UPDATE) < 0) goto fail;
+	if(mount_large_fs("/dev/da0x5.crypt", "/system_ex", "exfatfs", "511", MNT_UPDATE) < 0) goto fail;
+	if(mount_large_fs("/dev/da0x9.crypt", "/system_data", "exfatfs", "511", MNT_UPDATE) < 0) goto fail;
+	if(mount_large_fs("/dev/md0", "/", "exfatfs", "511", MNT_UPDATE) < 0) goto fail;
+	if(mount_large_fs("/dev/md0.crypt", "/", "exfatfs", "511", MNT_UPDATE) < 0) goto fail;
+	if(mount_large_fs("/dev/da0x0.crypt", "/preinst", "exfatfs", "511", MNT_UPDATE) < 0) goto fail;
 
 	ftps4_ext_client_send_ctrl_msg(client, "200 Mount success." FTPS4_EOL);
 	return;
@@ -97,9 +116,18 @@ error:
 	ip_address = NULL;
 	return -1;
 }
+#define	MNT_RDONLY	0x0000000000000001ULL /* read only filesystem */
 
 void InitFTP()
 {
+	mount_large_fs("/dev/da0x1.crypt", "/preinst2", "exfatfs", "511", MNT_UPDATE);
+	mount_large_fs("/dev/da0x4.crypt", "/system", "exfatfs", "511", MNT_UPDATE);
+	mount_large_fs("/dev/da0x5.crypt", "/system_ex", "exfatfs", "511", MNT_UPDATE);
+	mount_large_fs("/dev/da0x9.crypt", "/system_data", "exfatfs", "511", MNT_UPDATE);
+	mount_large_fs("/dev/md0", "/", "exfatfs", "511", MNT_UPDATE);
+	mount_large_fs("/dev/md0.crypt", "/", "exfatfs", "511", MNT_UPDATE);
+	mount_large_fs("/dev/da0x0.crypt", "/preinst", "exfatfs", "511", MNT_UPDATE);
+	
     char ip_address[SCE_NET_CTL_IPV4_ADDR_STR_LEN];
     run = 1;
 

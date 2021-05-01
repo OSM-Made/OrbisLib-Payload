@@ -126,6 +126,7 @@ public:
     static int SceSblAuthMgrIsLoadable2Hook(SelfContext* p_Context, SelfAuthInfo* pOldAuthInfo, int32_t pPathId, SelfAuthInfo* pNewAuthInfo);
     static int SceSblAuthMgrSmLoadSelfSegment_MailboxHook(uint64_t pServiceId, void* pRequest, void* pResponse);
     static int SceSblAuthMgrSmLoadSelfBlock_MailboxHook(uint64_t pServiceId, uint8_t* pRequest, void* pResponse);
+    static int sceSblAuthMgrIsLoadableHook(const char* path);
 
     FakeSelfHelper();
     ~FakeSelfHelper();

@@ -106,6 +106,8 @@
 #define addr_SceSblAuthMgrIsLoadable2Hook       0x63E3A1
 #define addr_SceSblAuthMgrSmLoadSelfSegment_Mailbox 0x64318B
 #define addr_SceSblAuthMgrSmLoadSelfBlock_Mailbox 0x643DA2
+#define addr_sceSblACMgrGetPathId               0x117E0
+#define addr_sceSblAuthMgrIsLoadable__sceSblACMgrGetPathId 0x63E25D
 
 /* Critical Sections */
 #define addr_EnterCriticalSection               0x28E7A0

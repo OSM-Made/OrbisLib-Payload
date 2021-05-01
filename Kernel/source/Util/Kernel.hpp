@@ -156,6 +156,10 @@ int kdup2(int oldd, int newd, struct thread* td);
 uint64_t GetCPUTemp();
 uint64_t GetSOCTemp();
 
+void kReboot();
+void kShutdown();
+void kSuspend();
+
 // ICC Indicator
 void IccIndicatorBootDone(); 					//White
 void IccIndicatorShutdown(); 					//White Blink
@@ -163,3 +167,6 @@ void IccIndicatorStandby(); 					//white
 void sceKernelIccIndicatorStandbyShutdown(); 	//White Blink
 void sceKernelIccIndicatorStandbyBoot(); 		//Blue Blink
 void sceKernelIccIndicatorUNK();				//Does nothing...
+
+void SceNotify(char* IconUri, const char* fmt, ...);
+void SceNotify(const char* fmt, ...);

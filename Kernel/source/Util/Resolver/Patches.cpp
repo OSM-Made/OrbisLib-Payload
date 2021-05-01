@@ -13,7 +13,12 @@ void Install_Patches()
  	uint64_t CR0 = __readcr0();
  	__writecr0(CR0 & ~CR0_WP);
 
- 	*(uint16_t*)resolve(patch_copyin1) = 0x9090;
+	#if defined(SOFTWARE_VERSION_505)
+	*(uint16_t*)resolve(patch_copyin1) = 0x9090;
+	#endif
+	#if defined(SOFTWARE_VERSION_672) || defined(SOFTWARE_VERSION_702) || defined(SOFTWARE_VERSION_755) 
+ 	*(uint16_t*)resolve(patch_copyin1) = 0x909090;
+	 #endif
 	*(uint16_t*)resolve(patch_copyin2) = 0x9090;
 	*(uint16_t*)resolve(patch_copyout1) = 0x9090;
 	*(uint16_t*)resolve(patch_copyout2) = 0x9090;

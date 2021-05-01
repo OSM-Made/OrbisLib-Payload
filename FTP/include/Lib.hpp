@@ -295,3 +295,7 @@ inline void* operator new(long unsigned int size) { return malloc(size); }
 inline void* operator new[](long unsigned int size) { return malloc(size); }
 inline void operator delete(void* ptr) { free(ptr); }
 inline void operator delete[](void* ptr) { free(ptr); }
+
+extern int (*sceSystemServiceLoadExec)(const char *Path, char* const argv[]);
+
+void Notify(const char* MessageFMT, ...);

@@ -384,3 +384,167 @@ int32_t sys_kill(int32_t pid, int sig)
 	// success
 	return td->td_retval[0];
 }
+
+void kReboot()
+{
+	int evf = sys_evf_open("SceSysCoreReboot");
+	sys_evf_cancel(evf, 0x0, 0);
+	sys_evf_close(evf);
+	sys_kill(1, 30);
+}
+
+void kShutdown()
+{
+	int evf = sys_evf_open("SceSysCoreReboot");
+	sys_evf_cancel(evf, 0x4000, 0);
+	sys_evf_close(evf);
+	sys_kill(1, 30);
+}
+
+void kSuspend()
+{
+	int evf = sys_evf_open("SceSysCoreReboot");
+	sys_evf_cancel(evf, 0x8004000, 0);
+	sys_evf_close(evf);
+	sys_kill(1, 30);
+}
+
+enum NotifyType
+{
+	NotificationRequest = 0,
+	SystemNotification = 1,
+	SystemNotificationWithUserId = 2,
+	SystemNotificationWithDeviceId = 3,
+	SystemNotificationWithDeviceIdRelatedToUser = 4,
+	SystemNotificationWithText = 5,
+	SystemNotificationWithTextRelatedToUser = 6,
+	SystemNotificationWithErrorCode = 7,
+	SystemNotificationWithAppId = 8,
+	SystemNotificationWithAppName = 9,
+	SystemNotificationWithAppInfo = 9,
+	SystemNotificationWithAppNameRelatedToUser = 10,
+	SystemNotificationWithParams = 11,
+	SendSystemNotificationWithUserName = 12,
+	SystemNotificationWithUserNameInfo = 13,
+	SendAddressingSystemNotification = 14,
+	AddressingSystemNotificationWithDeviceId = 15,
+	AddressingSystemNotificationWithUserName = 16,
+	AddressingSystemNotificationWithUserId = 17,
+
+	UNK_1 = 100,
+	TrcCheckNotificationRequest = 101,
+	NpDebugNotificationRequest = 102,
+	UNK_2 = 102,
+};
+
+struct NotifyBuffer
+{
+	NotifyType Type;		//0x00 
+	int ReqId;				//0x04
+	int Priority;			//0x08
+	int MsgId;				//0x0C
+	int TargetId;			//0x10
+	int UserId;				//0x14
+	int unk1;				//0x18
+	int unk2;				//0x1C
+	int AppId;				//0x20
+	int ErrorNum;			//0x24
+	int unk3;				//0x28
+	char UseIconImageUri; 	//0x2C
+	char Message[1024]; 	//0x2D
+	char Uri[1024]; 		//0x42D
+	char unkstr[1024];		//0x82D
+}; //Size = 0xC30 
+
+void SceNotify(char* IconUri, const char* fmt, ...)
+{
+	NotifyBuffer Buffer;
+	unsigned int device = -1;
+
+	//Create full string from va list
+	va_list args;
+	va_start(args, fmt);
+	vsprintf(Buffer.Message, fmt, args);
+	va_end(args);
+
+	Buffer.Type = NotifyType::NotificationRequest;
+	Buffer.unk3 = 0;
+	Buffer.UseIconImageUri = 1;
+	Buffer.TargetId = -1;
+	strcpy(Buffer.Uri, IconUri);
+
+	device = sys_fopen("/dev/notification0", 1, 0);
+	if(!device)
+		device = sys_fopen("/dev/notification0", 5, 0);
+
+	if(!device)
+		device = sys_fopen("/dev/notification1", 1, 0);
+
+	if(!device)
+		device = sys_fopen("/dev/notification1", 5, 0);
+
+	if(device)
+	{
+		sys_fwrite(device, &Buffer, 3120);
+
+		sys_fclose(device);
+	}
+}
+
+void SceNotify(const char* fmt, ...)
+{
+	NotifyBuffer Buffer;
+	unsigned int device = -1;
+
+	//Create full string from va list
+	va_list args;
+	va_start(args, fmt);
+	vsprintf(Buffer.Message, fmt, args);
+	va_end(args);
+
+	Buffer.Type = NotifyType::NotificationRequest;
+	Buffer.unk3 = 0;
+	Buffer.UseIconImageUri = 1;
+	Buffer.TargetId = -1;
+	strcpy(Buffer.Uri, "https://i.imgur.com/SJPIBGG.png");
+
+	device = sys_fopen("/dev/notification0", 1, 0);
+	if(!device)
+		device = sys_fopen("/dev/notification0", 5, 0);
+
+	if(!device)
+		device = sys_fopen("/dev/notification1", 1, 0);
+
+	if(!device)
+		device = sys_fopen("/dev/notification1", 5, 0);
+
+	if(device)
+	{
+		sys_fwrite(device, &Buffer, 3120);
+
+		sys_fclose(device);
+	}
+}
+
+/*struct SceFsMountGameDataOpt
+{
+	const char* pfsImgFile; 		//0x00
+
+};
+
+struct pConfig
+{
+	uint64_t VolumeSize;	//0x18
+};
+
+int sceFsMountGamePkg(
+	SceFsMountGameDataOpt* Opt, 
+	char* MountPath, 
+	int32_t unk1, // Gets stored on the stack is passed into pfsMountData
+	pConfig* i_pConfig, //structure of some sort it seems
+	int32_t unk3, 
+	int32_t unk4
+)
+{
+
+}*/

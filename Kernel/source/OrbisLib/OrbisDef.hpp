@@ -249,8 +249,8 @@ struct API_Packet_s
         }Breakpoint;
         struct 
         {
-            int MessageType;
-            char Message[100];
+            char IconUri[1024];
+            char Message[1024];
         }Target_Notify;
         struct 
         {

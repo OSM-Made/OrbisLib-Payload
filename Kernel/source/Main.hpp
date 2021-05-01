@@ -21,7 +21,6 @@
 
 extern "C"
 {
-    
     #include <sys/lock.h>
     #include <sys/mutex.h>
 

@@ -37,6 +37,12 @@ str_sceKernelSleep: db 'sceKernelUsleep', 0
 str_sceKernelLoadStartModule: db 'sceKernelLoadStartModule', 0
 str_sceKernelStopUnloadModule: db 'sceKernelStopUnloadModule', 0
 
+; Work around for oosdk
+amodule_start: dq 0
+str_module_start: db 'module_start', 0
+amodule_stop: dq 0
+str_module_stop: db 'module_stop', 0
+
 shellcode:
 	; load thread into fs
 	mov rdi, qword [thr_initial]
@@ -95,6 +101,8 @@ FirstCall:
 	jne SecondCall
 
 	call sceKernelLoadStartModule
+	call module_start
+
     mov byte [ShellCodeComplete], 1
 	mov byte[CommandIndex], 0
 
@@ -103,7 +111,9 @@ SecondCall:
 	cmp byte[CommandIndex], 2
 	jne EndofCase
 	
+	call module_stop
 	call sceKernelStopUnloadModule
+
     mov byte [ShellCodeComplete], 1
 	mov byte[CommandIndex], 0
 
@@ -118,7 +128,27 @@ LoopExit:
 	call sys_thr_exit
 	retn
 
+module_stop:
+	lea rdx, [amodule_stop]
+	lea rsi, [str_module_stop]
+	mov rdi, qword [handle]
+	call sys_dynlib_dlsym
 
+	mov r12, qword [amodule_stop]
+	call r12
+	xor eax, eax
+	retn
+
+module_start:
+	lea rdx, [amodule_start]
+	lea rsi, [str_module_start]
+	mov rdi, qword [ModuleHandle]
+	call sys_dynlib_dlsym
+
+	mov r12, qword [amodule_start]
+	call r12
+	xor eax, eax
+	retn
 
 sceKernelStopUnloadModule:
 	mov r9, [pRes]

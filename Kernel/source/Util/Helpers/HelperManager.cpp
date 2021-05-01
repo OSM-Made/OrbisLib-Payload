@@ -6,7 +6,7 @@ HelperManager::HelperManager(/* args */)
     DebugLog(LOGTYPE_INFO, "Initialization...");
 
     //Used for loading Fake Selfs and SPRX
-    this->pFakeSelfHelper = new FakeSelfHelper();
+    //this->pFakeSelfHelper = new FakeSelfHelper();
 
     //Highjack the Remoteplay Process for FTP
     LoadFTP("SceRemotePlay");
@@ -16,7 +16,7 @@ HelperManager::HelperManager(/* args */)
     //                  and as ive found the SystemStateMgr could be used to control 
     //                  the power state of the system.
     //this->pUserlandHelper = new UserlandHelper();
-    //this->pUserlandHelper->InstallShellCode("SceShellCore");
+    //this->pUserlandHelper->InstallShellCode("SceSysCore.elf");
 }
 
 HelperManager::~HelperManager()
