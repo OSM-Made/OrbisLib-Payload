@@ -6,11 +6,13 @@ HelperManager::HelperManager(/* args */)
     DebugLog(LOGTYPE_INFO, "Initialization...");
 
     //Used for loading Fake Selfs and SPRX
-    //this->pFakeSelfHelper = new FakeSelfHelper();
+    this->pFakeSelfHelper = new FakeSelfHelper();
 
     //Highjack the Remoteplay Process for FTP
     LoadFTP("SceRemotePlay");
     //LoadFTP("SceShellCore");
+
+    //this->pKLogHelper = new KLogHelper();
 
     //Use ShellCore for our userland calls. Could be useful later for patches too 
     //                  and as ive found the SystemStateMgr could be used to control 
@@ -25,6 +27,9 @@ HelperManager::~HelperManager()
     
     if(this->pFakeSelfHelper != NULL)
         delete this->pFakeSelfHelper;
+
+    if(this->pKLogHelper != NULL)
+        delete this->pKLogHelper;
     
     if(this->pUserlandHelper != NULL)
     {

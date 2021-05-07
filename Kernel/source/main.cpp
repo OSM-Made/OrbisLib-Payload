@@ -10,7 +10,9 @@ TargetComms* pTargetComms = NULL;
 extern "C" void _main(uint64_t* p)
 {
 	Install_Patches();
-	ResolveFunctions();
+
+	if(!ResolveFunctions())
+		return;
 
 	//Target Comms used for sending info to the host.
     pTargetComms = new TargetComms();
@@ -28,5 +30,5 @@ extern "C" void _main(uint64_t* p)
 
 	SceNotify("OrbisLib v%i.%i Loaded!\nMade by OSM", ORBISLIB_MAJOR_VERSION, ORBISLIB_MINOR_VERSION);
 
-	//kprintf("Hello world from OrbisLib!!!\n");
+	kprintf("Hello world from OrbisLib!!!\n");
 }

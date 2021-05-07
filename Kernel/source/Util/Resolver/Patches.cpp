@@ -17,8 +17,9 @@ void Install_Patches()
 	*(uint16_t*)resolve(patch_copyin1) = 0x9090;
 	#endif
 	#if defined(SOFTWARE_VERSION_672) || defined(SOFTWARE_VERSION_702) || defined(SOFTWARE_VERSION_755) 
- 	*(uint16_t*)resolve(patch_copyin1) = 0x909090;
-	 #endif
+ 	*(uint16_t*)resolve(patch_copyin1) = 0x9090; //TODO: fix its not a short
+	*(uint8_t*)resolve(patch_copyin1 + 0x2) = 0x90;
+	#endif
 	*(uint16_t*)resolve(patch_copyin2) = 0x9090;
 	*(uint16_t*)resolve(patch_copyout1) = 0x9090;
 	*(uint16_t*)resolve(patch_copyout2) = 0x9090;

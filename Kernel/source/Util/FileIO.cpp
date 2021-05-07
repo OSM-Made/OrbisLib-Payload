@@ -68,26 +68,10 @@ ssize_t sys_fwrite(int fd, const void *buf, size_t count)
 
 int sys_fopen(char *path, int flags, int mode)
 {
-	struct sys_write_args {
-		const char* path;
-		uint64_t flags;
-		uint64_t mode;
-	};
-
-    sysentvec* sv = (sysentvec*)resolve(addr_sysvec);
-    sysent* sysents = sv->sv_table;
-
-    auto sys_open = (int(*)(thread * td, sys_write_args * uap))sysents[5].sy_call;
-
 	thread *td = curthread();
 
 	int error;
     td->td_retval[0] = 0;
-
-	sys_write_args uap;
-    uap.path = "";
-	uap.flags = flags;
-	uap.mode = mode;
 
 	error = kern_open(td, path, 1, flags, mode);
 	if(error)

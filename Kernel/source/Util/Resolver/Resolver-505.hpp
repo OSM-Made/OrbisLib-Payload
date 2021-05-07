@@ -41,9 +41,7 @@
 #define addr_sscanf                             0x175900
 #define addr_strdup                             0x1C1C30
 #define addr_realloc                            0x10E590
-#define addr_printf                             0x436040
-
-#define addr_kmem_alloc							0xFCC80
+#define addr_kprintf                            0x436040
 
 /* Kproc */
 #define addr_kproc_create					    0x137DF0
@@ -147,6 +145,5 @@
 #define addr_thr_initial_libkernel              0x84C20
 #define addr_thr_initial_libkernel_web          0x84C20
 #define addr_thr_initial_libkernel_sys          0x89030
-#define addr_thr_initial_minisyscore            0xA7558
 
 #endif

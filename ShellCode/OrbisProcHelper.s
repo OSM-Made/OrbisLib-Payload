@@ -37,6 +37,21 @@ str_sceKernelSleep: db 'sceKernelUsleep', 0
 str_sceKernelLoadStartModule: db 'sceKernelLoadStartModule', 0
 str_sceKernelStopUnloadModule: db 'sceKernelStopUnloadModule', 0
 
+str_scePthreadCreate: db 'scePthreadCreate', 0
+scePthreadCreate: dq 0
+str_scePthreadAttrSetstacksize: db 'scePthreadAttrSetstacksize', 0
+scePthreadAttrSetstacksize: dq 0
+str_scePthreadAttrInit: db 'scePthreadAttrInit', 0
+scePthreadAttrInit: dq 0
+
+hthread: dq 0
+scePthreadAttr: dq 0
+str_threadName: db 'Orbis SPRX Loader', 0
+
+hthreadstop: dq 0
+scePthreadAttrstop: dq 0
+str_threadNamestop: db 'Orbis SPRX UnLoader', 0
+
 ; Work around for oosdk
 amodule_start: dq 0
 str_module_start: db 'module_start', 0
@@ -89,6 +104,24 @@ resolve:
 	; resolve sceKernelStopUnloadModule
 	lea rdx, [asceKernelStopUnloadModule]
 	lea rsi, [str_sceKernelStopUnloadModule]
+	mov rdi, qword [libkernel]
+	call sys_dynlib_dlsym
+
+	; resolve scePthreadCreate
+	lea rdx, [scePthreadCreate]
+	lea rsi, [str_scePthreadCreate]
+	mov rdi, qword [libkernel]
+	call sys_dynlib_dlsym
+
+    ; resolve scePthreadAttrSetstacksize
+	lea rdx, [scePthreadAttrSetstacksize]
+	lea rsi, [str_scePthreadAttrSetstacksize]
+	mov rdi, qword [libkernel]
+	call sys_dynlib_dlsym
+
+    ; resolve scePthreadAttrInit
+	lea rdx, [scePthreadAttrInit]
+	lea rsi, [str_scePthreadAttrInit]
 	mov rdi, qword [libkernel]
 	call sys_dynlib_dlsym
 
@@ -145,8 +178,26 @@ module_start:
 	mov rdi, qword [ModuleHandle]
 	call sys_dynlib_dlsym
 
-	mov r12, qword [amodule_start]
+	; create attr
+	lea rdi, [scePthreadAttr]
+	mov r12, qword [scePthreadAttrInit]
 	call r12
+
+	; set stack size
+	mov rsi, 0x80000 ; 512 kb
+	lea rdi, [scePthreadAttr]
+	mov r12, qword [scePthreadAttrSetstacksize]
+	call r12
+
+	; create thread
+	lea r8, [str_threadName]
+	mov rcx, 0
+	mov rdx, qword [amodule_start]
+	lea rsi, [scePthreadAttr]
+	lea rdi, [hthread]
+	mov r12, qword [scePthreadCreate]
+	call r12
+	
 	xor eax, eax
 	retn
 

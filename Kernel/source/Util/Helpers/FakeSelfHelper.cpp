@@ -382,35 +382,16 @@ int FakeSelfHelper::SceSblAuthMgrSmLoadSelfBlock_MailboxHook(uint64_t pServiceId
     }
 }
 
-int FakeSelfHelper::sceSblAuthMgrIsLoadableHook(const char* path)
-{
-    static const char* self_dir_prefix = "/data/self/";
-	const char* p;
-	int ret;
-
-	if (path) {
-		p = strstr(path, self_dir_prefix);
-		if (p)
-			path = p + strlen(self_dir_prefix);
-	}
-
-	ret = sceSblACMgrGetPathId(path);
-
-	return ret;
-}
-
 FakeSelfHelper::FakeSelfHelper()
 {
     auto sv = (struct sysentvec*)resolve(addr_sysvec);
     struct sysent* sysents = sv->sv_table;
 
-    //HookFunctionCall((uint8_t*)sysents[409].sy_call, (void*)SceSblAuthMgrVerifyHeaderHook, resolve(addr_sceSblAuthMgrVerifyHeaderHook1));
-    //HookFunctionCall((uint8_t*)sysents[384].sy_call, (void*)SceSblAuthMgrVerifyHeaderHook, resolve(addr_sceSblAuthMgrVerifyHeaderHook2));
-    //HookFunctionCall((uint8_t*)sysents[385].sy_call, (void*)SceSblAuthMgrIsLoadable2Hook, resolve(addr_SceSblAuthMgrIsLoadable2Hook));
-    //HookFunctionCall((uint8_t*)sysents[387].sy_call, (void*)SceSblAuthMgrSmLoadSelfSegment_MailboxHook, resolve(addr_SceSblAuthMgrSmLoadSelfSegment_Mailbox));
-    //HookFunctionCall((uint8_t*)sysents[386].sy_call, (void*)SceSblAuthMgrSmLoadSelfBlock_MailboxHook, resolve(addr_SceSblAuthMgrSmLoadSelfBlock_Mailbox));
-
-    //HookFunctionCall((uint8_t*)sysents[386].sy_call, (void*)sceSblAuthMgrIsLoadableHook, resolve(addr_sceSblAuthMgrIsLoadable__sceSblACMgrGetPathId));
+    HookFunctionCall((uint8_t*)sysents[409].sy_call, (void*)SceSblAuthMgrVerifyHeaderHook, resolve(addr_sceSblAuthMgrVerifyHeaderHook1));
+    HookFunctionCall((uint8_t*)sysents[384].sy_call, (void*)SceSblAuthMgrVerifyHeaderHook, resolve(addr_sceSblAuthMgrVerifyHeaderHook2));
+    HookFunctionCall((uint8_t*)sysents[385].sy_call, (void*)SceSblAuthMgrIsLoadable2Hook, resolve(addr_SceSblAuthMgrIsLoadable2Hook));
+    HookFunctionCall((uint8_t*)sysents[387].sy_call, (void*)SceSblAuthMgrSmLoadSelfSegment_MailboxHook, resolve(addr_SceSblAuthMgrSmLoadSelfSegment_Mailbox));
+    HookFunctionCall((uint8_t*)sysents[386].sy_call, (void*)SceSblAuthMgrSmLoadSelfBlock_MailboxHook, resolve(addr_SceSblAuthMgrSmLoadSelfBlock_Mailbox));
 }
 
 FakeSelfHelper::~FakeSelfHelper()

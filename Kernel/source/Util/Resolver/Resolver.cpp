@@ -79,7 +79,6 @@ int (*sceSblAuthMgrIsLoadable2)(SelfContext* pSelfContext, SelfAuthInfo* pOldAut
 void (*sceSblAuthMgrSmStart)(void**);
 int (*sceSblAuthMgrVerifyHeader)(SelfContext* pSelfContext);
 int (*sceSblServiceMailbox)(uint32_t pServiceId, void* pRequest, void* pResponse);
-int (*sceSblACMgrGetPathId)(const char* path);
 
 /*Critical Sections*/
 void (*EnterCriticalSection)();
@@ -117,120 +116,113 @@ int (*sceRegMgrSetBin)(uint64_t RegID, char* Value, int size);
 
 #define NATIVE_RESOLVE(_Ty) _Ty = (decltype(_Ty))(void*)((uint8_t *)&gpKernelBase[addr_ ## _Ty]);
 
-void ResolveFunctions()
+bool ResolveFunctions()
 {
-    //something = ()resolve();
+    gpKernelBase = (uint8_t*)__readmsr(0xC0000082) - addr_Xfast_syscall;
+
+    if (!gpKernelBase)
+        return false;
 
     /* STD Lib */
-    M_TEMP = resolve(addr_M_TEMP);
-    M_MOUNT = resolve(addr_M_MOUNT);
-    malloc = (void*(*)(unsigned long size, void *type, int flags))resolve(addr_malloc);
-    free = (void(*)(void *addr, void *type))resolve(addr_free);
-    memcpy = (void(*)(void *dst, const void *src, size_t len))resolve(addr_memcpy);
-    memset = (void*(*)(void *ptr, int value, size_t num))resolve(addr_memset);
-    memcmp = (int(*)(const void *ptr1, const void *ptr2, size_t num))resolve(addr_memcmp);
-    strlen = (size_t(*)(const char *str))resolve(addr_strlen);
-    strcpy = (int(*)(char * str1, char * str2))resolve(addr_strcpy);
-    strncpy = (char*(*)(char *destination, const char *source, size_t num))resolve(addr_strncpy);
-    strcmp = (int(*)(const char * str1, const char * str2))resolve(addr_strcmp);
-    strstr = (char*(*)(const char * str1, const char * str2))resolve(addr_strstr);
-    sprintf = (int(*)(char* dst, const char *fmt, ...))resolve(addr_sprintf);
-    snprintf = (int(*)(char *str, size_t size, const char *format, ...))resolve(addr_snprintf);
-    vsprintf = (int(*)(char* dst, const char* fmt, va_list ap))resolve(addr_vsprintf);
-    vprintf = (int(*)(const char *fmt, va_list arg))resolve(addr_vprintf);
-    sscanf = (int(*)(const char *str, const char *format, ...))resolve(addr_sscanf);
-    strdup = (char*(*)(const char *s, void*))resolve(addr_strdup);
-    realloc = (char*(*)(void *addr, unsigned long size, void* mtp, int flags))resolve(addr_realloc);
-    kprintf = (decltype(kprintf))resolve(addr_printf);
+    NATIVE_RESOLVE(M_TEMP);
+    NATIVE_RESOLVE(M_MOUNT);
+    NATIVE_RESOLVE(malloc);
+    NATIVE_RESOLVE(free);
+    NATIVE_RESOLVE(memcpy);
+    NATIVE_RESOLVE(memset);
+    NATIVE_RESOLVE(memcmp);
+    NATIVE_RESOLVE(strlen);
+    NATIVE_RESOLVE(strcpy);
+    NATIVE_RESOLVE(strncpy);
+    NATIVE_RESOLVE(strcmp);
+    NATIVE_RESOLVE(strstr);
+    NATIVE_RESOLVE(sprintf);
+    NATIVE_RESOLVE(snprintf);
+    NATIVE_RESOLVE(vsprintf);
+    NATIVE_RESOLVE(vprintf);
+    NATIVE_RESOLVE(sscanf);
+    NATIVE_RESOLVE(strdup);
+    NATIVE_RESOLVE(realloc);
+    NATIVE_RESOLVE(kprintf);
     
 
     /* Kproc */
-    kproc_create = (int(*)(void (*func)(void *), void *arg, struct proc **newpp, int flags, int pages, const char *fmt, ...))resolve(addr_kproc_create);
-    kproc_exit = (int(*)(int code))resolve(addr_kproc_exit);
-    //kproc_resume
-    //kproc_shutdown
-    //kproc_start
-    //kproc_suspend
-    //kproc_suspend_check
-    kproc_kthread_add = (int(*)(void (*func)(void *), void *arg, struct proc **procptr, struct thread **tdptr, int flags, int pages, char * procname, const char *fmt, ...))resolve(addr_kproc_kthread_add);
-    pause = (void(*)(const char *wmesg, int timo))resolve(addr_pause);
-    kthread_add = (int(*)(void (*func)(void *), void *arg, struct proc *procp, struct thread **newtdpp, int flags, int pages, const char *fmt, ...))resolve(addr_kthread_add);
-    kthread_exit = (void(*)(void))resolve(addr_kthread_exit);
-    //kthread_suspend
-    kthread_suspend_check = (void(*)(void))resolve(addr_kthread_suspend_check);
-    kthread_set_affinity = (void(*)(const char *tdname, uint64_t prio, uint64_t cpuset, uint64_t unknown))resolve(addr_kthread_set_affinity);
+    NATIVE_RESOLVE(kproc_create);
+    NATIVE_RESOLVE(kproc_exit);
+    NATIVE_RESOLVE(kproc_kthread_add);
+    NATIVE_RESOLVE(pause);
+    NATIVE_RESOLVE(kthread_add);
+    NATIVE_RESOLVE(kthread_exit);
+    NATIVE_RESOLVE(kthread_suspend_check);
+    NATIVE_RESOLVE(kthread_set_affinity);
 
     /* Proc */
-    proc_kill = (int(*)(proc *p, char* why))resolve(addr_proc_kill);
-    proc_rwmem = (int(*)(proc *p, uio *uio))resolve(addr_proc_rwmem);
-    create_thread = (int(*)(thread * td, uint64_t ctx, void* start_func, void *arg, char *stack_base, size_t stack_size, char *tls_base, long * child_tid, long * parent_tid, uint64_t flags, uint64_t rtp))resolve(addr_create_thread);
+    NATIVE_RESOLVE(proc_kill);
+    NATIVE_RESOLVE(proc_rwmem);
+    NATIVE_RESOLVE(create_thread);
 
     /* ptrace */
-    kptrace = (int(*)(thread * td, int req, int pid, void * addr, int data))resolve(addr_kptrace);
-    kpsignal = (int(*)(proc* proc, int sig))resolve(addr_kpsignal);
-    kwait = (int(*)(thread *td, int wpid, int *status, int options, void *rusage))resolve(addr_kwait);
-    kDelay = (int(*)(uint64_t time))resolve(addr_kDelay);
+    NATIVE_RESOLVE(kptrace);
+    NATIVE_RESOLVE(kpsignal);
+    NATIVE_RESOLVE(kwait);
+    NATIVE_RESOLVE(kDelay);
 
     /* Virtual memory */
-    vmspace_acquire_ref = (vmspace*(*)(proc *p))resolve(addr_vmspace_acquire_ref);
-    vmspace_free = (void(*)(vmspace *vm))resolve(addr_vmspace_free);
-    vm_map_lock_read = (void(*)(vm_map* map))resolve(addr_vm_map_lock_read);
-    vm_map_unlock_read = (void(*)(vm_map* map))resolve(addr_vm_map_unlock_read);
-    vm_map_lookup_entry = (int(*)(vm_map* map, uint64_t address, vm_map_entry **entries))resolve(addr_vm_map_lookup_entry);
-    vm_map_findspace = (int(*)(vm_map* map, uint64_t start, uint64_t length, uint64_t *addr))resolve(addr_vm_map_findspace);
-    vm_map_insert = (int(*)(vm_map* map, uint64_t object, uint64_t offset, uint64_t start, uint64_t end, int prot, int max, int cow))resolve(addr_vm_map_insert);
-    vm_map_lock = (void(*)(vm_map* map))resolve(addr_vm_map_lock);
-    vm_map_unlock = (void(*)(vm_map* map))resolve(addr_vm_map_unlock);
-    vm_map_delete = (int(*)(vm_map* map, uint64_t start, uint64_t end))resolve(addr_vm_map_delete);
-    vm_map_protect = (int(*)(vm_map* map, uint64_t start, uint64_t end, int new_prot, uint64_t set_max))resolve(addr_vm_map_protect);
+    NATIVE_RESOLVE(vmspace_acquire_ref);
+    NATIVE_RESOLVE(vmspace_free);
+    NATIVE_RESOLVE(vm_map_lock_read);
+    NATIVE_RESOLVE(vm_map_unlock_read);
+    NATIVE_RESOLVE(vm_map_lookup_entry);
+    NATIVE_RESOLVE(vm_map_findspace);
+    NATIVE_RESOLVE(vm_map_insert);
+    NATIVE_RESOLVE(vm_map_lock);
+    NATIVE_RESOLVE(vm_map_unlock);
+    NATIVE_RESOLVE(vm_map_delete);
+    NATIVE_RESOLVE(vm_map_protect);
     
     /*Mutex Locks*/
-    mtx_init = (void(*)(mtx *m, const char *name, const char *type, int opts))resolve(addr_mtx_init);
-    mtx_destroy = (void(*)(mtx *mutex))resolve(addr_mtx_destroy);
-    mtx_lock_flags = (void(*)(mtx *mutex, int flags))resolve(addr_mtx_lock_flags);
-    mtx_unlock_flags = (void(*)(mtx *mutex, int flags))resolve(addr_mtx_unlock_flags);
-    _mtx_lock_flags = (void(*)(mtx *mutex, int flags, const char *file, int line))resolve(addr_mtx_lock_flags);
-    _mtx_unlock_flags = (void(*)(mtx *mutex, int flags, const char *file, int line))resolve(addr_mtx_unlock_flags);
+    NATIVE_RESOLVE(mtx_init);
+    NATIVE_RESOLVE(mtx_destroy);
+    NATIVE_RESOLVE(mtx_lock_flags);
+    NATIVE_RESOLVE(mtx_unlock_flags);
+    _mtx_lock_flags = decltype(_mtx_lock_flags)(mtx_lock_flags);
+    _mtx_unlock_flags = decltype(_mtx_unlock_flags)(mtx_unlock_flags);
 
     /* Fake Selfs */
-    /*sceSblAuthMgrGetSelfInfo = (int(*)(SelfContext* ctx, void *exInfo))resolve(addr_sceSblAuthMgrGetSelfInfo);
-    sceSblAuthMgrIsLoadable2 = (int(*)(SelfContext* pSelfContext, SelfAuthInfo* pOldAuthInfo, int32_t pPathId, SelfAuthInfo* pNewAuthInfo))resolve(addr_sceSblAuthMgrIsLoadable2);
-    sceSblAuthMgrSmStart = (void(*)(void**))resolve(addr_sceSblAuthMgrSmStart);
-    sceSblAuthMgrVerifyHeader = (int(*)(SelfContext* pSelfContext))resolve(addr_sceSblAuthMgrVerifyHeader);
-    sceSblServiceMailbox = (int(*)(uint32_t pServiceId, void* pRequest, void* pResponse))resolve(addr_sceSblServiceMailbox);
-    sceSblACMgrGetPathId = (int (*)(const char* path))resolve(addr_sceSblACMgrGetPathId);*/
+    NATIVE_RESOLVE(sceSblAuthMgrGetSelfInfo);
+    NATIVE_RESOLVE(sceSblAuthMgrIsLoadable2);
+    NATIVE_RESOLVE(sceSblAuthMgrSmStart);
+    NATIVE_RESOLVE(sceSblAuthMgrVerifyHeader);
+    NATIVE_RESOLVE(sceSblServiceMailbox);
 
     /* Critical Sections */
-    EnterCriticalSection = (void(*)())resolve(addr_EnterCriticalSection);
-    ExitCriticalSection = (void(*)())resolve(addr_ExitCriticalSection);
+    NATIVE_RESOLVE(EnterCriticalSection);
+    NATIVE_RESOLVE(ExitCriticalSection);
 
     /* Event Handling */
-    #ifdef SOFTWARE_VERSION_505
-    eventhandler_register = (eventhandler_tag(*)(eventhandler_list *list, const char *name, void *func, void *arg, int priority))resolve(addr_eventhandler_register);
-    #endif
-  #if defined(SOFTWARE_VERSION_672) || defined(SOFTWARE_VERSION_702) || defined(SOFTWARE_VERSION_755) 
-    eventhandler_register = (eventhandler_tag(*)(eventhandler_list *list, const char *name, void *func, const char* unk, void *arg, int priority))resolve(addr_eventhandler_register);
-    #endif
-    eventhandler_deregister = (void(*)(struct eventhandler_list* a, struct eventhandler_entry* b))resolve(addr_eventhandler_deregister);
-    eventhandler_find_list = (eventhandler_list * (*)(const char *name))resolve(addr_eventhandler_find_list);
+    NATIVE_RESOLVE(eventhandler_register);
+    NATIVE_RESOLVE(eventhandler_deregister);
+    NATIVE_RESOLVE(eventhandler_find_list);
 
     /* FileIO */
-    kern_open = (int(*)(thread* td, char *path, int pathseg, int flags, int mode))resolve(addr_kern_open);
-    kern_mkdir = (int(*)(thread* td, char *path, int pathseg, int mode))resolve(addr_kern_mkdir);
+    NATIVE_RESOLVE(kern_open);
+    NATIVE_RESOLVE(kern_mkdir);
 
     /* Kernel Misc */
-    kernel_sysctlbyname = (int(*)(thread *td, char *name, void *old, size_t *oldlenp, void *pnew, size_t newlen, size_t *retval, int flags))resolve(addr_kernel_sysctlbyname);
-    kernel_ioctl = (int(*)(thread *td, int fd, unsigned long request, ...))resolve(addr_kernel_ioctl);
+    NATIVE_RESOLVE(kernel_sysctlbyname);
+    NATIVE_RESOLVE(kernel_ioctl);
 
     /* Flash & NVS */
-    icc_nvs_read = (int(*)(uint32_t block, uint32_t offset, uint32_t size, uint8_t* value))resolve(addr_icc_nvs_read);
-    icc_nvs_write = (int(*)(uint32_t block, uint32_t offset, uint32_t size, uint8_t* value))resolve(addr_icc_nvs_write);
+    NATIVE_RESOLVE(icc_nvs_read);
+    NATIVE_RESOLVE(icc_nvs_write);
 
     /* Registry */
-    sceRegMgrGetStr = (int(*)(uint64_t RegID, char* Value, int len))resolve(addr_sceRegMgrGetStr);
-    sceRegMgrSetStr = (int(*)(uint64_t RegID, char* Value, int len))resolve(addr_sceRegMgrSetStr);
-    sceRegMgrGetInt = (int(*)(uint64_t RegID, int32_t* Value))resolve(addr_sceRegMgrGetInt);
-    sceRegMgrSetInt = (int(*)(uint64_t RegID, int32_t Value))resolve(addr_sceRegMgrSetInt);
-    sceRegMgrGetBin = (int(*)(uint64_t RegID, char* Value, int size))resolve(addr_sceRegMgrGetBin);
-    sceRegMgrSetBin = (int(*)(uint64_t RegID, char* Value, int size))resolve(addr_sceRegMgrSetBin);
+    NATIVE_RESOLVE(sceRegMgrGetStr);
+    NATIVE_RESOLVE(sceRegMgrSetStr);
+    NATIVE_RESOLVE(sceRegMgrGetInt);
+    NATIVE_RESOLVE(sceRegMgrSetInt);
+    NATIVE_RESOLVE(sceRegMgrGetBin);
+    NATIVE_RESOLVE(sceRegMgrSetBin);
+
+    return true;
 }

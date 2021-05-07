@@ -8,7 +8,6 @@
 class OrbisLib
 {
 private:
-    bool IsRunning = false;
     int LastHostIPAddr;
 
     //Event Handlers
@@ -30,6 +29,8 @@ private:
     static void OnSystemShutdown(void *arg);
 
 public:
+    bool IsRunning = false;
+
     OrbisProc* orbisProc;
     OrbisTarget* orbisTarget;
     OrbisDebugger* orbisDebugger;

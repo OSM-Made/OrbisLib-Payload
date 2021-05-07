@@ -13,7 +13,7 @@
 
 /* Patches */
 #define patch_copyin1                           0x3C1803
-#define patch_copyin2                           0x3C17F7
+#define patch_copyin2                           0x3C17F7 
 #define patch_copyout1                          0x3C16EB
 #define patch_copyout2                          0x3C16F3
 #define patch_copyout3                          0x3C1702
@@ -145,6 +145,5 @@
 #define addr_thr_initial_libkernel              0x435420
 #define addr_thr_initial_libkernel_web          0x435420
 #define addr_thr_initial_libkernel_sys          0x435830
-#define addr_thr_initial_minisyscore            0
 
 #endif

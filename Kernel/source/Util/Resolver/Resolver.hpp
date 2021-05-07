@@ -13,6 +13,7 @@ extern "C"
 #include "Resolver-505.hpp"
 #include "Resolver-672.hpp"
 #include "Resolver-702.hpp"
+#include "Resolver-755.hpp"
 
 #include "../Helpers/FakeSelfHelper.hpp"
 
@@ -160,4 +161,4 @@ extern int (*sceRegMgrSetInt)(uint64_t RegID, int32_t Value);
 extern int (*sceRegMgrGetBin)(uint64_t RegID, char* Value, int size);
 extern int (*sceRegMgrSetBin)(uint64_t RegID, char* Value, int size);
 
-void ResolveFunctions();
+bool ResolveFunctions();
