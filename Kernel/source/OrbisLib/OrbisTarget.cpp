@@ -101,7 +101,6 @@ void OrbisTarget::Beep(int Socket, int Count)
 
     auto icc_indicator_set_buzzer = (void(*)(char))resolve(addr_icc_indicator_set_buzzer);
 	icc_indicator_set_buzzer(Count);
-
     SendStatus(Socket, API_OK);
 }
 
@@ -233,7 +232,7 @@ void OrbisTarget::APIHandle(int Socket, API_Packet_s* Packet)
 		break;
 
 	case API_TARGET_NOTIFY:
-		Notify(Socket, Packet->Target_Notify.IconUri, Packet->Target_Notify.Message);
+		//Notify(Socket, Packet->Target_Notify.IconUri, Packet->Target_Notify.Message);
 		break;
 
 	case API_TARGET_BEEP:
